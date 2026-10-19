@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { HeartPulse, Lock, Mail, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
+import { HeartPulse, Lock, Mail, ArrowRight, ShieldCheck, Stethoscope, UserCheck, AlertCircle, Info } from 'lucide-react';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -34,18 +34,10 @@ export function LoginPage() {
     }
   };
 
-  const handleQuickLogin = async (mockEmail) => {
-    setEmail(mockEmail);
-    setPassword('demo123456');
-    setLoading(true);
-    const res = await login(mockEmail, 'demo123456');
-    setLoading(false);
-    if (!res.error) {
-      const userRole = res.data?.profile?.role || 'parent';
-      if (userRole === 'admin') navigate('/admin');
-      else if (userRole === 'staff') navigate('/staff');
-      else navigate('/parent');
-    }
+  const handleSelectAccount = (selectedEmail, selectedPassword) => {
+    setEmail(selectedEmail);
+    setPassword(selectedPassword);
+    setError('');
   };
 
   return (
@@ -117,38 +109,94 @@ export function LoginPage() {
               disabled={loading}
               className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl shadow-sm text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 transition-all cursor-pointer"
             >
-              {loading ? 'Memproses...' : 'Masuk ke Aplikasi'}
+              {loading ? 'Memproses Masuk...' : 'Masuk ke Aplikasi'}
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
 
-          {/* Quick Demo Login Shortcuts */}
+          {/* Akun Pengujian yang Tersedia */}
           <div className="mt-8 pt-6 border-t border-slate-100">
-            <p className="text-xs font-semibold text-slate-500 text-center uppercase tracking-wider mb-3">
-              Uji Coba 1-Klik Berdasarkan Peran
-            </p>
-            <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Akun Siap Digunakan
+              </span>
+              <span className="text-[11px] text-slate-400">Klik untuk isi cepat</span>
+            </div>
+
+            <div className="space-y-2">
+              {/* Dokter */}
               <button
                 type="button"
-                onClick={() => handleQuickLogin('orangtua@spkbalita.id')}
-                className="p-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium text-center border border-blue-100 transition-colors"
+                onClick={() => handleSelectAccount('dokter@gmail.com', '123')}
+                className="w-full p-2.5 rounded-xl bg-teal-50/70 hover:bg-teal-100/80 border border-teal-200/80 flex items-center justify-between text-left transition-colors cursor-pointer group"
               >
-                Orang Tua
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-teal-600 text-white flex items-center justify-center text-xs">
+                    <Stethoscope className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-800">
+                      Dokter / Tenaga Medis
+                    </div>
+                    <div className="text-[11px] text-teal-700 font-mono">
+                      dokter@gmail.com • Sandi: 123
+                    </div>
+                  </div>
+                </div>
+                <span className="text-[11px] text-teal-700 font-semibold group-hover:underline">Pilih</span>
               </button>
+
+              {/* Admin */}
               <button
                 type="button"
-                onClick={() => handleQuickLogin('petugas@spkbalita.id')}
-                className="p-2 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-700 font-medium text-center border border-teal-100 transition-colors"
+                onClick={() => handleSelectAccount('admin@gmail.com', '123')}
+                className="w-full p-2.5 rounded-xl bg-purple-50/70 hover:bg-purple-100/80 border border-purple-200/80 flex items-center justify-between text-left transition-colors cursor-pointer group"
               >
-                Petugas
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs">
+                    <ShieldCheck className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-800">
+                      Administrator Sistem
+                    </div>
+                    <div className="text-[11px] text-purple-700 font-mono">
+                      admin@gmail.com • Sandi: 123
+                    </div>
+                  </div>
+                </div>
+                <span className="text-[11px] text-purple-700 font-semibold group-hover:underline">Pilih</span>
               </button>
+
+              {/* Orang Tua */}
               <button
                 type="button"
-                onClick={() => handleQuickLogin('admin@spkbalita.id')}
-                className="p-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-medium text-center border border-purple-100 transition-colors"
+                onClick={() => handleSelectAccount('user@gmail.com', '123')}
+                className="w-full p-2.5 rounded-xl bg-blue-50/70 hover:bg-blue-100/80 border border-blue-200/80 flex items-center justify-between text-left transition-colors cursor-pointer group"
               >
-                Admin
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs">
+                    <UserCheck className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-800">
+                      User / Orang Tua
+                    </div>
+                    <div className="text-[11px] text-blue-700 font-mono">
+                      user@gmail.com • Sandi: 123
+                    </div>
+                  </div>
+                </div>
+                <span className="text-[11px] text-blue-700 font-semibold group-hover:underline">Pilih</span>
               </button>
+            </div>
+
+            {/* Catatan Ketentuan Registrasi */}
+            <div className="mt-3.5 p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-2 text-[11px] text-slate-500 leading-relaxed">
+              <Info className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
+              <span>
+                Akun Dokter & Admin dikelola manual melalui database. Pendaftaran akun baru publik hanya diperuntukkan bagi <strong>Orang Tua Balita</strong>.
+              </span>
             </div>
           </div>
 

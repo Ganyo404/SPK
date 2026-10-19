@@ -7,9 +7,13 @@ let auditStore = [...MOCK_AUDIT_LOGS];
 
 export const adminService = {
   async getUsers() {
-    if (isSupabaseConfigured()) {
-      const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
-      return { data, error };
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+        if (!error && data && data.length > 0) return { data, error: null };
+      } catch (err) {
+        console.warn('getUsers cloud fallback:', err);
+      }
     }
     return { data: [...usersStore], error: null };
   },
@@ -19,14 +23,18 @@ export const adminService = {
       return { data: null, error: { message: 'Peran tidak valid.' } };
     }
 
-    if (isSupabaseConfigured()) {
-      const { data, error } = await supabase
-        .from('profiles')
-        .update({ role: newRole })
-        .eq('id', userId)
-        .select()
-        .single();
-      return { data, error };
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .update({ role: newRole })
+          .eq('id', userId)
+          .select()
+          .single();
+        if (!error && data) return { data, error: null };
+      } catch (err) {
+        console.warn('updateUserRole cloud fallback:', err);
+      }
     }
 
     const idx = usersStore.findIndex(u => u.id === userId);
@@ -45,9 +53,13 @@ export const adminService = {
   },
 
   async getPosyandus() {
-    if (isSupabaseConfigured()) {
-      const { data, error } = await supabase.from('posyandu').select('*').order('name');
-      return { data, error };
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data, error } = await supabase.from('posyandu').select('*').order('name');
+        if (!error && data && data.length > 0) return { data, error: null };
+      } catch (err) {
+        console.warn('getPosyandus cloud fallback:', err);
+      }
     }
     return { data: [...posyanduStore], error: null };
   },
@@ -57,13 +69,17 @@ export const adminService = {
       return { data: null, error: { message: 'Nama dan alamat Posyandu wajib diisi.' } };
     }
 
-    if (isSupabaseConfigured()) {
-      const { data, error } = await supabase
-        .from('posyandu')
-        .insert({ name, address, rw_rt, village, district })
-        .select()
-        .single();
-      return { data, error };
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('posyandu')
+          .insert({ name, address, rw_rt, village, district })
+          .select()
+          .single();
+        if (!error && data) return { data, error: null };
+      } catch (err) {
+        console.warn('createPosyandu cloud fallback:', err);
+      }
     }
 
     const newPosyandu = {
@@ -80,9 +96,13 @@ export const adminService = {
   },
 
   async getAuditLogs() {
-    if (isSupabaseConfigured()) {
-      const { data, error } = await supabase.from('audit_logs').select('*').order('created_at', { ascending: false });
-      return { data, error };
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data, error } = await supabase.from('audit_logs').select('*').order('created_at', { ascending: false });
+        if (!error && data && data.length > 0) return { data, error: null };
+      } catch (err) {
+        console.warn('getAuditLogs cloud fallback:', err);
+      }
     }
     return { data: [...auditStore], error: null };
   },

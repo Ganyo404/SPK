@@ -7,7 +7,8 @@
 export const MOCK_USERS = [
   {
     id: 'u-parent-1',
-    email: 'orangtua@spkbalita.id',
+    email: 'user@gmail.com',
+    password: '123',
     full_name: 'Siti Rahmawati',
     nik: '3201015504950001',
     address: 'Jl. Melati Raya No. 14, RT 03/RW 02, Cilodong',
@@ -16,8 +17,9 @@ export const MOCK_USERS = [
   },
   {
     id: 'u-staff-1',
-    email: 'petugas@spkbalita.id',
-    full_name: 'Bdn. Dewi Anggraini, S.Tr.Keb',
+    email: 'dokter@gmail.com',
+    password: '123',
+    full_name: 'dr. Dewi Anggraini, Sp.A',
     nik: '3201016608900002',
     address: 'Jl. Kesehatan No. 5, Sukamaju',
     phone: '081298765432',
@@ -25,7 +27,39 @@ export const MOCK_USERS = [
   },
   {
     id: 'u-admin-1',
+    email: 'admin@gmail.com',
+    password: '123',
+    full_name: 'Ahmad Fauzi, S.Kom (Administrator)',
+    nik: '3201011203880003',
+    address: 'Komplek Puskesmas Cilodong Blok A1',
+    phone: '081311223344',
+    role: 'admin'
+  },
+  // Akun pendukung tambahan untuk kompatibilitas
+  {
+    id: 'u-parent-legacy',
+    email: 'orangtua@spkbalita.id',
+    password: '123',
+    full_name: 'Siti Rahmawati',
+    nik: '3201015504950001',
+    address: 'Jl. Melati Raya No. 14, RT 03/RW 02, Cilodong',
+    phone: '081234567890',
+    role: 'parent'
+  },
+  {
+    id: 'u-staff-legacy',
+    email: 'petugas@spkbalita.id',
+    password: '123',
+    full_name: 'Bdn. Dewi Anggraini, S.Tr.Keb',
+    nik: '3201016608900002',
+    address: 'Jl. Kesehatan No. 5, Sukamaju',
+    phone: '081298765432',
+    role: 'staff'
+  },
+  {
+    id: 'u-admin-legacy',
     email: 'admin@spkbalita.id',
+    password: '123',
     full_name: 'Ahmad Fauzi, S.Kom',
     nik: '3201011203880003',
     address: 'Komplek Puskesmas Cilodong Blok A1',
@@ -214,7 +248,7 @@ export const MOCK_EXAMINATIONS = [
     examined_at: '2026-08-15T09:00:00Z',
     period_code: '2026-08',
     recorded_by: 'u-staff-1',
-    recorded_by_name: 'Bdn. Dewi Anggraini, S.Tr.Keb',
+    recorded_by_name: 'dr. Dewi Anggraini, Sp.A',
     verified_by: 'u-staff-1',
     verified_at: '2026-08-15T11:00:00Z',
     status: 'verified',
@@ -234,7 +268,7 @@ export const MOCK_EXAMINATIONS = [
     examined_at: '2026-09-15T09:30:00Z',
     period_code: '2026-09',
     recorded_by: 'u-staff-1',
-    recorded_by_name: 'Bdn. Dewi Anggraini, S.Tr.Keb',
+    recorded_by_name: 'dr. Dewi Anggraini, Sp.A',
     verified_by: 'u-staff-1',
     verified_at: '2026-09-15T10:45:00Z',
     status: 'verified',
@@ -254,7 +288,7 @@ export const MOCK_EXAMINATIONS = [
     examined_at: '2026-10-15T09:00:00Z',
     period_code: '2026-10',
     recorded_by: 'u-staff-1',
-    recorded_by_name: 'Bdn. Dewi Anggraini, S.Tr.Keb',
+    recorded_by_name: 'dr. Dewi Anggraini, Sp.A',
     verified_by: 'u-staff-1',
     verified_at: '2026-10-15T11:00:00Z',
     status: 'verified',
@@ -273,7 +307,7 @@ export const MOCK_EXAMINATIONS = [
     examined_at: '2026-10-15T09:40:00Z',
     period_code: '2026-10',
     recorded_by: 'u-staff-1',
-    recorded_by_name: 'Bdn. Dewi Anggraini, S.Tr.Keb',
+    recorded_by_name: 'dr. Dewi Anggraini, Sp.A',
     verified_by: 'u-staff-1',
     verified_at: '2026-10-15T11:10:00Z',
     status: 'verified',
@@ -292,7 +326,7 @@ export const MOCK_EXAMINATIONS = [
     examined_at: '2026-10-15T10:15:00Z',
     period_code: '2026-10',
     recorded_by: 'u-staff-1',
-    recorded_by_name: 'Bdn. Dewi Anggraini, S.Tr.Keb',
+    recorded_by_name: 'dr. Dewi Anggraini, Sp.A',
     verified_by: 'u-staff-1',
     verified_at: '2026-10-15T11:15:00Z',
     status: 'verified',
@@ -311,7 +345,7 @@ export const MOCK_EXAMINATIONS = [
     examined_at: '2026-10-15T10:45:00Z',
     period_code: '2026-10',
     recorded_by: 'u-staff-1',
-    recorded_by_name: 'Bdn. Dewi Anggraini, S.Tr.Keb',
+    recorded_by_name: 'dr. Dewi Anggraini, Sp.A',
     verified_by: 'u-staff-1',
     verified_at: '2026-10-15T11:20:00Z',
     status: 'verified',
@@ -331,7 +365,7 @@ export const MOCK_EXAMINATIONS = [
     examined_at: '2026-10-18T10:00:00Z',
     period_code: '2026-10',
     recorded_by: 'u-staff-1',
-    recorded_by_name: 'Bdn. Dewi Anggraini, S.Tr.Keb',
+    recorded_by_name: 'dr. Dewi Anggraini, Sp.A',
     status: 'pending_verification',
     notes: 'Pemeriksaan baru selesai dicatat, menunggu persetujuan verifikasi.',
     values: { C1: 9.8, C2: 78.0, C3: 44.5, C4: 13.8, C5: 90, C6: 0 },
@@ -348,7 +382,7 @@ export const MOCK_CONSULTATIONS = [
     child_id: 'child-1',
     child_name: 'Aisyah Putri Azzahra',
     assigned_staff_id: 'u-staff-1',
-    assigned_staff_name: 'Bdn. Dewi Anggraini, S.Tr.Keb',
+    assigned_staff_name: 'dr. Dewi Anggraini, Sp.A',
     title: 'Konsultasi Variasi Menu MPASI & Vitamin Tambahan',
     status: 'in_progress',
     updated_at: '2026-10-18T14:30:00Z',
@@ -357,13 +391,13 @@ export const MOCK_CONSULTATIONS = [
         id: 'msg-1',
         sender_id: 'u-parent-1',
         sender_name: 'Siti Rahmawati',
-        message: 'Selamat siang Bidan Dewi, anak saya Aisyah belakangan agak pemilih makanan (GTM). Apakah ada saran variasi menu berprotein hewani?',
+        message: 'Selamat siang Dokter Dewi, anak saya Aisyah belakangan agak pemilih makanan (GTM). Apakah ada saran variasi menu berprotein hewani?',
         created_at: '2026-10-18T14:00:00Z'
       },
       {
         id: 'msg-2',
         sender_id: 'u-staff-1',
-        sender_name: 'Bdn. Dewi Anggraini, S.Tr.Keb',
+        sender_name: 'dr. Dewi Anggraini, Sp.A',
         message: 'Selamat siang Ibu Siti. Berat badan Aisyah kemarin sangat baik (12.6 kg). Untuk mengatasi GTM, Ibu bisa variasikan tekstur telur puyuh cincang, nugget hati ayam buatan rumah, atau sup kaldu daging. Jangan dipaksa makan, buat suasana menyenangkan.',
         created_at: '2026-10-18T14:30:00Z'
       }
@@ -374,11 +408,11 @@ export const MOCK_CONSULTATIONS = [
 export const MOCK_AUDIT_LOGS = [
   {
     id: 'log-1',
-    actor_name: 'Bdn. Dewi Anggraini, S.Tr.Keb',
+    actor_name: 'dr. Dewi Anggraini, Sp.A',
     action: 'VERIFY_EXAMINATION',
     entity_type: 'examinations',
     entity_id: 'exam-3',
-    reason: 'Pemeriksaan balita divalidasi oleh petugas',
+    reason: 'Pemeriksaan balita divalidasi oleh dokter/tenaga medis',
     created_at: '2026-10-15T11:00:00Z'
   },
   {

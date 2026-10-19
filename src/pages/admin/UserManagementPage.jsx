@@ -113,7 +113,9 @@ export function UserManagementPage() {
                         ) : (
                           <UserCheck className="w-3 h-3" />
                         )}
-                        <span className="capitalize">{user.role}</span>
+                        <span>
+                          {user.role === 'admin' ? 'Admin' : user.role === 'staff' ? 'Dokter' : 'Orang Tua'}
+                        </span>
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-right">
@@ -121,10 +123,10 @@ export function UserManagementPage() {
                         value={user.role}
                         disabled={updatingId === user.id}
                         onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                        className="p-1.5 rounded-lg border border-slate-300 bg-white text-xs font-medium focus:border-purple-600 outline-hidden disabled:opacity-50"
+                        className="p-1.5 rounded-lg border border-slate-300 bg-white text-xs font-medium focus:border-purple-600 outline-hidden disabled:opacity-50 cursor-pointer"
                       >
                         <option value="parent">Orang Tua</option>
-                        <option value="staff">Petugas Posyandu</option>
+                        <option value="staff">Dokter / Tenaga Medis</option>
                         <option value="admin">Administrator</option>
                       </select>
                     </td>

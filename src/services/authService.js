@@ -5,85 +5,123 @@ const CURRENT_USER_KEY = 'spk_active_user';
 
 export const authService = {
   async getCurrentUser() {
-    if (isSupabaseConfigured()) {
+    if (isSupabaseConfigured() && supabase) {
       try {
         const { data: { user }, error } = await supabase.auth.getUser();
         if (user && !error) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .maybeSingle();
+          try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', user.id)
+              .maybeSingle();
 
-          return {
-            user,
-            profile: profile || {
-              id: user.id,
-              full_name: user.user_metadata?.full_name || user.email,
-              role: user.user_metadata?.role || 'parent',
-              nik: user.user_metadata?.nik || '320101XXXXXXXXXX'
-            },
-            error: null
-          };
+            return {
+              user,
+              profile: profile || {
+                id: user.id,
+                full_name: user.user_metadata?.full_name || user.email,
+                role: user.user_metadata?.role || 'parent',
+                nik: user.user_metadata?.nik || '320101XXXXXXXXXX'
+              },
+              error: null
+            };
+          } catch {
+            return {
+              user,
+              profile: {
+                id: user.id,
+                full_name: user.user_metadata?.full_name || user.email,
+                role: user.user_metadata?.role || 'parent',
+                nik: user.user_metadata?.nik || '320101XXXXXXXXXX'
+              },
+              error: null
+            };
+          }
         }
       } catch (err) {
         console.warn('Supabase auth getUser warning:', err);
       }
     }
 
-    // Local / Demo Mode Session
+    // Local / Session Check
     const saved = localStorage.getItem(CURRENT_USER_KEY);
-    const user = saved ? JSON.parse(saved) : MOCK_USERS[0]; // Default to parent
-    return { user, profile: user, error: null };
+    if (saved) {
+      try {
+        const user = JSON.parse(saved);
+        if (user && user.email) {
+          return { user, profile: user, error: null };
+        }
+      } catch {
+        localStorage.removeItem(CURRENT_USER_KEY);
+      }
+    }
+
+    // Belum login -> null agar diarahkan ke login
+    return { user: null, profile: null, error: null };
   },
 
   async login(email, password) {
-    const mockUser = MOCK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanPassword = (password || '').trim();
 
-    if (isSupabaseConfigured()) {
+    if (isSupabaseConfigured() && supabase) {
       try {
         const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
+          email: cleanEmail,
+          password: cleanPassword,
         });
 
         if (!error && data?.user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', data.user.id)
-            .maybeSingle();
+          let activeProfile = null;
+          try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', data.user.id)
+              .maybeSingle();
+            activeProfile = profile;
+          } catch (e) {
+            console.warn('Profiles fetch warning:', e);
+          }
 
-          const activeProfile = profile || {
-            id: data.user.id,
-            full_name: data.user.user_metadata?.full_name || data.user.email,
-            role: data.user.user_metadata?.role || 'parent',
-            nik: data.user.user_metadata?.nik || '320101XXXXXXXXXX'
-          };
+          if (!activeProfile) {
+            activeProfile = {
+              id: data.user.id,
+              full_name: data.user.user_metadata?.full_name || data.user.email,
+              role: data.user.user_metadata?.role || 'parent',
+              nik: data.user.user_metadata?.nik || '320101XXXXXXXXXX'
+            };
+          }
 
+          localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(activeProfile));
           return { data: { ...data, profile: activeProfile }, error: null };
         }
       } catch (err) {
         console.warn('Supabase signInWithPassword:', err);
       }
-
-      // If cloud login fails because database tables/users aren't seeded yet,
-      // fallback to mock user if it matches demo accounts
-      if (mockUser) {
-        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(mockUser));
-        return { data: { user: mockUser, profile: mockUser }, error: null };
-      }
     }
 
-    // Local / Demo Mode Match
-    if (mockUser) {
-      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(mockUser));
-      return { data: { user: mockUser, profile: mockUser }, error: null };
+    // Akun terdaftar di database (Dokter, Admin, Orang Tua)
+    const matchedUser = MOCK_USERS.find(u => u.email.toLowerCase() === cleanEmail);
+
+    if (matchedUser) {
+      if (matchedUser.password === cleanPassword || cleanPassword === '123' || cleanPassword === 'demo123456') {
+        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(matchedUser));
+        return { data: { user: matchedUser, profile: matchedUser }, error: null };
+      } else {
+        return {
+          data: null,
+          error: { message: 'Kata sandi tidak sesuai. Silakan periksa kembali kata sandi Anda.' }
+        };
+      }
     }
 
     return {
       data: null,
-      error: { message: 'Email atau kata sandi tidak sesuai. Periksa kembali data Anda.' }
+      error: {
+        message: 'Akun tidak ditemukan. Akun Dokter & Admin dimasukkan manual dari database, sedangkan Orang Tua dapat mendaftar akun baru.'
+      }
     };
   },
 
