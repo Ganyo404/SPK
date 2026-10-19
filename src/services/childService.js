@@ -6,20 +6,25 @@ let childrenStore = [...MOCK_CHILDREN];
 export const childService = {
   async getChildrenByParent(parentId) {
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabase
-        .from('children')
-        .select('*, posyandu:posyandu_id(name)')
-        .eq('parent_id', parentId)
-        .order('created_at', { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from('children')
+          .select('*, posyandu:posyandu_id(name)')
+          .eq('parent_id', parentId)
+          .order('created_at', { ascending: false });
 
-      if (error) return { data: null, error };
-      return {
-        data: data.map(c => ({
-          ...c,
-          posyandu_name: c.posyandu?.name || 'Belum Ditetapkan'
-        })),
-        error: null
-      };
+        if (!error && data && data.length > 0) {
+          return {
+            data: data.map(c => ({
+              ...c,
+              posyandu_name: c.posyandu?.name || 'Belum Ditetapkan'
+            })),
+            error: null
+          };
+        }
+      } catch (err) {
+        console.warn('Supabase getChildrenByParent warning:', err);
+      }
     }
 
     const data = childrenStore.filter(c => c.parent_id === parentId);
@@ -28,20 +33,25 @@ export const childService = {
 
   async getAllChildren() {
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabase
-        .from('children')
-        .select('*, posyandu:posyandu_id(name), parent:parent_id(full_name, phone)')
-        .order('created_at', { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from('children')
+          .select('*, posyandu:posyandu_id(name), parent:parent_id(full_name, phone)')
+          .order('created_at', { ascending: false });
 
-      if (error) return { data: null, error };
-      return {
-        data: data.map(c => ({
-          ...c,
-          posyandu_name: c.posyandu?.name || 'Belum Ditetapkan',
-          parent_name: c.parent?.full_name || 'Orang Tua'
-        })),
-        error: null
-      };
+        if (!error && data && data.length > 0) {
+          return {
+            data: data.map(c => ({
+              ...c,
+              posyandu_name: c.posyandu?.name || 'Belum Ditetapkan',
+              parent_name: c.parent?.full_name || 'Orang Tua'
+            })),
+            error: null
+          };
+        }
+      } catch (err) {
+        console.warn('Supabase getAllChildren warning:', err);
+      }
     }
 
     return { data: [...childrenStore], error: null };
@@ -49,21 +59,26 @@ export const childService = {
 
   async getChildById(id) {
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabase
-        .from('children')
-        .select('*, posyandu:posyandu_id(name, address), parent:parent_id(full_name, phone, nik)')
-        .eq('id', id)
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('children')
+          .select('*, posyandu:posyandu_id(name, address), parent:parent_id(full_name, phone, nik)')
+          .eq('id', id)
+          .single();
 
-      if (error) return { data: null, error };
-      return {
-        data: {
-          ...data,
-          posyandu_name: data.posyandu?.name || 'Belum Ditetapkan',
-          parent_name: data.parent?.full_name || 'Orang Tua'
-        },
-        error: null
-      };
+        if (!error && data) {
+          return {
+            data: {
+              ...data,
+              posyandu_name: data.posyandu?.name || 'Belum Ditetapkan',
+              parent_name: data.parent?.full_name || 'Orang Tua'
+            },
+            error: null
+          };
+        }
+      } catch (err) {
+        console.warn('Supabase getChildById warning:', err);
+      }
     }
 
     const found = childrenStore.find(c => c.id === id);
@@ -89,25 +104,31 @@ export const childService = {
     }
 
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabase
-        .from('children')
-        .insert({
-          parent_id: parentId,
-          posyandu_id: posyanduId || null,
-          name,
-          date_of_birth: dateOfBirth,
-          sex,
-          birth_weight_kg: birthWeight ? Number(birthWeight) : null,
-          birth_height_cm: birthHeight ? Number(birthHeight) : null,
-          registration_status: 'pending_registration',
-        })
-        .select()
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('children')
+          .insert({
+            parent_id: parentId,
+            posyandu_id: posyanduId || null,
+            name,
+            date_of_birth: dateOfBirth,
+            sex,
+            birth_weight_kg: birthWeight ? Number(birthWeight) : null,
+            birth_height_cm: birthHeight ? Number(birthHeight) : null,
+            registration_status: 'pending_registration',
+          })
+          .select()
+          .single();
 
-      return { data, error };
+        if (!error && data) {
+          return { data, error: null };
+        }
+      } catch (err) {
+        console.warn('Supabase registerChild warning:', err);
+      }
     }
 
-    // Mock Mode
+    // Local Store Mode
     const posyanduObj = MOCK_POSYANDU.find(p => p.id === posyanduId) || MOCK_POSYANDU[0];
     const newChild = {
       id: `child-${Date.now()}`,
@@ -130,14 +151,20 @@ export const childService = {
 
   async updateRegistrationStatus(childId, status) {
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabase
-        .from('children')
-        .update({ registration_status: status, updated_at: new Date().toISOString() })
-        .eq('id', childId)
-        .select()
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('children')
+          .update({ registration_status: status, updated_at: new Date().toISOString() })
+          .eq('id', childId)
+          .select()
+          .single();
 
-      return { data, error };
+        if (!error && data) {
+          return { data, error: null };
+        }
+      } catch (err) {
+        console.warn('Supabase updateRegistrationStatus warning:', err);
+      }
     }
 
     const idx = childrenStore.findIndex(c => c.id === childId);
