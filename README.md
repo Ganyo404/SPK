@@ -1,170 +1,457 @@
-# SPK Balita Sehat
+# SPK Balita Sehat — Technical Architecture & Implementation Documentation
 
-**Sistem Pendukung Keputusan Pemantauan Pertumbuhan & Tumbuh Kembang Balita**
-*Berbasis React, JavaScript, Tailwind CSS, Supabase, dan Integrasi Metode AHP + SAW*
-
----
-
-## 1. Ikhtisar Aplikasi
-
-**SPK Balita Sehat** adalah aplikasi web healthcare terintegrasi yang dirancang untuk menghubungkan **Orang Tua**, **Petugas Posyandu / Tenaga Kesehatan (Bidan/Kader)**, serta **Administrator Sistem**.
-
-Sistem ini berfungsi sebagai alat bantu pencatatan antropometri, pemantauan kurva pertumbuhan berkala, dan pendukung keputusan prioritas pembinaan balita berbasis metode multi-kriteria:
-1. **Analytic Hierarchy Process (AHP)**: Menghasilkan bobot prioritas kriteria klinis teruji dengan pengujian rasio konsistensi Saaty ($CR \le 0.10$).
-2. **Simple Additive Weighting (SAW)**: Menghitung skor preferensi ($V_i$) dan pemeringkatan alternatif balita dalam kelompok kelahiran dan periode penimbangan yang sama.
-
-> [!IMPORTANT]
-> **Pemberitahuan Medis Resmi:**
-> SPK Balita Sehat adalah instrumen skrining dan pendukung keputusan administratif Posyandu. Skor SAW dan pemeringkatan SPK **BUKAN pengganti diagnosis medis resmi dokter anak**. Penegakan diagnosis klinis tetap mengacu pada pemeriksaan dokter di Puskesmas atau fasilitas kesehatan berwenang.
+Sistem Pendukung Keputusan (SPK) Pemantauan Pertumbuhan dan Tumbuh Kembang Balita Posyandu berbasis Web dengan integrasi metode **Analytic Hierarchy Process (AHP)** dan **Simple Additive Weighting (SAW)**.
 
 ---
 
-## 2. Fitur Utama Berdasarkan Peran
-
-### A. Portal Orang Tua
-- **Autentikasi & Registrasi**: Pendaftaran akun aman dengan validasi NIK 16 digit Indonesia.
-- **Pendaftaran Balita**: Mendaftarkan data anak ke Posyandu terdekat (status awal: `pending_registration`).
-- **Daftar & Profil Balita**: Menampilkan kartu balita, usia aktual (tahun dan bulan), status pendaftaran.
-- **Ringkasan Pemeriksaan Terbaru**: Nilai pengukuran fisik 6 kriteria, skor SPK, catatan petugas.
-- **Grafik Pertumbuhan Berkala**: Kurva kenaikan Berat Badan (kg) dan Tinggi Badan (cm) dari kunjungan ke kunjungan (terpisah dari skor SAW).
-- **Riwayat Pemeriksaan Permanen**: Seluruh kunjungan tersimpan permanen tanpa saling menimpa (*immutable records*).
-- **Rekomendasi Edukasi Terstruktur**: Panduan gizi, jadwal Posyandu, dan arahan stimulasi KIA.
-- **Layanan Konsultasi**: Fitur tanya jawab langsung dengan Bidan Posyandu.
-
-### B. Portal Petugas Posyandu / Nakes
-- **Dashboard Operasional**: Metrik real-time pendaftaran baru, draf pemeriksaan, menunggu verifikasi, dan balita perlu evaluasi.
-- **Antrean Verifikasi Pendaftaran**: Konfirmasi kedatangan fisik balita pertama kali di Posyandu.
-- **Form Pencatatan 6 Kriteria**: Input Berat Badan, Tinggi Badan, Lingkar Kepala, LiLA, Imunisasi, dan Frekuensi Sakit dengan batas validasi antropometri.
-- **Verifikasi & Hitung SAW**: Prosedur validasi pemeriksaan aman dan penghitungan ranking SPK secara idempotent.
-- **Kelompok Tahun Kelahiran (Cohorts)**: Pengelompokan dinamis cohort balita (Kelahiran 2024, 2025, dst) dan penegakan isolasi periode agar alternatif tidak tercampur.
-- **Hasil & Transparansi SPK**: Tabel ranking SAW lengkap dengan matriks keputusan, matriks normalisasi ($r_{ij}$), dan kontribusi bobot kriteria.
-- **Manajemen Konsultasi**: Merespons pertanyaan kesehatan dari orang tua dan menandai konsultasi selesai.
-
-### C. Portal Administrator
-- **Pusat Kontrol Sistem**: Ringkasan pengguna, posyandu, balita, dan log aktivitas.
-- **Manajemen Pengguna & Hak Akses**: Pengaturan peran pengguna (`parent`, `staff`, `admin`) dengan audit trail.
-- **Manajemen Posyandu**: Pengelolaan data fasilitas dan lokasi pos penimbangan.
-- **Editor Matriks AHP 6x6 Interaktif**: Pengaturan perbandingan berpasangan kriteria dengan kalkulator otomatis $\lambda_{max}$, $CI$, $CR$, dan acuan Saaty Random Index ($RI = 1.24$).
-- **Log Audit & Keamanan**: Pemantauan rekam jejak setiap aksi penting (verifikasi medis, pembaruan konfigurasi, login).
+## DAFTAR ISI
+1. [Arsitektur & Prinsip Rekayasa Perangkat Lunak](#1-arsitektur--prinsip-rekayasa-perangkat-lunak)
+2. [Spesifikasi Teknologi](#2-spesifikasi-teknologi)
+3. [Implementasi Matematika & Algoritma SPK](#3-implementasi-matematika--algoritma-spk)
+   - [A. Analytic Hierarchy Process (AHP)](#a-analytic-hierarchy-process-ahp)
+   - [B. Simple Additive Weighting (SAW)](#b-simple-additive-weighting-saw)
+   - [C. Aturan Isolasi Kohor & Periode](#c-aturan-isolasi-kohor--periode)
+4. [Arsitektur Basis Data & Keamanan (PostgreSQL + RLS)](#4-arsitektur-basis-data--keamanan-postgresql--rls)
+   - [A. Relasi Entitas & Skema Tabel](#a-relasi-entitas--skema-tabel)
+   - [B. Matriks Hak Akses Row Level Security (RLS)](#b-matriks-hak-akses-row-level-security-rls)
+   - [C. Prosedur Tersimpan (Stored Procedures) & Triggers](#c-prosedur-tersimpan-stored-procedures--triggers)
+5. [Struktur Direktori & Rincian Modul Kode](#5-struktur-direktori--rincian-modul-kode)
+6. [Alur Data & Siklus Hidup Pemeriksaan (State Machine)](#6-alur-data--siklus-hidup-pemeriksaan-state-machine)
+7. [Aturan Skrining KIA & Penafian Medis](#7-aturan-skrining-kia--penafian-medis)
+8. [Panduan Langkah Demi Langkah Push ke GitHub](#8-panduan-langkah-demi-langkah-push-ke-github)
+9. [Panduan Instalasi & Eksekusi Lokal](#9-panduan-instalasi--eksekusi-lokal)
 
 ---
 
-## 3. Enam Kriteria Standar Pemantauan
+## 1. Arsitektur & Prinsip Rekayasa Perangkat Lunak
 
-| Kode | Nama Kriteria | Satuan | Tipe (Arah) | Rentang Validasi | Bobot AHP Teruji |
-| :--- | :--- | :---: | :---: | :---: | :---: |
-| **C1** | Berat Badan (BB) | kg | Benefit | 2.0 – 30.0 kg | **34.5%** (0.344865) |
-| **C2** | Tinggi / Panjang Badan (TB) | cm | Benefit | 45.0 – 130.0 cm | **23.5%** (0.234685) |
-| **C3** | Lingkar Kepala (LK) | cm | Benefit | 30.0 – 60.0 cm | **13.8%** (0.138239) |
-| **C4** | Lingkar Lengan Atas (LiLA) | cm | Benefit | 9.0 – 25.0 cm | **14.8%** (0.148240) |
-| **C5** | Kelengkapan Imunisasi Dasar | % | Benefit | 0 – 100 % | **8.2%** (0.081768) |
-| **C6** | Frekuensi Sakit (6 Bln Terakhir) | kali | Cost | 0 – 15 kali | **5.2%** (0.052203) |
+Aplikasi dibangun menggunakan pola **Layered Architecture** dengan pemisahan tanggung jawab (*Separation of Concerns*) yang ketat:
 
-> **Uji Konsistensi AHP:**  
-> $\lambda_{max} = 6.092823$, $CI = 0.018565$, $RI = 1.24$ ($n=6$)  
-> $CR = \frac{CI}{RI} = 0.014971 \le 0.10$ (**Matriks Konsisten**)
-
----
-
-## 4. Cara Menjalankan Aplikasi Secara Lokal
-
-### Prasyarat
-- Node.js versi 18+ (disarankan Node.js v20+)
-- npm versi 9+
-
-### Langkah Instalasi
-```bash
-# 1. Masuk ke direktori proyek
-cd c:/SPK
-
-# 2. Pasang seluruh dependensi
-npm install
-
-# 3. Jalankan server pengembangan
-npm run dev
+```
+┌─────────────────────────────────────────────────────────────┐
+│                       Presentation Layer                    │
+│   React 19 Components (Pages, Layouts, UI Elements, Charts) │
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+┌──────────────────────────────▼──────────────────────────────┐
+│                    State & Context Layer                    │
+│      AuthContext (Session, User Role, Reactive Switcher)    │
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+┌──────────────────────────────▼──────────────────────────────┐
+│                        Service Layer                        │
+│   authService, childService, examService, spkService, etc.  │
+└──────────────┬──────────────────────────────┬───────────────┘
+               │                              │
+┌──────────────▼──────────────┐┌──────────────▼───────────────┐
+│     Core Mathematical Lib   ││      Data Provider Layer     │
+│   src/lib/spk/ahp.js        ││   Supabase Client (Cloud)    │
+│   src/lib/spk/saw.js        ││             OR               │
+│   src/lib/health/rules.js   ││  Local In-Memory Mock Store  │
+└─────────────────────────────┘└──────────────────────────────┘
 ```
 
-Aplikasi dapat dibuka melalui browser di: `http://localhost:5173/`
-
-### Pengujian Otomatis Formula SPK (AHP + SAW)
-Jalankan pengujian unit matematika untuk memastikan formula AHP, normalisasi SAW, penanganan nilai nol pada cost, dan isolasi cohort berjalan akurat:
-```bash
-node src/lib/spk/spk.test.js
-```
-
-### Build Produksi
-```bash
-npm run build
-```
+### Prinsip Utama yang Diterapkan:
+1. **Single Source of Truth Multi-Role**: Satu basis kode React menangani tiga peran (`parent`, `staff`, `admin`) dengan *route guards* terisolasi dan antarmuka khusus tanpa membagi aplikasi menjadi tiga proyek terpisah.
+2. **Immutable Clinical Visits**: Nilai pemeriksaan baru tidak pernah menimpa catatan sebelumnya. Setiap kunjungan adalah entri rekam antropometri unik (`examinations` + `examination_details`) yang mempertahankan riwayat historis longitudinal.
+3. **Idempotent Verification**: Verifikasi pemeriksaan fisik oleh tenaga kesehatan dirancang dengan proteksi idempotensi pada level server database guna mencegah duplikasi eksekusi atau penghitungan ganda.
+4. **Dual Provider Agnostic**: Lapisan layanan (*Service Layer*) secara transparan mendeteksi ketersediaan kredensial Supabase. Jika variabel lingkungan belum diisi, aplikasi beralih ke *reactive mock data provider* tanpa mengalami *crash* atau *runtime error*.
 
 ---
 
-## 5. Konfigurasi Database Supabase
+## 2. Spesifikasi Teknologi
 
-Aplikasi dilengkapi modul PostgreSQL dan Row Level Security (RLS) di direktori `supabase/`:
-- **File Skema & RLS**: `supabase/migrations/20261019000000_create_spk_balita_sehat_schema.sql`
-- **File Data Awal (Seed)**: `supabase/seed.sql`
-
-### Langkah Menghubungkan Supabase Cloud:
-1. Buat proyek baru di [Supabase Dashboard](https://supabase.com).
-2. Buka menu **SQL Editor**, salin dan jalankan isi file `supabase/migrations/20261019000000_create_spk_balita_sehat_schema.sql`.
-3. Jalankan isi file `supabase/seed.sql` untuk mengisi data awal Posyandu, 6 kriteria, dan konfigurasi AHP aktif.
-4. Salin URL proyek dan Kunci Anon Publik dari menu **Project Settings -> API**.
-5. Buat file `.env` di root direktori proyek:
-```env
-VITE_SUPABASE_URL=https://your-project-id.supabase.co
-VITE_SUPABASE_ANON_KEY=your-actual-anon-key-here
-```
-6. Jalankan ulang dev server (`npm run dev`). Aplikasi akan otomatis beralih ke Supabase Auth & PostgreSQL Cloud!
-
----
-
-## 6. Akun Demo Pengujian Cepat
-
-Jika Supabase belum dihubungkan ke cloud, aplikasi secara otomatis menyediakan mode demo offline interaktif dengan tombol uji coba 1-klik di halaman login atau melalui *Role Switcher* di navbar:
-
-| Peran | Email Demo | Password Demo | Hak Akses |
+| Komponen | Pustaka / Alat | Versi | Alasan Pemilihan & Kegunaan |
 | :--- | :--- | :--- | :--- |
-| **Orang Tua** | `orangtua@spkbalita.id` | `demo123456` | Dashboard Anak, Profil, Grafik, Konsultasi |
-| **Petugas Posyandu** | `petugas@spkbalita.id` | `demo123456` | Verifikasi Pendaftaran, Catat Pemeriksaan, Hitung SAW |
-| **Administrator** | `admin@spkbalita.id` | `demo123456` | Manajemen Akun, Posyandu, Editor AHP, Audit Logs |
+| **Framework UI** | React | `^19.3.1` | Pustaka antarmuka deklaratif berbasis komponen modular. |
+| **Build Tool** | Vite | `^8.3.4` | Server dev berbasis native ESM instan & bundler produksi cepat. |
+| **Bahasa** | JavaScript (ESM) | ES2022+ | Menghindari kompleksitas *type boilerplate* sesuai spesifikasi proyek. |
+| **Styling** | Tailwind CSS | `@tailwindcss/vite` (v4) | Desain atomik utilitas tanpa overhead CSS runtime; tema healthcare *teal-cyan*. |
+| **Routing** | React Router DOM | `^7.x` | Manajemen navigasi bersarang (*nested routing*) dan proteksi rute. |
+| **Grafik** | Recharts | `^2.15.x` | Kurva visualisasi antropometri (BB & TB) berbasis SVG responsif. |
+| **Ikonografi** | Lucide React | `^1.16.x` | Kumpulan ikon grafis antarmuka medis dan dashboard yang seragam. |
+| **Database & Auth** | Supabase JS Client | `^2.49.x` | Klien resmi Supabase Auth, PostgreSQL, RPC, dan Row Level Security. |
 
 ---
 
-## 7. Struktur Direktori Proyek
+## 3. Implementasi Matematika & Algoritma SPK
+
+Sistem menggabungkan metode **AHP** (untuk pembobotan objektif kriteria) dan **SAW** (untuk penskoran dan pemeringkatan alternatif balita).
+
+### A. Analytic Hierarchy Process (AHP)
+Diimplementasikan pada modul [`src/lib/spk/ahp.js`](file:///C:/SPK/src/lib/spk/ahp.js).
+
+#### 1. Validasi Matriks Perbandingan Berpasangan ($A$)
+Matriks bujur sangkar berukuran $n \times n$ (di mana $n = 6$ kriteria):
+$$A = \begin{bmatrix}
+a_{11} & a_{12} & \cdots & a_{1n} \\
+a_{21} & a_{22} & \cdots & a_{2n} \\
+\vdots & \vdots & \ddots & \vdots \\
+a_{n1} & a_{n2} & \cdots & a_{nn}
+\end{bmatrix}$$
+- Syarat diagonal utama: $a_{ii} = 1.0, \quad \forall i$
+- Syarat resiprokal: $a_{ji} = \frac{1}{a_{ij}}, \quad \forall i \ne j$
+
+#### 2. Normalisasi Matriks & Perhitungan Bobot Prioritas ($w$)
+Langkah normalisasi kolom:
+$$r_{ij} = \frac{a_{ij}}{\sum_{k=1}^{n} a_{kj}}$$
+Vektor bobot kriteria ($w_i$) dihitung sebagai rata-rata baris dari matriks yang telah dinormalisasi:
+$$w_i = \frac{1}{n} \sum_{j=1}^{n} r_{ij}, \quad \text{dengan } \sum_{i=1}^{n} w_i = 1.0$$
+
+#### 3. Perhitungan Lambda Maksimum ($\lambda_{max}$)
+$$\lambda_{max} = \sum_{j=1}^{n} \left( w_j \times \sum_{i=1}^{n} a_{ij} \right)$$
+
+#### 4. Uji Konsistensi Saaty (Consistency Ratio)
+- **Consistency Index (CI)**:
+  $$CI = \frac{\lambda_{max} - n}{n - 1}$$
+- **Random Index (RI)** Standar Saaty:
+  | $n$ | 1 | 2 | 3 | 4 | 5 | **6** | 7 | 8 | 9 | 10 |
+  | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+  | **RI** | 0.00 | 0.00 | 0.58 | 0.90 | 1.12 | **1.24** | 1.32 | 1.41 | 1.45 | 1.49 |
+- **Consistency Ratio (CR)**:
+  $$CR = \frac{CI}{RI}$$
+- **Ambang Penerimaan**: Matriks dinyatakan valid dan konsisten jika:
+  $$CR \le 0.10$$
+  Bila $CR > 0.10$, sistem menolak konfigurasi bobot tersebut.
+
+#### 5. Matriks Default Teruji pada Sistem
+```javascript
+export const DEFAULT_AHP_6X6_MATRIX = [
+  // C1       C2       C3       C4       C5       C6
+  [ 1.000,   2.000,   3.000,   2.000,   4.000,   5.000 ], // C1: Berat Badan
+  [ 0.500,   1.000,   2.000,   2.000,   3.000,   4.000 ], // C2: Tinggi Badan
+  [ 0.333,   0.500,   1.000,   1.000,   2.000,   3.000 ], // C3: Lingkar Kepala
+  [ 0.500,   0.500,   1.000,   1.000,   2.000,   3.000 ], // C4: LiLA Gizi
+  [ 0.250,   0.333,   0.500,   0.500,   1.000,   2.000 ], // C5: Imunisasi
+  [ 0.200,   0.250,   0.333,   0.333,   0.500,   1.000 ], // C6: Frekuensi Sakit
+];
+```
+Hasil perhitungan matematis:
+$$\lambda_{max} = 6.092823 \quad | \quad CI = 0.018565 \quad | \quad CR = 0.014971 \quad (\le 0.10 \implies \text{Konsisten})$$
+$$\text{Bobot: } w = [0.344865, \; 0.234685, \; 0.138239, \; 0.148240, \; 0.081768, \; 0.052203]$$
+
+---
+
+### B. Simple Additive Weighting (SAW)
+Diimplementasikan pada modul [`src/lib/spk/saw.js`](file:///C:/SPK/src/lib/spk/saw.js).
+
+#### 1. Matriks Keputusan ($X$)
+Matriks berukuran $m \times n$, di mana $m$ adalah jumlah balita dalam kelompok dan $n = 6$ kriteria.
+
+#### 2. Normalisasi Matriks ($R = [r_{ij}]$)
+- **Kriteria Benefit** (nilai lebih tinggi lebih baik: $C_1, C_2, C_3, C_4, C_5$):
+  $$r_{ij} = \frac{x_{ij}}{\max_k(x_{kj})}$$
+- **Kriteria Cost** (nilai lebih rendah lebih baik: $C_6$ Frekuensi Sakit):
+  $$r_{ij} = \frac{\min_k(x_{kj})}{x_{ij}}$$
+
+#### 3. Penanganan Singularity Nilai Nol pada Cost (Pencegahan Division by Zero)
+Jika seorang balita sehat tidak pernah sakit ($x_{i6} = 0$), rumus cost biasa $\frac{\min}{0}$ akan menghasilkan *infinity* / pembagian tak terdefinisi. Modul [`saw.js`](file:///C:/SPK/src/lib/spk/saw.js#L23-L41) menerapkan logika aman:
+- Bila $x_{i6} = 0$ dan $\min(x) = 0$, kondisi tersebut merupakan kondisi optimal dengan nilai normalisasi sempurna:
+  $$r_{i6} = 1.0$$
+- Bila terdapat nilai nol pada kohor, normalisasi bergeser menggunakan transformasi kontinu:
+  $$r_{ij} = \frac{\min(x_j) + 1}{x_{ij} + 1}$$
+
+#### 4. Nilai Preferensi ($V_i$)
+$$V_i = \sum_{j=1}^{n} w_j \cdot r_{ij}$$
+
+#### 5. Multi-Tier Deterministic Tie-Breaking
+Jika dua balita memperoleh skor preferensi $V_i$ identik hingga digit presisi float ($10^{-6}$):
+1. **Prioritas 1**: Nilai preferensi $V_i$ terbesar.
+2. **Prioritas 2**: Kontribusi kriteria dengan bobot terbesar secara berurutan ($C_1 \to C_2 \to C_4 \to C_3 \to C_5 \to C_6$).
+3. **Prioritas 3**: Urutan alfabetis nama balita dan keunikan ID balita (stabil dan dapat diproduksi ulang).
+
+---
+
+### C. Aturan Isolasi Kohor & Periode
+Sistem memblokir eksekusi SAW bila:
+1. Terdapat balita dari tahun kelahiran yang berbeda dalam satu matriks keputusan.
+2. Terdapat pemeriksaan dari periode bulan/tahun yang berbeda.
+3. Terdapat duplikasi anak (hanya 1 catatan pemeriksaan acuan per balita dalam satu periode).
+
+---
+
+## 4. Arsitektur Basis Data & Keamanan (PostgreSQL + RLS)
+
+File migrasi lengkap tersimpan di:
+[`supabase/migrations/20261019000000_create_spk_balita_sehat_schema.sql`](file:///C:/SPK/supabase/migrations/20261019000000_create_spk_balita_sehat_schema.sql)
+
+### A. Relasi Entitas & Skema Tabel
+
+```
+auth.users ──────1:1──────> public.profiles (role: parent, staff, admin)
+                                 │
+                                 ├──1:N──> public.children (parent_id)
+                                 │              │
+                                 │              ├──1:N──> public.examinations (child_id)
+                                 │              │              │
+                                 │              │              ├──1:N──> public.examination_details
+                                 │              │              └──1:1──> public.spk_results
+                                 │              │
+                                 │              └──1:N──> public.consultations (child_id)
+                                 │                             │
+                                 │                             └──1:N──> public.consultation_messages
+                                 │
+                                 └──1:N──> public.audit_logs (actor_id)
+
+public.posyandu ──1:N──> public.staff_assignments (staff_id -> profiles)
+                ──1:N──> public.children (posyandu_id)
+
+public.criteria ──1:N──> public.examination_details (criterion_id)
+public.ahp_configurations ──1:N──> public.spk_runs (ahp_configuration_id)
+public.spk_runs ──1:N──> public.spk_results (spk_run_id)
+```
+
+| Nama Tabel | Deskripsi & Tujuan | Kolom Kunci / Constraint |
+| :--- | :--- | :--- |
+| `profiles` | Data ekstensi akun dari `auth.users` | `id PK -> auth.users`, `nik UNIQUE`, `role CHECK ('parent', 'staff', 'admin')` |
+| `posyandu` | Fasilitas pos penimbangan balita | `id PK UUID`, `name TEXT`, `is_active BOOLEAN` |
+| `staff_assignments` | Penugasan nakes ke posyandu tertentu | `staff_id`, `posyandu_id`, `UNIQUE(staff_id, posyandu_id)` |
+| `children` | Data profil anak balita | `parent_id -> profiles`, `dob DATE`, `registration_status CHECK (...)` |
+| `criteria` | Definisi 6 kriteria SPK | `code UNIQUE ('C1'..'C6')`, `direction CHECK ('benefit', 'cost')` |
+| `ahp_configurations` | Snapshot versi matriks AHP & bobot | `version UNIQUE`, `pairwise_matrix JSONB`, `weights JSONB`, `cr NUMERIC` |
+| `examinations` | Kunjungan penimbangan balita | `child_id`, `period_code VARCHAR(10)`, `status CHECK ('draft', 'verified', ...)` |
+| `examination_details` | Nilai mentah kriteria per kunjungan | `examination_id`, `criterion_id`, `raw_value NUMERIC`, `UNIQUE(exam, crit)` |
+| `spk_runs` | Snapshot proses eksekusi SPK kohor | `birth_year INT`, `period_code`, `status CHECK ('completed', 'superseded')` |
+| `spk_results` | Peringkat dan nilai preferensi balita | `spk_run_id`, `child_id`, `preference_score NUMERIC(8,6)`, `rank INT` |
+| `recommendations` | Edukasi tumbuh kembang per balita | `child_id`, `examination_id`, `category`, `priority CHECK ('high', 'normal')` |
+| `consultations` | Sesi konsultasi orang tua dan nakes | `parent_id`, `child_id`, `assigned_staff_id`, `status CHECK ('open', 'closed')` |
+| `consultation_messages`| Percakapan pesan chat | `consultation_id`, `sender_id`, `message TEXT`, `created_at` |
+| `audit_logs` | Jejak rekam keamanan dan audit trail | `actor_id`, `action TEXT`, `entity_type`, `entity_id`, `before_data`, `after_data` |
+
+---
+
+### B. Matriks Hak Akses Row Level Security (RLS)
+
+PostgreSQL RLS diaktifkan (`ENABLE ROW LEVEL SECURITY`) pada seluruh tabel:
+
+| Tabel | Role Orang Tua (`parent`) | Role Petugas (`staff`) | Role Admin (`admin`) |
+| :--- | :--- | :--- | :--- |
+| `profiles` | `SELECT` / `UPDATE` profil sendiri | `SELECT` seluruh profil pengguna | `ALL` (Akses penuh) |
+| `children` | `SELECT` anak sendiri, `INSERT` anak sendiri | `SELECT` & `UPDATE` status anak | `ALL` |
+| `examinations` | `SELECT` hanya yang berstatus `verified` miliknya | `SELECT`, `INSERT` draft, `UPDATE` draft | `SELECT` seluruh pemeriksaan |
+| `examination_details`| `SELECT` rincian anak sendiri yang terverifikasi | `ALL` untuk pemeriksaan | `SELECT` |
+| `spk_runs` / `results`| `SELECT` skor balita miliknya | `SELECT` & `INSERT` hasil SPK kohor | `SELECT` & `INSERT` |
+| `consultations` | `ALL` percakapan di mana ia sebagai `parent_id` | `ALL` percakapan yang ditugaskan | `ALL` |
+| `ahp_configurations`| `SELECT` konfigurasi berstatus `active` | `SELECT` konfigurasi aktif | `ALL` (Dapat membuat versi baru) |
+| `audit_logs` | Ditolak (`NO ACCESS`) | Ditolak (`NO ACCESS`) | `SELECT` (Audit penuh) |
+
+---
+
+### C. Prosedur Tersimpan (Stored Procedures) & Triggers
+
+#### 1. Trigger Registrasi Pengguna Baru (`handle_new_user`)
+Setiap kali ada pendaftaran pada `auth.users`, trigger PostgreSQL secara otomatis menginsersi baris padanan ke `public.profiles` dengan peran default `parent`:
+```sql
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, full_name, nik, address, role)
+  VALUES (
+    NEW.id,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', 'Pengguna Baru'),
+    COALESCE(NEW.raw_user_meta_data->>'nik', SUBSTRING(REPLACE(NEW.id::text, '-', ''), 1, 16)),
+    COALESCE(NEW.raw_user_meta_data->>'address', '-'),
+    COALESCE(NEW.raw_user_meta_data->>'role', 'parent')
+  ) ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+#### 2. Prosedur Verifikasi Pemeriksaan Terkendali (`verify_examination`)
+Dijalankan secara atomik pada server database untuk memastikan kelengkapan 6 kriteria, validasi hak staf, pembaruan status `verified`, dan pencatatan otomatis ke `audit_logs`:
+```sql
+CREATE OR REPLACE FUNCTION public.verify_examination(
+  p_examination_id UUID,
+  p_staff_id UUID
+)
+RETURNS JSONB AS $$
+...
+```
+
+---
+
+## 5. Struktur Direktori & Rincian Modul Kode
 
 ```
 c:/SPK/
 ├── src/
 │   ├── app/
-│   │   ├── App.jsx              # Root component dengan Router & AuthProvider
-│   │   └── router.jsx           # Rute navigasi & role guards
+│   │   ├── App.jsx                     # Provider wrapper (BrowserRouter + AuthProvider)
+│   │   └── router.jsx                  # Rute navigasi, Role Guards, & Root Redirect
 │   ├── components/
-│   │   ├── layout/              # Navbar, Sidebar, AppLayout
-│   │   └── ui/                  # StatusBadge, SummaryCard, Modal, EmptyState, LoadingState
+│   │   ├── layout/
+│   │   │   ├── AppLayout.jsx           # Shell responsive layout + disclaimer footer
+│   │   │   ├── Navbar.jsx              # Top header, role switcher badge, & logout
+│   │   │   └── Sidebar.jsx             # Navigasi vertikal terfilter sesuai hak akses
+│   │   └── ui/
+│   │       ├── StatusBadge.jsx         # Status badge pendaftaran, verifikasi, & KIA
+│   │       ├── SummaryCard.jsx         # Kartu analitik metrik dashboard
+│   │       ├── Modal.jsx               # Dialog modal dengan focus trap & backdrop dismiss
+│   │       ├── EmptyState.jsx          # Placeholder visual saat koleksi kosong
+│   │       └── LoadingState.jsx        # Spinner indikator proses asinkron
 │   ├── context/
-│   │   └── AuthContext.jsx      # Autentikasi multi-peran & state sesi
+│   │   └── AuthContext.jsx             # State autentikasi sesi, profil, dan switchRole helper
 │   ├── lib/
 │   │   ├── health/
-│   │   │   └── statusRules.js   # Evaluasi status klinis KIA & rekomendasi edukasi
+│   │   │   └── statusRules.js          # Skrining LiLA/BB/TB/Imunisasi & rekomendasi KIA
 │   │   ├── spk/
-│   │   │   ├── ahp.js           # Mesin hitung AHP & rasio konsistensi Saaty
-│   │   │   ├── saw.js           # Mesin normalisasi SAW & tie-breaking ranking
-│   │   │   └── spk.test.js      # Pengujian matematika AHP & SAW
-│   │   ├── mockData.js          # Dataset mock realistis untuk demo offline
-│   │   └── supabase.js          # Inisialisasi client Supabase
+│   │   │   ├── ahp.js                  # Engine AHP murni (matriks, eigen, Saaty RI=1.24)
+│   │   │   ├── saw.js                  # Engine SAW murni (benefit/cost, tie-breaker)
+│   │   │   └── spk.test.js             # Skrip test matematika verifikasi algoritma
+│   │   ├── mockData.js                 # Dataset realistis balita Posyandu untuk testing
+│   │   └── supabase.js                 # Klien Supabase & validator konfigurasi env
 │   ├── pages/
-│   │   ├── admin/               # Dashboard Admin, Users, Posyandu, AHP Editor, Audit
-│   │   ├── auth/                # Login & Registrasi Orang Tua
-│   │   ├── parent/              # Dashboard Orang Tua, Tambah Anak, Profil, Grafik, Chat
-│   │   └── staff/               # Dashboard Nakes, Antrean, Form 6 Kriteria, Cohorts, SPK
-│   ├── services/                # authService, childService, examService, spkService, etc.
-│   ├── index.css                # Tailwind CSS imports & healthcare aesthetic tokens
-│   └── main.jsx                 # Entry point React
+│   │   ├── admin/                      # Halaman kontrol Administrator
+│   │   │   ├── AdminDashboard.jsx      # Metrik sistem dan ringkasan operasional
+│   │   │   ├── AHPConfigPage.jsx       # Editor interaktif matriks AHP 6x6 & kalkulator CR
+│   │   │   ├── AuditLogsPage.jsx       # Tabel audit trail peristiwa sistem
+│   │   │   ├── PosyanduManagementPage.jsx # Pendaftaran fasilitas Posyandu
+│   │   │   └── UserManagementPage.jsx  # Tabel pengguna & pengubah peran
+│   │   ├── auth/                       # Halaman Autentikasi
+│   │   │   ├── LoginPage.jsx           # Form login & tombol uji coba 1-klik peran
+│   │   │   └── RegisterPage.jsx        # Registrasi orang tua dengan validasi 16 digit NIK
+│   │   ├── parent/                     # Halaman Orang Tua
+│   │   │   ├── AddChildModal.jsx       # Modal tambah anak balita (usia < 60 bulan)
+│   │   │   ├── ChildProfilePage.jsx    # Profil balita, 6 kriteria, grafik Recharts, riwayat
+│   │   │   ├── ChildrenListPage.jsx    # Direktori pencarian anak terdaftar
+│   │   │   ├── ParentConsultationPage.jsx # Chat tanya jawab konsultasi Bidan
+│   │   │   ├── ParentDashboard.jsx     # Dashboard kartu anak orang tua
+│   │   │   └── ParentProfilePage.jsx   # Informasi profil akun orang tua
+│   │   └── staff/                      # Halaman Petugas Posyandu / Nakes
+│   │       ├── BirthYearGroupsPage.jsx # Pengelompokan kohor tahun kelahiran
+│   │       ├── ChildRegistrationQueue.jsx # Verifikasi kedatangan fisik anak baru
+│   │       ├── ExaminationFormPage.jsx # Form pencatatan 6 kriteria antropometri
+│   │       ├── PendingExaminationsPage.jsx # Draf pemeriksaan menunggu verifikasi
+│   │       ├── SPKCalculationPage.jsx  # Eksekusi AHP+SAW, transparansi matriks, & ranking
+│   │       ├── StaffConsultationPage.jsx # Balasan konsultasi oleh nakes
+│   │       └── StaffDashboard.jsx      # Metrik operasional balita & antrean
+│   ├── services/                       # Lapisan abstraksi data (Service Layer)
+│   │   ├── adminService.js             # Layanan pengguna, posyandu, dan audit
+│   │   ├── authService.js              # Layanan autentikasi, registrasi, & session
+│   │   ├── childService.js             # Layanan CRUD anak & status pendaftaran
+│   │   ├── consultationService.js      # Layanan percakapan pesan konsultasi
+│   │   ├── examinationService.js       # Layanan pencatatan, draf, & verifikasi kunjungan
+│   │   └── spkService.js               # Layanan orkestrator kalkulasi AHP + SAW kohor
+│   ├── index.css                       # Impor Tailwind CSS & custom styling
+│   └── main.jsx                        # Entry point React DOM
 ├── supabase/
-│   ├── migrations/              # Skema PostgreSQL lengkap + RLS + Stored Procedures
-│   └── seed.sql                 # Data seed awal Posyandu, 6 kriteria, & AHP V1
-├── .env.example                 # Template variabel lingkungan frontend
+│   ├── migrations/
+│   │   └── 20261019000000_create_spk_balita_sehat_schema.sql # Skema PostgreSQL & RLS
+│   └── seed.sql                        # Data benih Posyandu, kriteria, & AHP V1
+├── .env.example                        # Template variabel lingkungan Supabase
 ├── package.json
 └── vite.config.js
 ```
+
+---
+
+## 6. Alur Data & Siklus Hidup Pemeriksaan (State Machine)
+
+```
+[Orang Tua: Tambah Anak]
+          │
+          ▼
+   (Status: pending_registration)
+          │
+          │ (Balita dibawa ke Posyandu)
+          ▼
+[Petugas: Verifikasi Kehadiran]
+          │
+          ▼
+   (Status Anak: active)
+          │
+          │ (Petugas mengukur BB, TB, LK, LiLA, Imunisasi, Sakit)
+          ▼
+[Petugas: Simpan Kunjungan] ─── Simpan Draf ───> (Status Pemeriksaan: draft)
+          │                                                    │
+          ▼ (Verifikasi & Hitung)                              │
+   (Status Pemeriksaan: verified) <────────────────────────────┘
+          │
+          ├──> Snapshot Bobot AHP Aktif
+          ├──> Eksekusi Matriks SAW per Kohor & Periode
+          ├──> Simpan Hasil Skor Preferensi (Vi) & Ranking
+          │
+          ├──> Tampil di Profil Balita Orang Tua (Grafik Recharts + Riwayat Kunjungan)
+          └──> Catat Peristiwa ke audit_logs
+```
+
+---
+
+## 7. Aturan Skrining KIA & Penafian Medis
+
+Diimplementasikan pada modul [`src/lib/health/statusRules.js`](file:///C:/SPK/src/lib/health/statusRules.js).
+
+### Kategori Status Tumbuh Kembang:
+1. **Perlu Penanganan**: Terpicu jika Lingkar Lengan Atas (LiLA) $< 11.5$ cm (indikasi risiko gizi kurang/buruk menurut standar Kemenkes RI) atau frekuensi sakit $\ge 4$ kali dalam 6 bulan terakhir.
+2. **Cukup Baik**: Terpicu jika LiLA berada pada ambang batas waspada ($11.5 - 12.4$ cm) atau kelengkapan imunisasi $< 70\%$.
+3. **Baik**: Pertumbuhan normal sesuai usia balita.
+4. **Sangat Baik**: Pertumbuhan optimal, imunisasi $\ge 90\%$, dan riwayat sakit $\le 1$ kali.
+
+> **Pemberitahuan Medis Resmi (Clinical Disclaimer):**  
+> *"Sistem SPK Balita Sehat adalah instrumen skrining dan pendukung keputusan administratif Posyandu. Skor SAW dan peringkat SPK BUKAN diagnosis medis resmi dokter. Penegakan diagnosis klinis tetap mengacu pada pemeriksaan dokter anak atau Puskesmas."*
+
+---
+
+## 8. Panduan Langkah Demi Langkah Push ke GitHub
+
+Saat ini kode Anda **sudah aman tersimpan di repositori Git lokal** pada komputer Anda (branch `main`). Karena repositori GitHub remote belum dibuat, silakan ikuti panduan berikut untuk mempublikasikannya ke GitHub:
+
+### Langkah 1: Buat Repositori Baru di GitHub
+1. Buka browser dan masuk ke akun GitHub Anda di: [https://github.com/new](https://github.com/new)
+2. Isi **Repository name**, misalnya: `spk-balita-sehat`
+3. Pilih visibilitas: **Public** atau **Private**
+4. **PENTING**: **JANGAN centang** *"Add a README file"*, *"Add .gitignore"*, atau *"Choose a license"*, karena seluruh file tersebut sudah dibuat secara lengkap di proyek lokal.
+5. Klik tombol hijau **Create repository**.
+
+### Langkah 2: Hubungkan Repositori Lokal ke GitHub
+Buka terminal PowerShell Anda di folder proyek `c:\SPK` dan jalankan perintah berikut:
+
+```powershell
+# 1. Pastikan Anda berada di direktori proyek
+cd c:\SPK
+
+# 2. Tambahkan URL remote GitHub Anda (ganti <username-kamu> dengan username GitHub Anda)
+git remote add origin https://github.com/<username-kamu>/spk-balita-sehat.git
+
+# 3. Verifikasi remote sudah terpasang
+git remote -v
+
+# 4. Push seluruh kode ke GitHub branch main
+git push -u origin main
+```
+
+*(Jika diminta login oleh GitHub, masukkan kredensial atau Personal Access Token GitHub Anda).*
+
+---
+
+## 9. Panduan Instalasi & Eksekusi Lokal
+
+### 1. Menjalankan Server Pengembangan
+```powershell
+cd c:\SPK
+npm install
+npm run dev
+```
+Buka browser pada alamat: `http://localhost:5173/`
+
+### 2. Akun Uji Coba Cepat (Mode Offline / Demo)
+Aplikasi menyediakan tombol 1-klik login untuk mempermudah evaluasi 3 peran:
+- **Orang Tua**: `orangtua@spkbalita.id` (Password: `demo123456`)
+- **Petugas Posyandu**: `petugas@spkbalita.id` (Password: `demo123456`)
+- **Administrator**: `admin@spkbalita.id` (Password: `demo123456`)
+
+### 3. Pengujian Unit Algoritma SPK
+Untuk menjalankan verifikasi matematis AHP dan SAW:
+```powershell
+node src/lib/spk/spk.test.js
+```
+
+### 4. Build Bundler Produksi
+```powershell
+npm run build
+```
+
+---
+
+*Dokumentasi ini disusun sebagai acuan teknis arsitektur, matematika keputusan, skema basis data, dan tata kelola kode aplikasi SPK Balita Sehat.*
