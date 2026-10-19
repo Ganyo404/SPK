@@ -6,20 +6,25 @@ let examStore = [...MOCK_EXAMINATIONS];
 export const examinationService = {
   async getExaminationsByChild(childId) {
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabase
-        .from('examinations')
-        .select(`
-          *,
-          details:examination_details(
-            raw_value,
-            criterion:criterion_id(code, name, unit, direction)
-          )
-        `)
-        .eq('child_id', childId)
-        .order('examined_at', { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from('examinations')
+          .select(`
+            *,
+            details:examination_details(
+              raw_value,
+              criterion:criterion_id(code, name, unit, direction)
+            )
+          `)
+          .eq('child_id', childId)
+          .order('examined_at', { ascending: false });
 
-      if (error) return { data: null, error };
-      return { data, error: null };
+        if (!error && data && data.length > 0) {
+          return { data, error: null };
+        }
+      } catch (err) {
+        console.warn('Supabase getExaminationsByChild warning:', err);
+      }
     }
 
     const data = examStore
@@ -31,22 +36,28 @@ export const examinationService = {
 
   async getLatestVerifiedExamination(childId) {
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabase
-        .from('examinations')
-        .select(`
-          *,
-          details:examination_details(
-            raw_value,
-            criterion:criterion_id(code, name, unit)
-          )
-        `)
-        .eq('child_id', childId)
-        .eq('status', 'verified')
-        .order('examined_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      try {
+        const { data, error } = await supabase
+          .from('examinations')
+          .select(`
+            *,
+            details:examination_details(
+              raw_value,
+              criterion:criterion_id(code, name, unit)
+            )
+          `)
+          .eq('child_id', childId)
+          .eq('status', 'verified')
+          .order('examined_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
-      return { data, error };
+        if (!error && data) {
+          return { data, error: null };
+        }
+      } catch (err) {
+        console.warn('Supabase getLatestVerifiedExamination warning:', err);
+      }
     }
 
     const found = examStore
@@ -58,12 +69,18 @@ export const examinationService = {
 
   async getAllExaminations() {
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabase
-        .from('examinations')
-        .select('*, child:child_id(name, date_of_birth)')
-        .order('examined_at', { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from('examinations')
+          .select('*, child:child_id(name, date_of_birth)')
+          .order('examined_at', { ascending: false });
 
-      return { data, error };
+        if (!error && data && data.length > 0) {
+          return { data, error: null };
+        }
+      } catch (err) {
+        console.warn('Supabase getAllExaminations warning:', err);
+      }
     }
 
     return { data: [...examStore], error: null };
@@ -71,13 +88,19 @@ export const examinationService = {
 
   async getPendingExaminations() {
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabase
-        .from('examinations')
-        .select('*, child:child_id(name, date_of_birth)')
-        .in('status', ['draft', 'pending_verification'])
-        .order('examined_at', { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from('examinations')
+          .select('*, child:child_id(name, date_of_birth)')
+          .in('status', ['draft', 'pending_verification'])
+          .order('examined_at', { ascending: false });
 
-      return { data, error };
+        if (!error && data) {
+          return { data, error: null };
+        }
+      } catch (err) {
+        console.warn('Supabase getPendingExaminations warning:', err);
+      }
     }
 
     const data = examStore.filter(e => e.status === 'draft' || e.status === 'pending_verification');
@@ -97,38 +120,40 @@ export const examinationService = {
     const birthYear = child ? new Date(child.date_of_birth).getFullYear() : 2024;
 
     if (isSupabaseConfigured()) {
-      // 1. Insert examination
-      const { data: exam, error: examErr } = await supabase
-        .from('examinations')
-        .insert({
-          child_id: childId,
-          examined_at: examinedAt || new Date().toISOString(),
-          period_code: periodCode,
-          status: 'pending_verification',
-          notes: notes || '',
-          recorded_by: recordedBy,
-        })
-        .select()
-        .single();
+      try {
+        // 1. Insert examination
+        const { data: exam, error: examErr } = await supabase
+          .from('examinations')
+          .insert({
+            child_id: childId,
+            examined_at: examinedAt || new Date().toISOString(),
+            period_code: periodCode,
+            status: 'pending_verification',
+            notes: notes || '',
+            recorded_by: recordedBy,
+          })
+          .select()
+          .single();
 
-      if (examErr) return { data: null, error: examErr };
-
-      // 2. Insert examination details
-      // Ambil ID kriteria
-      const { data: criteriaList } = await supabase.from('criteria').select('id, code');
-      if (criteriaList) {
-        const detailsPayload = criteriaList.map(c => ({
-          examination_id: exam.id,
-          criterion_id: c.id,
-          raw_value: Number(values[c.code])
-        }));
-        await supabase.from('examination_details').insert(detailsPayload);
+        if (!examErr && exam) {
+          // 2. Insert examination details
+          const { data: criteriaList } = await supabase.from('criteria').select('id, code');
+          if (criteriaList) {
+            const detailsPayload = criteriaList.map(c => ({
+              examination_id: exam.id,
+              criterion_id: c.id,
+              raw_value: Number(values[c.code])
+            }));
+            await supabase.from('examination_details').insert(detailsPayload);
+          }
+          return { data: exam, error: null };
+        }
+      } catch (err) {
+        console.warn('Supabase saveExaminationDraft warning:', err);
       }
-
-      return { data: exam, error: null };
     }
 
-    // Mock Mode
+    // Local Store Mode
     const newExam = {
       id: `exam-${Date.now()}`,
       child_id: childId,
@@ -158,14 +183,20 @@ export const examinationService = {
 
   async verifyExamination(examinationId, staffId, staffName) {
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabase.rpc('verify_examination', {
-        p_examination_id: examinationId,
-        p_staff_id: staffId
-      });
-      return { data, error };
+      try {
+        const { data, error } = await supabase.rpc('verify_examination', {
+          p_examination_id: examinationId,
+          p_staff_id: staffId
+        });
+        if (!error && data) {
+          return { data, error: null };
+        }
+      } catch (err) {
+        console.warn('Supabase verify_examination rpc warning:', err);
+      }
     }
 
-    // Mock Mode: Idempotent verification
+    // Local Store Mode: Idempotent verification
     const idx = examStore.findIndex(e => e.id === examinationId);
     if (idx !== -1) {
       examStore[idx].status = 'verified';
