@@ -1,7 +1,30 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { MOCK_CHILDREN, MOCK_POSYANDU } from '../lib/mockData';
 
-let childrenStore = [...MOCK_CHILDREN];
+const CHILDREN_STORAGE_KEY = 'spk_children_store';
+
+function loadStoredChildren() {
+  try {
+    const raw = localStorage.getItem(CHILDREN_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (err) {
+    console.warn('Gagal membaca data anak dari localStorage:', err);
+  }
+  return [...MOCK_CHILDREN];
+}
+
+function saveStoredChildren(children) {
+  try {
+    localStorage.setItem(CHILDREN_STORAGE_KEY, JSON.stringify(children));
+  } catch (err) {
+    console.warn('Gagal menyimpan data anak ke localStorage:', err);
+  }
+}
+
+let childrenStore = loadStoredChildren();
 
 export const childService = {
   async getChildrenByParent(parentId) {
@@ -146,6 +169,7 @@ export const childService = {
     };
 
     childrenStore.unshift(newChild);
+    saveStoredChildren(childrenStore);
     return { data: newChild, error: null };
   },
 
@@ -170,6 +194,7 @@ export const childService = {
     const idx = childrenStore.findIndex(c => c.id === childId);
     if (idx !== -1) {
       childrenStore[idx].registration_status = status;
+      saveStoredChildren(childrenStore);
       return { data: childrenStore[idx], error: null };
     }
     return { data: null, error: { message: 'Anak tidak ditemukan' } };
