@@ -277,6 +277,46 @@ export const MOCK_EXAMINATIONS = [
     saw_score: 0.990,
     saw_rank: 1
   },
+  // Periode 2026-08 (Anak 2)
+  {
+    id: 'exam-1b',
+    child_id: 'child-2',
+    child_name: 'Muhammad Rayyan',
+    birth_year: 2024,
+    posyandu_id: 'posyandu-1',
+    posyandu_name: 'Posyandu Mawar Indah',
+    examined_at: '2026-08-15T09:30:00Z',
+    period_code: '2026-08',
+    recorded_by: 'u-staff-1',
+    recorded_by_name: 'dr. Dewi Anggraini, Sp.A',
+    verified_by: 'u-staff-1',
+    verified_at: '2026-08-15T11:15:00Z',
+    status: 'verified',
+    notes: 'Pemeriksaan rutin awal, riwayat batuk pilek ringan.',
+    values: { C1: 11.2, C2: 85.0, C3: 46.2, C4: 14.4, C5: 80, C6: 2 },
+    saw_score: 0.880,
+    saw_rank: 2
+  },
+  // Periode 2026-09 (Anak 2)
+  {
+    id: 'exam-2b',
+    child_id: 'child-2',
+    child_name: 'Muhammad Rayyan',
+    birth_year: 2024,
+    posyandu_id: 'posyandu-1',
+    posyandu_name: 'Posyandu Mawar Indah',
+    examined_at: '2026-09-15T10:00:00Z',
+    period_code: '2026-09',
+    recorded_by: 'u-staff-1',
+    recorded_by_name: 'dr. Dewi Anggraini, Sp.A',
+    verified_by: 'u-staff-1',
+    verified_at: '2026-09-15T11:00:00Z',
+    status: 'verified',
+    notes: 'Kenaikan berat badan baik, imunisasi lanjutan diberikan.',
+    values: { C1: 11.5, C2: 85.8, C3: 46.5, C4: 14.6, C5: 85, C6: 1 },
+    saw_score: 0.898,
+    saw_rank: 2
+  },
   // Periode 2026-10 (Cohort 2024 - 4 anak terverifikasi)
   {
     id: 'exam-3',

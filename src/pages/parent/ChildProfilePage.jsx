@@ -23,7 +23,12 @@ import {
   AlertTriangle,
   Heart,
   CheckCircle2,
-  Info
+  Info,
+  ArrowUp,
+  ArrowDown,
+  Minus,
+  Layers,
+  Filter
 } from 'lucide-react';
 import {
   LineChart,
@@ -36,6 +41,130 @@ import {
   Legend
 } from 'recharts';
 
+// Konfigurasi 6 Kriteria SPK untuk Visualisasi Kurva & Grafik
+export const CRITERIA_CONFIG = [
+  {
+    key: 'C1',
+    dataKey: 'beratBadan',
+    label: 'Berat Badan',
+    unit: 'kg',
+    color: '#0d9488', // teal-600
+    bg: 'bg-teal-50',
+    border: 'border-teal-200',
+    text: 'text-teal-700',
+    icon: Scale,
+    category: 'antropometri',
+    yAxisId: 'antropo-left',
+    type: 'benefit',
+    description: 'Massa tubuh balita'
+  },
+  {
+    key: 'C2',
+    dataKey: 'tinggiBadan',
+    label: 'Tinggi Badan',
+    unit: 'cm',
+    color: '#2563eb', // blue-600
+    bg: 'bg-blue-50',
+    border: 'border-blue-200',
+    text: 'text-blue-700',
+    icon: Ruler,
+    category: 'antropometri',
+    yAxisId: 'antropo-right',
+    type: 'benefit',
+    description: 'Pertumbuhan linier & panjang badan'
+  },
+  {
+    key: 'C3',
+    dataKey: 'lingkarKepala',
+    label: 'Lingkar Kepala',
+    unit: 'cm',
+    color: '#7c3aed', // violet-600
+    bg: 'bg-purple-50',
+    border: 'border-purple-200',
+    text: 'text-purple-700',
+    icon: Brain,
+    category: 'antropometri',
+    yAxisId: 'antropo-right',
+    type: 'benefit',
+    description: 'Perkembangan tempurung kepala & otak'
+  },
+  {
+    key: 'C4',
+    dataKey: 'lila',
+    label: 'LiLA',
+    unit: 'cm',
+    color: '#d97706', // amber-600
+    bg: 'bg-amber-50',
+    border: 'border-amber-200',
+    text: 'text-amber-700',
+    icon: Activity,
+    category: 'antropometri',
+    yAxisId: 'antropo-left',
+    type: 'benefit',
+    description: 'Lingkar lengan atas / status gizi'
+  },
+  {
+    key: 'C5',
+    dataKey: 'imunisasi',
+    label: 'Imunisasi',
+    unit: '%',
+    color: '#0891b2', // cyan-600
+    bg: 'bg-cyan-50',
+    border: 'border-cyan-200',
+    text: 'text-cyan-700',
+    icon: CheckCircle2,
+    category: 'kesehatan',
+    yAxisId: 'health-left',
+    type: 'benefit',
+    description: 'Kelengkapan imunisasi dasar'
+  },
+  {
+    key: 'C6',
+    dataKey: 'frekuensiSakit',
+    label: 'Frekuensi Sakit',
+    unit: 'kali',
+    color: '#e11d48', // rose-600
+    bg: 'bg-rose-50',
+    border: 'border-rose-200',
+    text: 'text-rose-700',
+    icon: Heart,
+    category: 'kesehatan',
+    yAxisId: 'health-right',
+    type: 'cost',
+    description: 'Riwayat sakit dalam 6 bulan terakhir'
+  }
+];
+
+function UnifiedChartTooltip({ active, payload, label }) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border border-slate-200 text-xs space-y-2 min-w-[210px]">
+        <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
+          <span className="font-semibold text-slate-500 text-[11px]">Periode Kunjungan</span>
+          <span className="font-mono font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-100">{label}</span>
+        </div>
+        <div className="space-y-1">
+          {payload.map((item, idx) => {
+            const config = CRITERIA_CONFIG.find(c => c.dataKey === item.dataKey);
+            return (
+              <div key={idx} className="flex items-center justify-between gap-3 text-[11px]">
+                <span className="flex items-center gap-1.5 font-medium" style={{ color: item.color }}>
+                  <span className="w-2.5 h-2.5 rounded-full inline-block shadow-2xs" style={{ backgroundColor: item.color }} />
+                  {item.name}:
+                </span>
+                <span className="font-mono font-bold text-slate-900">
+                  {item.value != null ? `${item.value} ${config?.unit || ''}` : '-'}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
 export function ChildProfilePage() {
   const { childId } = useParams();
   const navigate = useNavigate();
@@ -44,6 +173,21 @@ export function ChildProfilePage() {
   const [examinations, setExaminations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedExamDetail, setSelectedExamDetail] = useState(null);
+
+  // Tab & Filter Garis Grafik 6 Kriteria
+  const [activeChartTab, setActiveChartTab] = useState('all'); // 'all', 'antropometri', 'kesehatan'
+  const [activeMetrics, setActiveMetrics] = useState({
+    C1: true,
+    C2: true,
+    C3: true,
+    C4: true,
+    C5: true,
+    C6: true,
+  });
+
+  const toggleMetric = (key) => {
+    setActiveMetrics(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -105,16 +249,37 @@ export function ChildProfilePage() {
     ? generateEducationalRecommendations(healthEvaluation.status, latestVerifiedExam)
     : [];
 
-  // Data Grafik Pertumbuhan Fisik (diurutkan kronologis tanggal lama ke baru)
+  // Data Grafik Pertumbuhan Fisik 6 Kriteria (kronologis tanggal lama ke baru)
   const chartData = [...verifiedExams]
     .sort((a, b) => new Date(a.examined_at) - new Date(b.examined_at))
     .map(e => ({
       date: e.period_code || e.examined_at.split('T')[0],
-      beratBadan: e.values?.C1 || 0,
-      tinggiBadan: e.values?.C2 || 0,
-      lingkarKepala: e.values?.C3 || 0,
-      lila: e.values?.C4 || 0,
+      beratBadan: e.values?.C1 != null ? Number(e.values.C1) : null,
+      tinggiBadan: e.values?.C2 != null ? Number(e.values.C2) : null,
+      lingkarKepala: e.values?.C3 != null ? Number(e.values.C3) : null,
+      lila: e.values?.C4 != null ? Number(e.values.C4) : null,
+      imunisasi: e.values?.C5 != null ? Number(e.values.C5) : null,
+      frekuensiSakit: e.values?.C6 != null ? Number(e.values.C6) : null,
     }));
+
+  const previousVerifiedExam = verifiedExams[1] || null;
+
+  const getMetricDelta = (critKey, unit) => {
+    if (!latestVerifiedExam || !previousVerifiedExam) return null;
+    const curr = latestVerifiedExam.values?.[critKey];
+    const prev = previousVerifiedExam.values?.[critKey];
+    if (curr == null || prev == null) return null;
+    const diff = Number((Number(curr) - Number(prev)).toFixed(2));
+    if (diff === 0) return { text: 'Stabil', type: 'neutral', diff: 0 };
+    const sign = diff > 0 ? '+' : '';
+    // Untuk C6 sakit: penurunan adalah positif (hijau), kenaikan adalah negatif (merah)
+    const isPositive = critKey === 'C6' ? diff < 0 : diff > 0;
+    return {
+      text: `${sign}${diff} ${unit}`,
+      type: isPositive ? 'positive' : 'negative',
+      diff
+    };
+  };
 
   return (
     <div className="space-y-6">
@@ -310,66 +475,330 @@ export function ChildProfilePage() {
             </div>
           </div>
 
-          {/* Bagian D: Grafik Perkembangan Fisik Anak (Recharts) */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+          {/* Bagian D: Grafik Perkembangan Balita (6 Kriteria Evaluasi SPK) */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
+            {/* Header Bagian D */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <h3 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-teal-600" />
-                  <span>Grafik Perkembangan Fisik Balita</span>
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Kurva historis kenaikan Berat Badan (kg) dan Tinggi Badan (cm) berdasarkan kunjungan Posyandu
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="p-2 rounded-xl bg-teal-50 text-teal-700 border border-teal-100 inline-flex">
+                    <TrendingUp className="w-5 h-5 text-teal-600" />
+                  </span>
+                  <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">
+                    Grafik Perkembangan Balita (6 Kriteria SPK)
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-500 max-w-2xl leading-relaxed">
+                  Kurva perkembangan lengkap 6 parameter: Berat Badan (C1), Tinggi Badan (C2), Lingkar Kepala (C3), LiLA (C4), Imunisasi Dasar (C5), dan Frekuensi Sakit (C6).
                 </p>
               </div>
-              <span className="text-xs font-medium px-3 py-1 bg-slate-100 text-slate-600 rounded-full">
-                Terpisah dari Skor SAW
-              </span>
+
+              {/* View Tab Selector */}
+              <div className="flex items-center p-1 bg-slate-100 rounded-2xl border border-slate-200 self-start md:self-center">
+                <button
+                  type="button"
+                  onClick={() => setActiveChartTab('all')}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    activeChartTab === 'all'
+                      ? 'bg-white text-teal-800 shadow-xs border border-slate-200/60'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Semua 6 Kriteria
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveChartTab('antropometri')}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    activeChartTab === 'antropometri'
+                      ? 'bg-white text-teal-800 shadow-xs border border-slate-200/60'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Fisik (C1–C4)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveChartTab('kesehatan')}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    activeChartTab === 'kesehatan'
+                      ? 'bg-white text-teal-800 shadow-xs border border-slate-200/60'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Kesehatan (C5–C6)
+                </button>
+              </div>
+            </div>
+
+            {/* Filter Toggle Pills for C1 - C6 */}
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                  <Filter className="w-3.5 h-3.5 text-teal-600" />
+                  <span>Filter Garis Kurva (Klik untuk Aktifkan / Sembunyikan):</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveMetrics({ C1: true, C2: true, C3: true, C4: true, C5: true, C6: true })}
+                  className="text-[11px] font-semibold text-teal-700 hover:text-teal-800 underline cursor-pointer"
+                >
+                  Tampilkan Semua 6 Kriteria
+                </button>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {CRITERIA_CONFIG.map((crit) => {
+                  const isActive = activeMetrics[crit.key];
+                  const Icon = crit.icon;
+                  return (
+                    <button
+                      key={crit.key}
+                      type="button"
+                      onClick={() => toggleMetric(crit.key)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer border ${
+                        isActive
+                          ? `${crit.bg} ${crit.text} ${crit.border} shadow-2xs`
+                          : 'bg-white text-slate-400 border-slate-200 opacity-60 line-through'
+                      }`}
+                      title={`Klik untuk ${isActive ? 'sembunyikan' : 'tampilkan'} kurva ${crit.label}`}
+                    >
+                      <span
+                        className="w-2.5 h-2.5 rounded-full inline-block"
+                        style={{ backgroundColor: isActive ? crit.color : '#94a3b8' }}
+                      />
+                      <Icon className="w-3.5 h-3.5" />
+                      <span>{crit.key}: {crit.label} ({crit.unit})</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {chartData.length > 0 ? (
-              <div className="h-72 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                    <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} tickLine={false} />
-                    <YAxis yAxisId="left" stroke="#0d9488" fontSize={12} domain={['dataMin - 1', 'dataMax + 1']} />
-                    <YAxis yAxisId="right" orientation="right" stroke="#3b82f6" fontSize={12} domain={['dataMin - 5', 'dataMax + 5']} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#ffffff',
-                        borderRadius: '1rem',
-                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                        border: '1px solid #e2e8f0',
-                        fontSize: '12px'
-                      }}
-                    />
-                    <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-                    <Line
-                      yAxisId="left"
-                      type="monotone"
-                      dataKey="beratBadan"
-                      name="Berat Badan (kg)"
-                      stroke="#0d9488"
-                      strokeWidth={3}
-                      dot={{ r: 4, fill: '#0d9488' }}
-                      activeDot={{ r: 6 }}
-                    />
-                    <Line
-                      yAxisId="right"
-                      type="monotone"
-                      dataKey="tinggiBadan"
-                      name="Tinggi Badan (cm)"
-                      stroke="#3b82f6"
-                      strokeWidth={3}
-                      dot={{ r: 4, fill: '#3b82f6' }}
-                      activeDot={{ r: 6 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+              <div className="space-y-6">
+                {/* Visualisasi Kurva Recharts */}
+                <div className={`grid gap-6 ${activeChartTab === 'all' ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
+                  {/* Panel Antropometri (C1-C4) */}
+                  {(activeChartTab === 'all' || activeChartTab === 'antropometri') && (
+                    <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-slate-50/60 to-white border border-slate-200/90 shadow-2xs">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-xs">
+                            <Scale className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-slate-900 text-sm">
+                              Kurva Antropometri & Pertumbuhan Fisik
+                            </h4>
+                            <p className="text-[11px] text-slate-500">
+                              Kiri: BB (kg) & LiLA (cm) | Kanan: TB (cm) & LK (cm)
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-teal-100 text-teal-800 self-start sm:self-auto">
+                          Kriteria C1 — C4
+                        </span>
+                      </div>
+
+                      <div className={activeChartTab === 'all' ? 'h-72 w-full' : 'h-80 w-full'}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={chartData} margin={{ top: 10, right: 25, left: -15, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                            <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                            <YAxis yAxisId="antropo-left" stroke="#0d9488" fontSize={11} domain={['dataMin - 1', 'dataMax + 1']} />
+                            <YAxis yAxisId="antropo-right" orientation="right" stroke="#2563eb" fontSize={11} domain={['dataMin - 3', 'dataMax + 3']} />
+                            <Tooltip content={<UnifiedChartTooltip />} />
+                            <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                            {activeMetrics.C1 && (
+                              <Line
+                                yAxisId="antropo-left"
+                                type="monotone"
+                                dataKey="beratBadan"
+                                name="C1: BB (kg)"
+                                stroke="#0d9488"
+                                strokeWidth={2.5}
+                                dot={{ r: 4, fill: '#0d9488' }}
+                                activeDot={{ r: 6 }}
+                              />
+                            )}
+                            {activeMetrics.C2 && (
+                              <Line
+                                yAxisId="antropo-right"
+                                type="monotone"
+                                dataKey="tinggiBadan"
+                                name="C2: TB (cm)"
+                                stroke="#2563eb"
+                                strokeWidth={2.5}
+                                dot={{ r: 4, fill: '#2563eb' }}
+                                activeDot={{ r: 6 }}
+                              />
+                            )}
+                            {activeMetrics.C3 && (
+                              <Line
+                                yAxisId="antropo-right"
+                                type="monotone"
+                                dataKey="lingkarKepala"
+                                name="C3: LK (cm)"
+                                stroke="#7c3aed"
+                                strokeWidth={2.5}
+                                dot={{ r: 4, fill: '#7c3aed' }}
+                                activeDot={{ r: 6 }}
+                              />
+                            )}
+                            {activeMetrics.C4 && (
+                              <Line
+                                yAxisId="antropo-left"
+                                type="monotone"
+                                dataKey="lila"
+                                name="C4: LiLA (cm)"
+                                stroke="#d97706"
+                                strokeWidth={2.5}
+                                dot={{ r: 4, fill: '#d97706' }}
+                                activeDot={{ r: 6 }}
+                              />
+                            )}
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Panel Kesehatan & Imunisasi (C5-C6) */}
+                  {(activeChartTab === 'all' || activeChartTab === 'kesehatan') && (
+                    <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-slate-50/60 to-white border border-slate-200/90 shadow-2xs">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-lg bg-cyan-100 text-cyan-700 flex items-center justify-center font-bold text-xs">
+                            <CheckCircle2 className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-slate-900 text-sm">
+                              Kurva Status Imunisasi & Riwayat Sakit
+                            </h4>
+                            <p className="text-[11px] text-slate-500">
+                              Kiri: Imunisasi Dasar (0-100%) | Kanan: Sakit 6 Bln (kali)
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-cyan-100 text-cyan-800 self-start sm:self-auto">
+                          Kriteria C5 — C6
+                        </span>
+                      </div>
+
+                      <div className={activeChartTab === 'all' ? 'h-72 w-full' : 'h-80 w-full'}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={chartData} margin={{ top: 10, right: 25, left: -15, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                            <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                            <YAxis yAxisId="health-left" stroke="#0891b2" fontSize={11} domain={[0, 100]} />
+                            <YAxis yAxisId="health-right" orientation="right" stroke="#e11d48" fontSize={11} domain={[0, 'dataMax + 2']} />
+                            <Tooltip content={<UnifiedChartTooltip />} />
+                            <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                            {activeMetrics.C5 && (
+                              <Line
+                                yAxisId="health-left"
+                                type="monotone"
+                                dataKey="imunisasi"
+                                name="C5: Imunisasi (%)"
+                                stroke="#0891b2"
+                                strokeWidth={2.5}
+                                dot={{ r: 4, fill: '#0891b2' }}
+                                activeDot={{ r: 6 }}
+                              />
+                            )}
+                            {activeMetrics.C6 && (
+                              <Line
+                                yAxisId="health-right"
+                                type="monotone"
+                                dataKey="frekuensiSakit"
+                                name="C6: Sakit (kali)"
+                                stroke="#e11d48"
+                                strokeWidth={2.5}
+                                dot={{ r: 4, fill: '#e11d48' }}
+                                activeDot={{ r: 6 }}
+                              />
+                            )}
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 6 Mini Metric Delta & Trend Cards */}
+                <div className="pt-4 border-t border-slate-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      Ringkasan 6 Kriteria & Tren dari Kunjungan Sebelumnya
+                    </span>
+                    <span className="text-[11px] text-slate-400">
+                      {latestVerifiedExam ? `Kunjungan: ${latestVerifiedExam.period_code || 'Terbaru'}` : ''}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                    {CRITERIA_CONFIG.map((crit) => {
+                      const Icon = crit.icon;
+                      const val = latestVerifiedExam?.values?.[crit.key];
+                      const delta = getMetricDelta(crit.key, crit.unit);
+
+                      return (
+                        <div
+                          key={crit.key}
+                          className={`p-3 rounded-2xl border transition-all ${crit.bg} ${crit.border}`}
+                        >
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <span className="font-bold text-[11px]" style={{ color: crit.color }}>
+                              {crit.key}
+                            </span>
+                            <Icon className="w-3.5 h-3.5" style={{ color: crit.color }} />
+                          </div>
+                          <span className="block text-[11px] text-slate-600 font-medium truncate mb-1">
+                            {crit.label}
+                          </span>
+                          <p className="text-base font-extrabold text-slate-900 leading-none">
+                            {val != null ? val : '-'}{' '}
+                            <span className="text-[10px] font-normal text-slate-500">{crit.unit}</span>
+                          </p>
+
+                          {delta ? (
+                            <div className="mt-2 pt-1.5 border-t border-slate-200/60 flex items-center gap-1 text-[10px]">
+                              {delta.type === 'positive' && (
+                                <span className="inline-flex items-center font-bold text-emerald-700 bg-emerald-100/80 px-1.5 py-0.5 rounded-md">
+                                  <ArrowUp className="w-2.5 h-2.5 mr-0.5" />
+                                  {delta.text}
+                                </span>
+                              )}
+                              {delta.type === 'negative' && (
+                                <span className="inline-flex items-center font-bold text-rose-700 bg-rose-100/80 px-1.5 py-0.5 rounded-md">
+                                  <ArrowDown className="w-2.5 h-2.5 mr-0.5" />
+                                  {delta.text}
+                                </span>
+                              )}
+                              {delta.type === 'neutral' && (
+                                <span className="inline-flex items-center font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md">
+                                  <Minus className="w-2.5 h-2.5 mr-0.5" />
+                                  {delta.text}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="mt-2 pt-1.5 border-t border-slate-200/60 text-[10px] text-slate-400">
+                              Kunjungan awal
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             ) : (
-              <p className="text-xs text-slate-400 py-6 text-center">Data kunjungan belum cukup untuk menampilkan grafik.</p>
+              <div className="p-8 text-center rounded-2xl bg-slate-50 border border-dashed border-slate-300">
+                <p className="text-sm font-semibold text-slate-600">Belum Ada Riwayat Kunjungan Terverifikasi</p>
+                <p className="text-xs text-slate-400 mt-1">Data pemeriksaan pertama yang diverifikasi nakes akan otomatis memunculkan grafik 6 kriteria ini.</p>
+              </div>
             )}
           </div>
 
