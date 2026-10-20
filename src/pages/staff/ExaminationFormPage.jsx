@@ -420,18 +420,18 @@ export function ExaminationFormPage() {
             )}
           </div>
 
-          {/* 2. Periode Pemeriksaan (Dropbox Bulan + Input Manual Tahun) */}
+          {/* 2. Periode Pemeriksaan (Dropbox Bulan + Input Tahun) */}
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-teal-600" />
-              <span>Periode Pemeriksaan (Bulan & Tahun)</span>
+              <span>Periode Pemeriksaan</span>
             </label>
 
             <div className="grid grid-cols-2 gap-2.5">
               {/* Dropbox Bulan */}
               <div>
                 <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                  Bulan (Pilih dari Dropbox)
+                  Bulan
                 </label>
                 <div className="relative">
                   <select
@@ -441,17 +441,17 @@ export function ExaminationFormPage() {
                   >
                     {MONTH_OPTIONS.map((m) => (
                       <option key={m.value} value={m.value}>
-                        {m.name} ({m.value})
+                        {m.name}
                       </option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              {/* Input Manual Tahun */}
+              {/* Input Tahun */}
               <div>
                 <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                  Tahun (Input Manual)
+                  Tahun
                 </label>
                 <div className="relative">
                   <input
