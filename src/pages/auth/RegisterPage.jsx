@@ -5,7 +5,7 @@ import { HeartPulse, Lock, Mail, User, Phone, MapPin, CreditCard, ArrowRight, Al
 
 export function RegisterPage() {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register, isAuthenticated, user, role, logout } = useAuth();
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -82,6 +82,40 @@ export function RegisterPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-xl">
         <div className="bg-white py-8 px-6 shadow-xl shadow-slate-200/50 rounded-3xl sm:px-10 border border-slate-100">
+          {isAuthenticated && user && (
+            <div className="mb-6 p-4 rounded-2xl bg-teal-50 border border-teal-200 text-xs text-teal-900 space-y-2">
+              <p>
+                Anda saat ini sedang masuk sebagai <strong className="font-bold text-teal-950">{user.full_name || user.email}</strong>.
+              </p>
+              <p className="text-[11px] text-teal-700">
+                Ingin mendaftar akun baru? Anda dapat mengisi formulir di bawah ini atau keluar terlebih dahulu.
+              </p>
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (role === 'admin') navigate('/admin');
+                    else if (role === 'staff') navigate('/staff');
+                    else navigate('/parent');
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-teal-600 text-white font-semibold hover:bg-teal-700 transition-colors cursor-pointer"
+                >
+                  Kembali ke Dashboard
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await logout();
+                    setError('');
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  Keluar Akun
+                </button>
+              </div>
+            </div>
+          )}
+
           {error && (
             <div className="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-3 text-rose-800 text-sm">
               <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-rose-600" />

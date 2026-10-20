@@ -5,7 +5,7 @@ import { HeartPulse, Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { login, role } = useAuth();
+  const { login, role, isAuthenticated, user, logout } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -50,6 +50,40 @@ export function LoginPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-6 shadow-xl shadow-slate-200/50 rounded-3xl sm:px-10 border border-slate-100">
+          {isAuthenticated && user && (
+            <div className="mb-6 p-4 rounded-2xl bg-teal-50 border border-teal-200 text-xs text-teal-900 space-y-2">
+              <p>
+                Anda saat ini sedang masuk sebagai <strong className="font-bold text-teal-950">{user.full_name || user.email}</strong>{' '}
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 font-semibold uppercase">
+                  {user.role === 'admin' ? 'Administrator' : user.role === 'staff' ? 'Dokter/Nakes' : 'Orang Tua'}
+                </span>
+              </p>
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (role === 'admin') navigate('/admin');
+                    else if (role === 'staff') navigate('/staff');
+                    else navigate('/parent');
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-teal-600 text-white font-semibold hover:bg-teal-700 transition-colors cursor-pointer"
+                >
+                  Lanjut ke Dashboard
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await logout();
+                    setError('');
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  Keluar / Ganti Akun
+                </button>
+              </div>
+            </div>
+          )}
+
           {error && (
             <div className="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-3 text-rose-800 text-sm">
               <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-rose-600" />
