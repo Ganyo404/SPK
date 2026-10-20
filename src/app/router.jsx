@@ -14,6 +14,7 @@ import { ParentProfilePage } from '../pages/parent/ParentProfilePage';
 
 // Staff Pages
 import { StaffDashboard } from '../pages/staff/StaffDashboard';
+import { StaffChildrenListPage } from '../pages/staff/StaffChildrenListPage';
 import { ChildRegistrationQueue } from '../pages/staff/ChildRegistrationQueue';
 import { ExaminationFormPage } from '../pages/staff/ExaminationFormPage';
 import { PendingExaminationsPage } from '../pages/staff/PendingExaminationsPage';
@@ -121,6 +122,22 @@ export function AppRouter() {
           element={
             <ProtectedRoute allowedRoles={['staff', 'admin']}>
               <StaffDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="staff/children"
+          element={
+            <ProtectedRoute allowedRoles={['staff', 'admin']}>
+              <StaffChildrenListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="staff/children/:childId"
+          element={
+            <ProtectedRoute allowedRoles={['staff', 'admin']}>
+              <ChildProfilePage />
             </ProtectedRoute>
           }
         />

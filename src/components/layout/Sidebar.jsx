@@ -35,7 +35,8 @@ export function Sidebar({ isOpen, onClose }) {
     if (role === 'staff') {
       return [
         { label: 'Dashboard Petugas', to: '/staff', icon: LayoutDashboard },
-        { label: 'Verifikasi Pendaftaran', to: '/staff/registration-queue', icon: Baby },
+        { label: 'Data & Riwayat Balita', to: '/staff/children', icon: Baby },
+        { label: 'Verifikasi Pendaftaran', to: '/staff/registration-queue', icon: ClipboardList },
         { label: 'Catat Pemeriksaan', to: '/staff/examination/new', icon: Stethoscope },
         { label: 'Draf & Verifikasi', to: '/staff/examinations/pending', icon: CheckCircle2 },
         { label: 'Kelompok Kelahiran', to: '/staff/cohorts', icon: Users },
