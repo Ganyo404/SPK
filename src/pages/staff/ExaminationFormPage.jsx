@@ -18,7 +18,10 @@ import {
   Activity,
   Heart,
   ShieldAlert,
-  Info
+  Info,
+  History,
+  ChevronRight,
+  TrendingUp
 } from 'lucide-react';
 
 export function ExaminationFormPage() {
@@ -30,6 +33,7 @@ export function ExaminationFormPage() {
 
   const [children, setChildren] = useState([]);
   const [selectedChildId, setSelectedChildId] = useState(childIdParam || '');
+  const [previousExam, setPreviousExam] = useState(null);
   const [periodCode, setPeriodCode] = useState('2026-10');
   const [notes, setNotes] = useState('');
 
@@ -60,6 +64,18 @@ export function ExaminationFormPage() {
     }
     loadInitial();
   }, []);
+
+  useEffect(() => {
+    async function loadPreviousExam() {
+      if (selectedChildId) {
+        const { data } = await examinationService.getLatestVerifiedExamination(selectedChildId);
+        setPreviousExam(data || null);
+      } else {
+        setPreviousExam(null);
+      }
+    }
+    loadPreviousExam();
+  }, [selectedChildId]);
 
   const selectedChild = children.find(c => c.id === selectedChildId);
 
@@ -251,6 +267,95 @@ export function ExaminationFormPage() {
               Aturan isolasi: alternatif hanya dibandingkan dalam periode yang sama.
             </p>
           </div>
+        </div>
+
+        {/* Banner Riwayat Kunjungan Bulan Sebelumnya */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-teal-50/90 via-slate-50 to-blue-50/80 border border-teal-200/80">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-teal-600 text-white flex items-center justify-center flex-shrink-0">
+                <History className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900 text-sm">
+                  Riwayat Kunjungan & Timbangan Bulan Sebelumnya
+                </h4>
+                <p className="text-xs text-slate-500">
+                  Data antropometri historis balita untuk rujukan perbandingan dokter/nakes
+                </p>
+              </div>
+            </div>
+
+            {selectedChildId && (
+              <button
+                type="button"
+                onClick={() => navigate(`/staff/children/${selectedChildId}`)}
+                className="text-xs font-semibold text-teal-700 hover:text-teal-800 hover:underline flex items-center gap-1 self-start sm:self-auto cursor-pointer"
+              >
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span>Buka Grafik & Riwayat Lengkap</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {previousExam ? (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+              <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                <span className="text-slate-500 block text-[11px]">Periode Terakhir</span>
+                <span className="font-mono font-bold text-slate-800 text-sm">
+                  {previousExam.period_code}
+                </span>
+                <span className="block text-[10px] text-slate-400 mt-0.5">
+                  Tgl: {previousExam.examined_at?.split('T')[0]}
+                </span>
+              </div>
+
+              <div className="p-3 rounded-xl bg-white border border-teal-200 shadow-2xs">
+                <span className="text-teal-700 block text-[11px] font-semibold">BB Bulan Lalu</span>
+                <span className="font-bold text-teal-900 text-base">
+                  {previousExam.values?.C1} <span className="text-xs font-normal text-slate-500">kg</span>
+                </span>
+                {values.C1 && !isNaN(Number(values.C1)) && (
+                  <span className={`block text-[10px] font-bold mt-0.5 ${
+                    Number(values.C1) >= Number(previousExam.values?.C1) ? 'text-emerald-600' : 'text-amber-600'
+                  }`}>
+                    {Number(values.C1) >= Number(previousExam.values?.C1)
+                      ? `▲ +${(Number(values.C1) - Number(previousExam.values?.C1)).toFixed(2)} kg`
+                      : `▼ ${(Number(values.C1) - Number(previousExam.values?.C1)).toFixed(2)} kg`}
+                  </span>
+                )}
+              </div>
+
+              <div className="p-3 rounded-xl bg-white border border-blue-200 shadow-2xs">
+                <span className="text-blue-700 block text-[11px] font-semibold">TB Bulan Lalu</span>
+                <span className="font-bold text-blue-900 text-base">
+                  {previousExam.values?.C2} <span className="text-xs font-normal text-slate-500">cm</span>
+                </span>
+                {values.C2 && !isNaN(Number(values.C2)) && (
+                  <span className="block text-[10px] font-bold text-blue-600 mt-0.5">
+                    {Number(values.C2) >= Number(previousExam.values?.C2)
+                      ? `▲ +${(Number(values.C2) - Number(previousExam.values?.C2)).toFixed(1)} cm`
+                      : `${(Number(values.C2) - Number(previousExam.values?.C2)).toFixed(1)} cm`}
+                  </span>
+                )}
+              </div>
+
+              <div className="p-3 rounded-xl bg-white border border-purple-200 shadow-2xs">
+                <span className="text-purple-700 block text-[11px] font-semibold">LiLA Bulan Lalu</span>
+                <span className="font-bold text-purple-900 text-base">
+                  {previousExam.values?.C4} <span className="text-xs font-normal text-slate-500">cm</span>
+                </span>
+                <span className="block text-[10px] font-medium text-slate-400 mt-0.5">
+                  {previousExam.values?.C4 >= 12.5 ? 'Gizi Cukup' : 'Waspada Kurang'}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="p-3 rounded-xl bg-white/80 border border-slate-200 text-xs text-slate-500 italic">
+              Balita ini belum memiliki riwayat pemeriksaan fisik terverifikasi (kunjungan pertama).
+            </div>
+          )}
         </div>
 
         {/* 6 Kriteria Input */}

@@ -256,10 +256,10 @@ export function StaffDashboard() {
                   </td>
                   <td className="py-3 px-3.5 text-right">
                     <button
-                      onClick={() => navigate(`/parent/children/${exam.child_id}`)}
+                      onClick={() => navigate(`/staff/children/${exam.child_id}`)}
                       className="text-teal-700 font-semibold hover:underline"
                     >
-                      Buka Profil
+                      Buka Profil & Riwayat
                     </button>
                   </td>
                 </tr>
