@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { childService } from '../../services/childService';
@@ -21,8 +21,28 @@ import {
   Info,
   History,
   ChevronRight,
-  TrendingUp
+  TrendingUp,
+  Search,
+  X,
+  ChevronDown,
+  Check,
+  UserCheck
 } from 'lucide-react';
+
+const MONTH_OPTIONS = [
+  { value: '01', name: 'Januari' },
+  { value: '02', name: 'Februari' },
+  { value: '03', name: 'Maret' },
+  { value: '04', name: 'April' },
+  { value: '05', name: 'Mei' },
+  { value: '06', name: 'Juni' },
+  { value: '07', name: 'Juli' },
+  { value: '08', name: 'Agustus' },
+  { value: '09', name: 'September' },
+  { value: '10', name: 'Oktober' },
+  { value: '11', name: 'November' },
+  { value: '12', name: 'Desember' }
+];
 
 export function ExaminationFormPage() {
   const navigate = useNavigate();
@@ -33,9 +53,18 @@ export function ExaminationFormPage() {
 
   const [children, setChildren] = useState([]);
   const [selectedChildId, setSelectedChildId] = useState(childIdParam || '');
+  const [childSearchTerm, setChildSearchTerm] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchContainerRef = useRef(null);
+
+  const [selectedMonth, setSelectedMonth] = useState('10');
+  const [selectedYear, setSelectedYear] = useState('2026');
+
   const [previousExam, setPreviousExam] = useState(null);
-  const [periodCode, setPeriodCode] = useState('2026-10');
   const [notes, setNotes] = useState('');
+
+  // Periode SPK gabungan (YYYY-MM)
+  const periodCode = `${(selectedYear || '2026').trim()}-${selectedMonth}`;
 
   // 6 Kriteria Nilai
   const [values, setValues] = useState({
@@ -57,12 +86,30 @@ export function ExaminationFormPage() {
       const { data } = await childService.getAllChildren();
       if (data) {
         setChildren(data);
-        if (!selectedChildId && data.length > 0) {
+        if (childIdParam) {
+          const match = data.find(c => c.id === childIdParam);
+          if (match) {
+            setSelectedChildId(match.id);
+            setChildSearchTerm(match.name);
+          }
+        } else if (!selectedChildId && data.length > 0) {
           setSelectedChildId(data[0].id);
+          setChildSearchTerm(data[0].name);
         }
       }
     }
     loadInitial();
+  }, [childIdParam]);
+
+  // Tutup dropdown pencarian jika klik di luar
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+        setIsSearchOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -78,6 +125,30 @@ export function ExaminationFormPage() {
   }, [selectedChildId]);
 
   const selectedChild = children.find(c => c.id === selectedChildId);
+
+  // Filter balita untuk autocomplete search
+  const matchingChildren = children.filter((c) => {
+    const term = childSearchTerm.toLowerCase().trim();
+    if (!term) return true;
+    return (
+      c.name.toLowerCase().includes(term) ||
+      (c.parent_name && c.parent_name.toLowerCase().includes(term)) ||
+      (c.posyandu_name && c.posyandu_name.toLowerCase().includes(term)) ||
+      (c.date_of_birth && c.date_of_birth.includes(term))
+    );
+  });
+
+  const handleSelectChild = (child) => {
+    setSelectedChildId(child.id);
+    setChildSearchTerm(child.name);
+    setIsSearchOpen(false);
+  };
+
+  const handleClearSearch = () => {
+    setSelectedChildId('');
+    setChildSearchTerm('');
+    setIsSearchOpen(true);
+  };
 
   const handleInputChange = (code, val) => {
     setValues(prev => ({ ...prev, [code]: val }));
@@ -106,6 +177,16 @@ export function ExaminationFormPage() {
     setError('');
     setSuccess('');
 
+    if (!selectedChildId) {
+      setError('Silakan cari dan pilih balita yang diperiksa terlebih dahulu.');
+      return;
+    }
+
+    if (!selectedYear || !/^\d{4}$/.test(selectedYear.trim())) {
+      setError('Tahun pemeriksaan wajib diisi 4 digit angka (contoh: 2026).');
+      return;
+    }
+
     const validationErr = validateAllCriteria();
     if (validationErr) {
       setError(validationErr);
@@ -120,7 +201,7 @@ export function ExaminationFormPage() {
         notes,
         values,
         recordedBy: user?.id || 'u-staff-1',
-        recordedByName: profile?.full_name || 'Bdn. Dewi Anggraini, S.Tr.Keb'
+        recordedByName: profile?.full_name || 'dr. Dewi Anggraini, Sp.A'
       });
 
       if (res.error) {
@@ -143,6 +224,16 @@ export function ExaminationFormPage() {
     setError('');
     setSuccess('');
 
+    if (!selectedChildId) {
+      setError('Silakan cari dan pilih balita yang diperiksa terlebih dahulu.');
+      return;
+    }
+
+    if (!selectedYear || !/^\d{4}$/.test(selectedYear.trim())) {
+      setError('Tahun pemeriksaan wajib diisi 4 digit angka (contoh: 2026).');
+      return;
+    }
+
     const validationErr = validateAllCriteria();
     if (validationErr) {
       setError(validationErr);
@@ -158,7 +249,7 @@ export function ExaminationFormPage() {
         notes,
         values,
         recordedBy: user?.id || 'u-staff-1',
-        recordedByName: profile?.full_name || 'Bdn. Dewi Anggraini, S.Tr.Keb'
+        recordedByName: profile?.full_name || 'dr. Dewi Anggraini, Sp.A'
       });
 
       if (draftRes.error) {
@@ -171,7 +262,7 @@ export function ExaminationFormPage() {
       await examinationService.verifyExamination(
         draftRes.data.id,
         user?.id || 'u-staff-1',
-        profile?.full_name || 'Bdn. Dewi Anggraini, S.Tr.Keb'
+        profile?.full_name || 'dr. Dewi Anggraini, Sp.A'
       );
 
       // 3. Picu perhitungan AHP+SAW untuk kelompok tahun kelahiran anak & periode tersebut
@@ -179,12 +270,12 @@ export function ExaminationFormPage() {
       await spkService.runCalculationForCohort({
         birthYear,
         periodCode,
-        createdBy: profile?.full_name || 'Petugas Posyandu'
+        createdBy: profile?.full_name || 'dr. Dewi Anggraini, Sp.A'
       });
 
       setSuccess('Pemeriksaan berhasil diverifikasi dan hasil SPK berhasil diperbarui!');
       setTimeout(() => {
-        navigate(`/parent/children/${selectedChildId}`);
+        navigate(`/staff/children/${selectedChildId}`);
       }, 1200);
     } catch (err) {
       setError('Terjadi kendala saat memproses verifikasi dan perhitungan SPK.');
@@ -220,52 +311,175 @@ export function ExaminationFormPage() {
       )}
 
       <form onSubmit={handleSaveDraft} className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
-        {/* Pilih Balita & Periode */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-6 border-b border-slate-100">
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Pilih Balita yang Diperiksa
-            </label>
-            <div className="relative">
-              <select
-                value={selectedChildId}
-                onChange={(e) => setSelectedChildId(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-slate-300 bg-white text-sm font-medium focus:border-teal-600 outline-hidden"
-              >
-                {children.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} (Lahir: {c.date_of_birth} — Orang Tua: {c.parent_name || 'Ibu'})
-                  </option>
-                ))}
-              </select>
+        {/* Pilih Balita & Periode (Searchable Combobox + Dropbox Bulan & Input Manual Tahun) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 pb-6 border-b border-slate-100">
+          {/* 1. Pilih Balita via Pencarian Nama / Orang Tua */}
+          <div ref={searchContainerRef} className="relative">
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                <Search className="w-3.5 h-3.5 text-teal-600" />
+                <span>Pencarian Balita yang Diperiksa</span>
+              </label>
+              {selectedChild && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="text-[11px] font-semibold text-teal-700 hover:text-teal-800 hover:underline cursor-pointer"
+                >
+                  Ganti Balita
+                </button>
+              )}
             </div>
+
+            {/* Input Pencarian */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <Search className="w-4 h-4" />
+              </div>
+              <input
+                type="text"
+                value={childSearchTerm}
+                onChange={(e) => {
+                  setChildSearchTerm(e.target.value);
+                  setIsSearchOpen(true);
+                }}
+                onFocus={() => setIsSearchOpen(true)}
+                placeholder="Ketik nama balita atau orang tua untuk mencari..."
+                className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 outline-hidden transition-all"
+              />
+              {childSearchTerm && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                  title="Hapus pencarian"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Dropdown Hasil Pencarian Balita */}
+            {isSearchOpen && (
+              <div className="absolute z-30 mt-1.5 w-full bg-white rounded-2xl border border-slate-200 shadow-xl max-h-64 overflow-y-auto divide-y divide-slate-100 animate-in fade-in duration-100">
+                {matchingChildren.length === 0 ? (
+                  <div className="p-4 text-center text-xs text-slate-500">
+                    Tidak ditemukan balita dengan nama/kata kunci "<strong>{childSearchTerm}</strong>"
+                  </div>
+                ) : (
+                  matchingChildren.map((c) => (
+                    <div
+                      key={c.id}
+                      onClick={() => handleSelectChild(c)}
+                      className={`p-3 hover:bg-teal-50/80 cursor-pointer transition-colors flex items-center justify-between gap-3 ${
+                        c.id === selectedChildId ? 'bg-teal-50/60' : ''
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                            c.sex === 'P' ? 'bg-pink-100 text-pink-700' : 'bg-blue-100 text-blue-700'
+                          }`}
+                        >
+                          {c.sex}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-bold text-slate-900 text-xs sm:text-sm truncate">
+                            {c.name}
+                          </p>
+                          <p className="text-[11px] text-slate-500 truncate">
+                            Lahir: {c.date_of_birth} • Orang Tua: {c.parent_name || 'Ibu'}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-semibold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200 flex-shrink-0">
+                        Pilih
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+
+            {/* Ringkasan Balita yang Terpilih */}
             {selectedChild && (
-              <p className="mt-1.5 text-xs text-slate-500">
-                Tahun Kelahiran: <strong className="text-teal-700">{new Date(selectedChild.date_of_birth).getFullYear()}</strong> • 
-                Jenis Kelamin: <strong>{selectedChild.sex === 'P' ? 'Perempuan' : 'Laki-Laki'}</strong>
-              </p>
+              <div className="mt-2 p-2.5 rounded-xl bg-teal-50/70 border border-teal-200/80 flex items-center justify-between text-xs text-teal-950">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="w-2 h-2 rounded-full bg-teal-500"></span>
+                  <div className="truncate">
+                    <strong className="text-teal-900">{selectedChild.name}</strong>
+                    <span className="text-teal-700 ml-1.5 font-normal">
+                      ({selectedChild.sex === 'P' ? 'Perempuan' : 'Laki-Laki'}, Lahir {new Date(selectedChild.date_of_birth).getFullYear()})
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[11px] text-teal-800 font-semibold flex-shrink-0">
+                  {selectedChild.posyandu_name || 'Posyandu Mawar Indah'}
+                </span>
+              </div>
             )}
           </div>
 
+          {/* 2. Periode Pemeriksaan (Dropbox Bulan + Input Manual Tahun) */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Periode Pemeriksaan (Bulan - Tahun)
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-teal-600" />
+              <span>Periode Pemeriksaan (Bulan & Tahun)</span>
             </label>
-            <div className="relative">
-              <select
-                value={periodCode}
-                onChange={(e) => setPeriodCode(e.target.value)}
-                className="w-full p-2.5 rounded-xl border border-slate-300 bg-white text-sm font-mono focus:border-teal-600 outline-hidden"
-              >
-                <option value="2026-10">2026-10 (Oktober 2026)</option>
-                <option value="2026-09">2026-09 (September 2026)</option>
-                <option value="2026-08">2026-08 (Agustus 2026)</option>
-                <option value="2026-07">2026-07 (Juli 2026)</option>
-              </select>
+
+            <div className="grid grid-cols-2 gap-2.5">
+              {/* Dropbox Bulan */}
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                  Bulan (Pilih dari Dropbox)
+                </label>
+                <div className="relative">
+                  <select
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-slate-300 bg-white text-sm font-semibold text-slate-800 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 outline-hidden transition-all cursor-pointer"
+                  >
+                    {MONTH_OPTIONS.map((m) => (
+                      <option key={m.value} value={m.value}>
+                        {m.name} ({m.value})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Input Manual Tahun */}
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                  Tahun (Input Manual)
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="2000"
+                    max="2099"
+                    required
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                    placeholder="Contoh: 2026"
+                    className="w-full p-2.5 rounded-xl border border-slate-300 bg-white text-sm font-mono font-bold text-slate-800 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 outline-hidden transition-all"
+                  />
+                </div>
+              </div>
             </div>
-            <p className="mt-1.5 text-xs text-slate-500">
-              Aturan isolasi: alternatif hanya dibandingkan dalam periode yang sama.
-            </p>
+
+            {/* Badge Preview Kode Periode SPK */}
+            <div className="mt-2.5 p-2 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs text-slate-600">
+              <span className="flex items-center gap-1.5">
+                <span className="text-[11px] text-slate-500">Kode Periode SPK:</span>
+                <strong className="font-mono text-xs text-teal-800 bg-white px-2 py-0.5 rounded-md border border-slate-200 shadow-2xs font-bold">
+                  {periodCode}
+                </strong>
+              </span>
+              <span className="font-medium text-slate-700 text-xs">
+                {MONTH_OPTIONS.find((m) => m.value === selectedMonth)?.name} {selectedYear}
+              </span>
+            </div>
           </div>
         </div>
 
