@@ -577,45 +577,45 @@ export function ChildProfilePage() {
 
             {chartData.length > 0 ? (
               <div className="space-y-6">
-                {/* Visualisasi Kurva Recharts */}
-                <div className={`grid gap-6 ${activeChartTab === 'all' ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
-                  {/* Panel Antropometri (C1-C4) */}
+                {/* Visualisasi Kurva Recharts (Tersusun Atas - Bawah Lebar Penuh) */}
+                <div className="space-y-6">
+                  {/* Panel Atas: Antropometri & Pertumbuhan Fisik (C1-C4) */}
                   {(activeChartTab === 'all' || activeChartTab === 'antropometri') && (
-                    <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-slate-50/60 to-white border border-slate-200/90 shadow-2xs">
+                    <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-b from-slate-50/60 to-white border border-slate-200/90 shadow-2xs">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-xs">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
                             <Scale className="w-4 h-4" />
                           </div>
                           <div>
-                            <h4 className="font-bold text-slate-900 text-sm">
-                              Kurva Antropometri & Pertumbuhan Fisik
+                            <h4 className="font-bold text-slate-900 text-sm sm:text-base">
+                              1. Kurva Antropometri & Pertumbuhan Fisik Balita
                             </h4>
-                            <p className="text-[11px] text-slate-500">
-                              Kiri: BB (kg) & LiLA (cm) | Kanan: TB (cm) & LK (cm)
+                            <p className="text-xs text-slate-500">
+                              Sumbu Kiri: Berat Badan (kg) & LiLA (cm) | Sumbu Kanan: Tinggi Badan (cm) & Lingkar Kepala (cm)
                             </p>
                           </div>
                         </div>
-                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-teal-100 text-teal-800 self-start sm:self-auto">
+                        <span className="text-xs font-bold px-3 py-1 rounded-full bg-teal-100 text-teal-800 self-start sm:self-auto border border-teal-200">
                           Kriteria C1 — C4
                         </span>
                       </div>
 
-                      <div className={activeChartTab === 'all' ? 'h-72 w-full' : 'h-80 w-full'}>
+                      <div className="h-72 sm:h-80 w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={chartData} margin={{ top: 10, right: 25, left: -15, bottom: 0 }}>
+                          <LineChart data={chartData} margin={{ top: 12, right: 30, left: 0, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                            <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} tickLine={false} />
-                            <YAxis yAxisId="antropo-left" stroke="#0d9488" fontSize={11} domain={['dataMin - 1', 'dataMax + 1']} />
-                            <YAxis yAxisId="antropo-right" orientation="right" stroke="#2563eb" fontSize={11} domain={['dataMin - 3', 'dataMax + 3']} />
+                            <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} tickLine={false} />
+                            <YAxis yAxisId="antropo-left" stroke="#0d9488" fontSize={12} domain={['dataMin - 1', 'dataMax + 1']} />
+                            <YAxis yAxisId="antropo-right" orientation="right" stroke="#2563eb" fontSize={12} domain={['dataMin - 3', 'dataMax + 3']} />
                             <Tooltip content={<UnifiedChartTooltip />} />
-                            <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                            <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '12px' }} />
                             {activeMetrics.C1 && (
                               <Line
                                 yAxisId="antropo-left"
                                 type="monotone"
                                 dataKey="beratBadan"
-                                name="C1: BB (kg)"
+                                name="C1: Berat Badan (kg)"
                                 stroke="#0d9488"
                                 strokeWidth={2.5}
                                 dot={{ r: 4, fill: '#0d9488' }}
@@ -627,7 +627,7 @@ export function ChildProfilePage() {
                                 yAxisId="antropo-right"
                                 type="monotone"
                                 dataKey="tinggiBadan"
-                                name="C2: TB (cm)"
+                                name="C2: Tinggi Badan (cm)"
                                 stroke="#2563eb"
                                 strokeWidth={2.5}
                                 dot={{ r: 4, fill: '#2563eb' }}
@@ -639,7 +639,7 @@ export function ChildProfilePage() {
                                 yAxisId="antropo-right"
                                 type="monotone"
                                 dataKey="lingkarKepala"
-                                name="C3: LK (cm)"
+                                name="C3: Lingkar Kepala (cm)"
                                 stroke="#7c3aed"
                                 strokeWidth={2.5}
                                 dot={{ r: 4, fill: '#7c3aed' }}
@@ -664,43 +664,43 @@ export function ChildProfilePage() {
                     </div>
                   )}
 
-                  {/* Panel Kesehatan & Imunisasi (C5-C6) */}
+                  {/* Panel Bawah: Status Imunisasi & Riwayat Sakit (C5-C6) */}
                   {(activeChartTab === 'all' || activeChartTab === 'kesehatan') && (
-                    <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-slate-50/60 to-white border border-slate-200/90 shadow-2xs">
+                    <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-b from-slate-50/60 to-white border border-slate-200/90 shadow-2xs">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-cyan-100 text-cyan-700 flex items-center justify-center font-bold text-xs">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
                             <CheckCircle2 className="w-4 h-4" />
                           </div>
                           <div>
-                            <h4 className="font-bold text-slate-900 text-sm">
-                              Kurva Status Imunisasi & Riwayat Sakit
+                            <h4 className="font-bold text-slate-900 text-sm sm:text-base">
+                              2. Kurva Status Kelengkapan Imunisasi & Frekuensi Sakit
                             </h4>
-                            <p className="text-[11px] text-slate-500">
-                              Kiri: Imunisasi Dasar (0-100%) | Kanan: Sakit 6 Bln (kali)
+                            <p className="text-xs text-slate-500">
+                              Sumbu Kiri: Kelengkapan Imunisasi Dasar (0-100%) | Sumbu Kanan: Frekuensi Sakit 6 Bulan (kali)
                             </p>
                           </div>
                         </div>
-                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-cyan-100 text-cyan-800 self-start sm:self-auto">
+                        <span className="text-xs font-bold px-3 py-1 rounded-full bg-cyan-100 text-cyan-800 self-start sm:self-auto border border-cyan-200">
                           Kriteria C5 — C6
                         </span>
                       </div>
 
-                      <div className={activeChartTab === 'all' ? 'h-72 w-full' : 'h-80 w-full'}>
+                      <div className="h-72 sm:h-80 w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={chartData} margin={{ top: 10, right: 25, left: -15, bottom: 0 }}>
+                          <LineChart data={chartData} margin={{ top: 12, right: 30, left: 0, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                            <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} tickLine={false} />
-                            <YAxis yAxisId="health-left" stroke="#0891b2" fontSize={11} domain={[0, 100]} />
-                            <YAxis yAxisId="health-right" orientation="right" stroke="#e11d48" fontSize={11} domain={[0, 'dataMax + 2']} />
+                            <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} tickLine={false} />
+                            <YAxis yAxisId="health-left" stroke="#0891b2" fontSize={12} domain={[0, 100]} />
+                            <YAxis yAxisId="health-right" orientation="right" stroke="#e11d48" fontSize={12} domain={[0, 'dataMax + 2']} />
                             <Tooltip content={<UnifiedChartTooltip />} />
-                            <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                            <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '12px' }} />
                             {activeMetrics.C5 && (
                               <Line
                                 yAxisId="health-left"
                                 type="monotone"
                                 dataKey="imunisasi"
-                                name="C5: Imunisasi (%)"
+                                name="C5: Kelengkapan Imunisasi Dasar (%)"
                                 stroke="#0891b2"
                                 strokeWidth={2.5}
                                 dot={{ r: 4, fill: '#0891b2' }}
@@ -712,7 +712,7 @@ export function ChildProfilePage() {
                                 yAxisId="health-right"
                                 type="monotone"
                                 dataKey="frekuensiSakit"
-                                name="C6: Sakit (kali)"
+                                name="C6: Frekuensi Sakit (kali)"
                                 stroke="#e11d48"
                                 strokeWidth={2.5}
                                 dot={{ r: 4, fill: '#e11d48' }}
