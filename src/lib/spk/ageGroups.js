@@ -108,17 +108,13 @@ export function calculateAgeInMonths(dateOfBirth, referenceDateOrPeriod) {
   const dob = new Date(dateOfBirth);
   if (isNaN(dob.getTime())) return 0;
 
-  let refDate;
-  if (!referenceDateOrPeriod) {
-    refDate = new Date();
-  } else if (typeof referenceDateOrPeriod === 'string' && /^\d{4}-\d{2}$/.test(referenceDateOrPeriod)) {
+  if (typeof referenceDateOrPeriod === 'string' && /^\d{4}-\d{2}$/.test(referenceDateOrPeriod)) {
     const [year, month] = referenceDateOrPeriod.split('-').map(Number);
-    const day = Math.min(dob.getDate() || 15, 28);
-    refDate = new Date(year, month - 1, day);
-  } else {
-    refDate = new Date(referenceDateOrPeriod);
+    const months = (year - dob.getFullYear()) * 12 + (month - 1 - dob.getMonth());
+    return Math.max(0, months);
   }
 
+  let refDate = referenceDateOrPeriod ? new Date(referenceDateOrPeriod) : new Date();
   if (isNaN(refDate.getTime())) refDate = new Date();
 
   let months = (refDate.getFullYear() - dob.getFullYear()) * 12 + (refDate.getMonth() - dob.getMonth());

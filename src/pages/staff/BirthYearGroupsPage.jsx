@@ -14,20 +14,39 @@ import {
   Sparkles
 } from 'lucide-react';
 
+const MONTH_OPTIONS = [
+  { value: '01', name: 'Januari' },
+  { value: '02', name: 'Februari' },
+  { value: '03', name: 'Maret' },
+  { value: '04', name: 'April' },
+  { value: '05', name: 'Mei' },
+  { value: '06', name: 'Juni' },
+  { value: '07', name: 'Juli' },
+  { value: '08', name: 'Agustus' },
+  { value: '09', name: 'September' },
+  { value: '10', name: 'Oktober' },
+  { value: '11', name: 'November' },
+  { value: '12', name: 'Desember' }
+];
+
 export function BirthYearGroupsPage() {
   const navigate = useNavigate();
   const [cohorts, setCohorts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedMonth, setSelectedMonth] = useState('10');
+  const [selectedYear, setSelectedYear] = useState('2026');
+
+  const periodCode = `${selectedYear.trim() || '2026'}-${selectedMonth}`;
 
   useEffect(() => {
     async function loadCohorts() {
       setLoading(true);
-      const data = await spkService.getAgeGroupCohorts('2026-10');
+      const data = await spkService.getAgeGroupCohorts(periodCode);
       if (data) setCohorts(data);
       setLoading(false);
     }
     loadCohorts();
-  }, []);
+  }, [periodCode]);
 
   return (
     <div className="space-y-6">
@@ -56,6 +75,51 @@ export function BirthYearGroupsPage() {
             Oleh karena itu, sistem membagi balita ke dalam <strong>8 kelompok umur berbasis bulan lengkap</strong> agar alternatif SAW
             hanya diperbandingkan secara setara dan adil sesuai tahapan perkembangan gizi dan antropometri balita.
           </p>
+        </div>
+      </div>
+
+      {/* Selector Periode Penimbangan & Realtime Indicator */}
+      <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700 flex-shrink-0">
+            <Calendar className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-slate-900">Periode Evaluasi Kelompok Umur</h2>
+            <p className="text-xs text-slate-500">
+              Ubah bulan & tahun di bawah untuk melihat pergeseran kelompok balita secara real-time
+            </p>
+          </div>
+        </div>
+
+        {/* Input Bulan & Tahun */}
+        <div className="flex items-center gap-2 self-start md:self-auto">
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition-all cursor-pointer"
+          >
+            {MONTH_OPTIONS.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+
+          <input
+            type="number"
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            placeholder="2026"
+            min="2020"
+            max="2030"
+            className="w-20 px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs font-mono font-semibold text-slate-800 text-center focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition-all"
+          />
+
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 border border-teal-200 text-teal-800 text-xs font-bold font-mono">
+            <Clock className="w-3.5 h-3.5 text-teal-600" />
+            <span>{periodCode}</span>
+          </span>
         </div>
       </div>
 
@@ -140,13 +204,13 @@ export function BirthYearGroupsPage() {
                 <button
                   onClick={() =>
                     navigate(
-                      `/staff/spk-calculation?ageGroupId=${cohort.id}&period=${cohort.periods[0] || '2026-10'}`
+                      `/staff/spk-calculation?ageGroupId=${cohort.id}&period=${periodCode}`
                     )
                   }
                   className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer"
                 >
                   <Calculator className="w-3.5 h-3.5" />
-                  <span>Buka Ranking SPK</span>
+                  <span>Buka Ranking SPK ({periodCode})</span>
                 </button>
               </div>
             </div>
