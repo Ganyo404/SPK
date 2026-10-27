@@ -11,7 +11,8 @@ import {
   Info,
   CheckCircle2,
   Clock,
-  Sparkles
+  Sparkles,
+  RefreshCw
 } from 'lucide-react';
 
 const MONTH_OPTIONS = [
@@ -32,20 +33,46 @@ const MONTH_OPTIONS = [
 export function BirthYearGroupsPage() {
   const navigate = useNavigate();
   const [cohorts, setCohorts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState('10');
   const [selectedYear, setSelectedYear] = useState('2026');
+  const [yearInput, setYearInput] = useState('2026');
 
   const periodCode = `${selectedYear.trim() || '2026'}-${selectedMonth}`;
 
+  const handleYearChange = (val) => {
+    setYearInput(val);
+    const cleaned = (val || '').trim();
+    if (cleaned.length === 4 && Number(cleaned) >= 2000 && Number(cleaned) <= 2099) {
+      setSelectedYear(cleaned);
+    }
+  };
+
+  const handleYearBlur = () => {
+    const cleaned = (yearInput || '').trim();
+    if (cleaned.length === 4 && Number(cleaned) >= 2000 && Number(cleaned) <= 2099) {
+      setSelectedYear(cleaned);
+    } else {
+      setYearInput(selectedYear);
+    }
+  };
+
   useEffect(() => {
+    let isCurrent = true;
     async function loadCohorts() {
-      setLoading(true);
+      setIsUpdating(true);
       const data = await spkService.getAgeGroupCohorts(periodCode);
-      if (data) setCohorts(data);
-      setLoading(false);
+      if (isCurrent && data) {
+        setCohorts(data);
+      }
+      if (isCurrent) {
+        setIsUpdating(false);
+        setInitialLoading(false);
+      }
     }
     loadCohorts();
+    return () => { isCurrent = false; };
   }, [periodCode]);
 
   return (
@@ -108,29 +135,34 @@ export function BirthYearGroupsPage() {
 
           <input
             type="number"
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
+            value={yearInput}
+            onChange={(e) => handleYearChange(e.target.value)}
+            onBlur={handleYearBlur}
             placeholder="2026"
-            min="2020"
-            max="2030"
+            min="2000"
+            max="2099"
             className="w-20 px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs font-mono font-semibold text-slate-800 text-center focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition-all"
           />
 
           <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 border border-teal-200 text-teal-800 text-xs font-bold font-mono">
-            <Clock className="w-3.5 h-3.5 text-teal-600" />
+            {isUpdating ? (
+              <RefreshCw className="w-3.5 h-3.5 text-teal-600 animate-spin" />
+            ) : (
+              <Clock className="w-3.5 h-3.5 text-teal-600" />
+            )}
             <span>{periodCode}</span>
           </span>
         </div>
       </div>
 
-      {loading ? (
+      {initialLoading ? (
         <LoadingState text="Memuat data 8 kelompok umur penelitian SPK..." />
       ) : cohorts.length === 0 ? (
         <div className="p-12 text-center bg-white rounded-3xl border border-slate-200 text-slate-500 text-sm">
           Belum ada data balita yang terdaftar di sistem.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 transition-opacity duration-150 ${isUpdating ? 'opacity-60 pointer-events-none' : 'opacity-100'}`}>
           {cohorts.map((cohort) => (
             <div
               key={cohort.id}
@@ -165,11 +197,22 @@ export function BirthYearGroupsPage() {
                   <p className="italic leading-snug">{cohort.consideration}</p>
                 </div>
 
-                {/* Statistik Balita Terdaftar & Pemeriksaan */}
+                {/* Statistik Balita Terdaftar & Pemisahan Gender */}
                 <div className="space-y-1.5 mt-3 pt-3 border-t border-slate-100 text-xs">
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Balita di Rentang Ini:</span>
+                    <span className="text-slate-500">Total Balita:</span>
                     <strong className="text-slate-800 font-semibold">{cohort.totalChildren} anak</strong>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-slate-500">Pemisahan Gender:</span>
+                    <div className="flex items-center gap-1.5 font-semibold">
+                      <span className="text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-md border border-blue-200">
+                        👦 {cohort.maleChildrenCount || 0} L
+                      </span>
+                      <span className="text-pink-700 bg-pink-50 px-1.5 py-0.5 rounded-md border border-pink-200">
+                        👧 {cohort.femaleChildrenCount || 0} P
+                      </span>
+                    </div>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-slate-500">Pemeriksaan Terverifikasi:</span>
@@ -200,17 +243,39 @@ export function BirthYearGroupsPage() {
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-slate-100">
+              <div className="mt-4 pt-3 border-t border-slate-100 space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() =>
+                      navigate(
+                        `/staff/spk-calculation?ageGroupId=${cohort.id}&period=${periodCode}&gender=L`
+                      )
+                    }
+                    className="inline-flex items-center justify-center gap-1 py-1.5 px-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 font-bold text-[11px] border border-blue-200 transition-colors cursor-pointer"
+                  >
+                    <span>👦 Ranking L</span>
+                  </button>
+                  <button
+                    onClick={() =>
+                      navigate(
+                        `/staff/spk-calculation?ageGroupId=${cohort.id}&period=${periodCode}&gender=P`
+                      )
+                    }
+                    className="inline-flex items-center justify-center gap-1 py-1.5 px-2 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-800 font-bold text-[11px] border border-pink-200 transition-colors cursor-pointer"
+                  >
+                    <span>👧 Ranking P</span>
+                  </button>
+                </div>
                 <button
                   onClick={() =>
                     navigate(
-                      `/staff/spk-calculation?ageGroupId=${cohort.id}&period=${periodCode}`
+                      `/staff/spk-calculation?ageGroupId=${cohort.id}&period=${periodCode}&gender=all`
                     )
                   }
-                  className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer"
+                  className="w-full inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl bg-slate-100 hover:bg-teal-600 hover:text-white text-slate-700 font-semibold text-[11px] transition-colors cursor-pointer"
                 >
                   <Calculator className="w-3.5 h-3.5" />
-                  <span>Buka Ranking SPK ({periodCode})</span>
+                  <span>Semua Balita (#{cohort.id})</span>
                 </button>
               </div>
             </div>

@@ -9,7 +9,16 @@ function loadStoredExaminations() {
     const raw = localStorage.getItem(EXAMINATIONS_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const existingIds = new Set(parsed.map(e => e.id));
+        const missingMocks = MOCK_EXAMINATIONS.filter(e => !existingIds.has(e.id));
+        if (missingMocks.length > 0) {
+          const merged = [...parsed, ...missingMocks];
+          localStorage.setItem(EXAMINATIONS_STORAGE_KEY, JSON.stringify(merged));
+          return merged;
+        }
+        return parsed;
+      }
     }
   } catch (err) {
     console.warn('Gagal membaca data pemeriksaan dari localStorage:', err);
@@ -18,6 +27,7 @@ function loadStoredExaminations() {
 }
 
 export function saveStoredExaminations(exams) {
+  examStore = exams;
   try {
     localStorage.setItem(EXAMINATIONS_STORAGE_KEY, JSON.stringify(exams));
   } catch (err) {

@@ -9,7 +9,16 @@ function loadStoredChildren() {
     const raw = localStorage.getItem(CHILDREN_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const existingIds = new Set(parsed.map(c => c.id));
+        const missingMocks = MOCK_CHILDREN.filter(c => !existingIds.has(c.id));
+        if (missingMocks.length > 0) {
+          const merged = [...parsed, ...missingMocks];
+          localStorage.setItem(CHILDREN_STORAGE_KEY, JSON.stringify(merged));
+          return merged;
+        }
+        return parsed;
+      }
     }
   } catch (err) {
     console.warn('Gagal membaca data anak dari localStorage:', err);
@@ -18,6 +27,7 @@ function loadStoredChildren() {
 }
 
 function saveStoredChildren(children) {
+  childrenStore = children;
   try {
     localStorage.setItem(CHILDREN_STORAGE_KEY, JSON.stringify(children));
   } catch (err) {
