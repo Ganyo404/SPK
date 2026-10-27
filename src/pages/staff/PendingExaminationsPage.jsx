@@ -40,7 +40,7 @@ export function PendingExaminationsPage() {
     if (!res.error) {
       // Jalankan kalkulasi SAW
       await spkService.runCalculationForCohort({
-        birthYear: exam.birth_year || 2024,
+        ageGroupId: exam.age_group_id || 6,
         periodCode: exam.period_code || '2026-10',
         createdBy: profile?.full_name || 'Petugas Posyandu'
       });

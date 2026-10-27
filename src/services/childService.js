@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { MOCK_CHILDREN, MOCK_POSYANDU } from '../lib/mockData';
+import { MOCK_CHILDREN, MOCK_POSYANDU, MOCK_EXAMINATIONS } from '../lib/mockData';
+import { getChildAgeGroup } from '../lib/spk/ageGroups';
 
 const CHILDREN_STORAGE_KEY = 'spk_children_store';
 
@@ -170,6 +171,60 @@ export const childService = {
 
     childrenStore.unshift(newChild);
     saveStoredChildren(childrenStore);
+
+    // Otomatis buat pemeriksaan baseline terverifikasi dari data pendaftaran awal
+    // agar balita langsung memiliki data perhitungan SPK dan kurva grafik
+    try {
+      const birthYear = new Date(dateOfBirth).getFullYear();
+      const currentYear = new Date().getFullYear();
+      const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+      const initialPeriodCode = `${currentYear}-${currentMonth}`;
+      const ageInfo = getChildAgeGroup(dateOfBirth, initialPeriodCode);
+
+      const initialExam = {
+        id: `exam-init-${newChild.id}`,
+        child_id: newChild.id,
+        child_name: newChild.name,
+        birth_year: birthYear,
+        age_in_months: ageInfo.ageInMonths,
+        age_group_id: ageInfo.groupId,
+        age_group_name: ageInfo.groupName,
+        posyandu_id: posyanduObj?.id || 'posyandu-1',
+        posyandu_name: posyanduObj?.name || 'Posyandu Mawar Indah',
+        examined_at: new Date().toISOString(),
+        period_code: initialPeriodCode,
+        status: 'verified',
+        recorded_by: parentId || 'u-parent',
+        recorded_by_name: parentName || 'Pendaftaran Mandiri Orang Tua',
+        verified_by: 'u-staff-1',
+        verified_by_name: 'dr. Dewi Anggraini, Sp.A',
+        verified_at: new Date().toISOString(),
+        notes: `Data antropometri pendaftaran awal: BB ${birthWeight || '-'} kg, TB ${birthHeight || '-'} cm.`,
+        values: {
+          C1: birthWeight ? Number(birthWeight) : 3.2,
+          C2: birthHeight ? Number(birthHeight) : 50.0,
+          C3: 35.0,
+          C4: 11.5,
+          C5: 100,
+          C6: 0
+        },
+        saw_score: null,
+        saw_rank: null
+      };
+
+      const rawE = localStorage.getItem('spk_examinations_store');
+      let currentExams = rawE ? JSON.parse(rawE) : [...MOCK_EXAMINATIONS];
+      if (!Array.isArray(currentExams)) currentExams = [...MOCK_EXAMINATIONS];
+      // Cek agar tidak duplikat
+      const exists = currentExams.some(e => e.child_id === newChild.id && e.period_code === initialPeriodCode);
+      if (!exists) {
+        currentExams.unshift(initialExam);
+        localStorage.setItem('spk_examinations_store', JSON.stringify(currentExams));
+      }
+    } catch (e) {
+      console.warn('Gagal menambahkan initial exam:', e);
+    }
+
     return { data: newChild, error: null };
   },
 

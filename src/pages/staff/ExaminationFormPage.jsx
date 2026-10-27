@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { childService } from '../../services/childService';
 import { examinationService } from '../../services/examinationService';
 import { spkService } from '../../services/spkService';
+import { calculateAgeInMonths, getAgeGroupForMonths, getChildAgeGroup } from '../../lib/spk/ageGroups';
 import { MOCK_CRITERIA } from '../../lib/mockData';
 import {
   Stethoscope,
@@ -265,15 +266,15 @@ export function ExaminationFormPage() {
         profile?.full_name || 'dr. Dewi Anggraini, Sp.A'
       );
 
-      // 3. Picu perhitungan AHP+SAW untuk kelompok tahun kelahiran anak & periode tersebut
-      const birthYear = selectedChild ? new Date(selectedChild.date_of_birth).getFullYear() : 2024;
+      // 3. Picu perhitungan AHP+SAW untuk kelompok umur anak & periode tersebut
+      const ageGroupInfo = getChildAgeGroup(selectedChild?.date_of_birth, periodCode);
       await spkService.runCalculationForCohort({
-        birthYear,
+        ageGroupId: ageGroupInfo.groupId,
         periodCode,
         createdBy: profile?.full_name || 'dr. Dewi Anggraini, Sp.A'
       });
 
-      setSuccess('Pemeriksaan berhasil diverifikasi dan hasil SPK berhasil diperbarui!');
+      setSuccess(`Pemeriksaan berhasil diverifikasi dan hasil SPK untuk ${ageGroupInfo.groupName} berhasil diperbarui!`);
       setTimeout(() => {
         navigate(`/staff/children/${selectedChildId}`);
       }, 1200);
@@ -409,7 +410,7 @@ export function ExaminationFormPage() {
                   <div className="truncate">
                     <strong className="text-teal-900">{selectedChild.name}</strong>
                     <span className="text-teal-700 ml-1.5 font-normal">
-                      ({selectedChild.sex === 'P' ? 'Perempuan' : 'Laki-Laki'}, Lahir {new Date(selectedChild.date_of_birth).getFullYear()})
+                      ({selectedChild.sex === 'P' ? 'Perempuan' : 'Laki-Laki'}, {calculateAgeInMonths(selectedChild.date_of_birth, periodCode)} Bulan • {getAgeGroupForMonths(calculateAgeInMonths(selectedChild.date_of_birth, periodCode)).shortName})
                     </span>
                   </div>
                 </div>

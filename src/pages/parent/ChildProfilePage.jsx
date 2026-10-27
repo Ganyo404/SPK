@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { childService } from '../../services/childService';
 import { examinationService } from '../../services/examinationService';
+import { calculateAgeInMonths, getAgeGroupForMonths } from '../../lib/spk/ageGroups';
 import { evaluateHealthStatus, generateEducationalRecommendations, CLINICAL_DISCLAIMER } from '../../lib/health/statusRules';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { Modal } from '../../components/ui/Modal';
@@ -379,7 +380,9 @@ export function ChildProfilePage() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-xs text-teal-100">
-                    <span>Peringkat Kelompok Lahir {latestVerifiedExam.birth_year}:</span>
+                    <span>
+                      Peringkat {latestVerifiedExam.age_group_name || `Kelompok Umur (${getAgeGroupForMonths(calculateAgeInMonths(child.date_of_birth, latestVerifiedExam.period_code)).rangeLabel})`}:
+                    </span>
                     <span className="font-bold text-white text-sm">
                       {latestVerifiedExam.saw_rank ? `Peringkat #${latestVerifiedExam.saw_rank}` : 'Tercatat'}
                     </span>
@@ -975,7 +978,10 @@ export function ChildProfilePage() {
             <div className="p-3 rounded-xl bg-teal-50 border border-teal-100">
               <span className="font-bold text-teal-900 block mb-1">Hasil Perhitungan SPK (AHP + SAW):</span>
               <p className="text-teal-800">Skor Preferensi: <strong>{selectedExamDetail.saw_score != null ? selectedExamDetail.saw_score.toFixed(4) : '-'}</strong></p>
-              <p className="text-teal-800">Peringkat Kelompok: <strong>#{selectedExamDetail.saw_rank || '-'}</strong></p>
+              <p className="text-teal-800">
+                Peringkat Kelompok Umur: <strong>#{selectedExamDetail.saw_rank || '-'}</strong>
+                {selectedExamDetail.age_group_name ? ` (${selectedExamDetail.age_group_name})` : ''}
+              </p>
               <p className="text-[11px] text-teal-700 mt-1">Konfigurasi: Versi Algoritma AHP-SAW-v1.0 (6 Kriteria)</p>
             </div>
 
