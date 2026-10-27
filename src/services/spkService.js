@@ -109,7 +109,7 @@ export const spkService = {
         if (e.period_code !== targetPeriod) return false;
         const matchedChild = children.find((c) => c.id === e.child_id);
         const dob = matchedChild?.date_of_birth || e.date_of_birth;
-        const age = e.age_in_months !== undefined ? e.age_in_months : calculateAgeInMonths(dob, targetPeriod);
+        const age = dob ? calculateAgeInMonths(dob, targetPeriod) : (e.age_in_months ?? 0);
         return age >= group.minMonths && age <= group.maxMonths;
       });
 
@@ -123,7 +123,8 @@ export const spkService = {
       exams.forEach((e) => {
         const matchedChild = children.find((c) => c.id === e.child_id);
         const dob = matchedChild?.date_of_birth || e.date_of_birth;
-        const age = calculateAgeInMonths(dob, e.period_code || e.examined_at);
+        const examPeriod = e.period_code || (e.examined_at ? e.examined_at.substring(0, 7) : targetPeriod);
+        const age = dob ? calculateAgeInMonths(dob, examPeriod) : (e.age_in_months ?? 0);
         if (age >= group.minMonths && age <= group.maxMonths) {
           if (e.period_code) periodsSet.add(e.period_code);
         }
@@ -153,7 +154,7 @@ export const spkService = {
       if (e.period_code !== periodCode || e.status !== 'verified') return false;
       const matchedChild = children.find((c) => c.id === e.child_id);
       const dob = matchedChild?.date_of_birth || e.date_of_birth;
-      const age = e.age_in_months !== undefined ? e.age_in_months : calculateAgeInMonths(dob, periodCode);
+      const age = dob ? calculateAgeInMonths(dob, periodCode) : (e.age_in_months ?? 0);
       return age >= targetGroup.minMonths && age <= targetGroup.maxMonths;
     });
 
@@ -170,7 +171,7 @@ export const spkService = {
     const alternatives = candidates.map((c) => {
       const matchedChild = children.find((ch) => ch.id === c.child_id);
       const dob = matchedChild?.date_of_birth || c.date_of_birth;
-      const ageInMonths = c.age_in_months !== undefined ? c.age_in_months : calculateAgeInMonths(dob, periodCode);
+      const ageInMonths = dob ? calculateAgeInMonths(dob, periodCode) : (c.age_in_months ?? 0);
 
       return {
         childId: c.child_id,
