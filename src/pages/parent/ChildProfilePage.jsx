@@ -43,7 +43,7 @@ import {
 } from 'recharts';
 
 // Konfigurasi 6 Kriteria SPK untuk Visualisasi Kurva & Grafik
-export const CRITERIA_CONFIG = [
+const CRITERIA_CONFIG = [
   {
     key: 'C1',
     dataKey: 'beratBadan',

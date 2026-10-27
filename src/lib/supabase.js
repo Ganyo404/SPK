@@ -11,8 +11,13 @@ const supabaseAnonKey =
   import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 
   '';
 
+// Database belum aktif / belum dibuat sesuai instruksi pengguna;
+// Set VITE_USE_SUPABASE=true di .env jika database Supabase sudah diinisialisasi
+const isSupabaseEnabled = import.meta.env.VITE_USE_SUPABASE === 'true';
+
 export const isSupabaseConfigured = () => {
   return Boolean(
+    isSupabaseEnabled &&
     supabaseUrl &&
     supabaseAnonKey &&
     supabaseUrl !== 'https://your-project-ref.supabase.co' &&
