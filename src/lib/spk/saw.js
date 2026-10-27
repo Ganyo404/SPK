@@ -102,17 +102,18 @@ export function calculateSAW(alternatives, criteriaList, ahpWeights, options = {
     };
   }
 
-  // 1. Validasi konsistensi Kelompok Tahun Kelahiran & Periode
-  const firstBirthYear = alternatives[0].birthYear;
+  // 1. Validasi konsistensi Kelompok Umur & Periode
+  const firstAgeGroupId = alternatives[0].ageGroupId !== undefined ? alternatives[0].ageGroupId : alternatives[0].birthYear;
   const firstPeriod = alternatives[0].period;
 
   for (let idx = 0; idx < alternatives.length; idx++) {
     const alt = alternatives[idx];
     if (options.strictGrouping !== false) {
-      if (alt.birthYear !== firstBirthYear) {
+      const altGroupId = alt.ageGroupId !== undefined ? alt.ageGroupId : alt.birthYear;
+      if (altGroupId !== firstAgeGroupId) {
         return {
           valid: false,
-          error: `Aturan isolasi kelompok dilanggar: alternatif '${alt.childName}' memiliki tahun lahir ${alt.birthYear}, berbeda dengan kelompok ${firstBirthYear}.`,
+          error: `Aturan isolasi kelompok dilanggar: alternatif '${alt.childName}' berada pada kelompok '${altGroupId}', berbeda dengan kelompok acuan '${firstAgeGroupId}'.`,
           alternativeCount: 0,
           results: []
         };
@@ -238,7 +239,8 @@ export function calculateSAW(alternatives, criteriaList, ahpWeights, options = {
 
   return {
     valid: true,
-    birthYear: firstBirthYear,
+    ageGroupId: firstAgeGroupId,
+    birthYear: alternatives[0].birthYear,
     period: firstPeriod,
     alternativeCount: results.length,
     criteria: criteriaList,

@@ -39,7 +39,7 @@ export function Sidebar({ isOpen, onClose }) {
         { label: 'Verifikasi Pendaftaran', to: '/staff/registration-queue', icon: ClipboardList },
         { label: 'Catat Pemeriksaan', to: '/staff/examination/new', icon: Stethoscope },
         { label: 'Draf & Verifikasi', to: '/staff/examinations/pending', icon: CheckCircle2 },
-        { label: 'Kelompok Kelahiran', to: '/staff/cohorts', icon: Users },
+        { label: 'Kelompok Umur SPK', to: '/staff/cohorts', icon: Users },
         { label: 'Perhitungan & Ranking SPK', to: '/staff/spk-calculation', icon: Calculator },
         { label: 'Konsultasi Balita', to: '/staff/consultations', icon: MessageSquare },
       ];

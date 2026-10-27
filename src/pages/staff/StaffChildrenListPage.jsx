@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { childService } from '../../services/childService';
 import { examinationService } from '../../services/examinationService';
+import { SPK_AGE_GROUPS, calculateAgeInMonths, getAgeGroupForMonths } from '../../lib/spk/ageGroups';
 import { LoadingState } from '../../components/ui/LoadingState';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { StatusBadge } from '../../components/ui/StatusBadge';
@@ -76,16 +77,15 @@ export function StaffChildrenListPage() {
       (child.parent_name && child.parent_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (child.posyandu_name && child.posyandu_name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    const birthYear = new Date(child.date_of_birth).getFullYear().toString();
-    const matchesCohort = selectedCohort === 'all' || birthYear === selectedCohort;
+    const ageInMonths = calculateAgeInMonths(child.date_of_birth);
+    const ageGroup = getAgeGroupForMonths(ageInMonths);
+    const matchesCohort =
+      selectedCohort === 'all' ||
+      String(ageGroup.id) === selectedCohort ||
+      new Date(child.date_of_birth).getFullYear().toString() === selectedCohort;
 
     return matchesSearch && matchesCohort;
   });
-
-  // Kumpulan tahun lahir yang ada
-  const availableCohorts = Array.from(
-    new Set(children.map(c => new Date(c.date_of_birth).getFullYear()))
-  ).sort((a, b) => b - a);
 
   return (
     <div className="space-y-6">
@@ -128,12 +128,12 @@ export function StaffChildrenListPage() {
           <select
             value={selectedCohort}
             onChange={(e) => setSelectedCohort(e.target.value)}
-            className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 focus:border-teal-600 outline-hidden"
+            className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 focus:border-teal-600 outline-hidden cursor-pointer"
           >
-            <option value="all">Semua Tahun Kelahiran</option>
-            {availableCohorts.map((year) => (
-              <option key={year} value={year.toString()}>
-                Kelahiran {year}
+            <option value="all">Semua Kelompok Umur SPK</option>
+            {SPK_AGE_GROUPS.map((g) => (
+              <option key={g.id} value={String(g.id)}>
+                {g.name}
               </option>
             ))}
           </select>
@@ -186,6 +186,10 @@ export function StaffChildrenListPage() {
                           </span>
                           <span>•</span>
                           <span>{calculateAge(child.date_of_birth)}</span>
+                          <span>•</span>
+                          <span className="px-2 py-0.5 rounded-full bg-teal-50 border border-teal-200/80 text-teal-800 font-bold text-[10px]">
+                            {getAgeGroupForMonths(calculateAgeInMonths(child.date_of_birth)).shortName} ({getAgeGroupForMonths(calculateAgeInMonths(child.date_of_birth)).rangeLabel})
+                          </span>
                         </div>
                       </div>
                     </div>

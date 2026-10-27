@@ -1,10 +1,58 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { MOCK_EXAMINATIONS, MOCK_CHILDREN } from '../lib/mockData';
+import { getChildAgeGroup } from '../lib/spk/ageGroups';
 
-let examStore = [...MOCK_EXAMINATIONS];
+const EXAMINATIONS_STORAGE_KEY = 'spk_examinations_store';
+
+function loadStoredExaminations() {
+  try {
+    const raw = localStorage.getItem(EXAMINATIONS_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (err) {
+    console.warn('Gagal membaca data pemeriksaan dari localStorage:', err);
+  }
+  return [...MOCK_EXAMINATIONS];
+}
+
+export function saveStoredExaminations(exams) {
+  try {
+    localStorage.setItem(EXAMINATIONS_STORAGE_KEY, JSON.stringify(exams));
+  } catch (err) {
+    console.warn('Gagal menyimpan data pemeriksaan ke localStorage:', err);
+  }
+}
+
+function getStoredChild(childId) {
+  try {
+    const raw = localStorage.getItem('spk_children_store');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        const found = parsed.find(c => c.id === childId);
+        if (found) return found;
+      }
+    }
+  } catch (err) {
+    console.warn('Gagal membaca child dari localStorage:', err);
+  }
+  return MOCK_CHILDREN.find(c => c.id === childId);
+}
+
+let examStore = loadStoredExaminations();
 
 export const examinationService = {
+  // Sinkronisasi data terkini dari localStorage
+  syncFromStorage() {
+    examStore = loadStoredExaminations();
+    return examStore;
+  },
+
   async getExaminationsByChild(childId) {
+    this.syncFromStorage();
+
     if (isSupabaseConfigured()) {
       try {
         const { data, error } = await supabase
@@ -35,6 +83,8 @@ export const examinationService = {
   },
 
   async getLatestVerifiedExamination(childId) {
+    this.syncFromStorage();
+
     if (isSupabaseConfigured()) {
       try {
         const { data, error } = await supabase
@@ -68,6 +118,8 @@ export const examinationService = {
   },
 
   async getAllExaminations() {
+    this.syncFromStorage();
+
     if (isSupabaseConfigured()) {
       try {
         const { data, error } = await supabase
@@ -87,6 +139,8 @@ export const examinationService = {
   },
 
   async getPendingExaminations() {
+    this.syncFromStorage();
+
     if (isSupabaseConfigured()) {
       try {
         const { data, error } = await supabase
@@ -108,6 +162,8 @@ export const examinationService = {
   },
 
   async saveExaminationDraft({ childId, examinedAt, periodCode, notes, values, recordedBy, recordedByName }) {
+    this.syncFromStorage();
+
     // Validasi 6 kriteria
     const requiredCodes = ['C1', 'C2', 'C3', 'C4', 'C5', 'C6'];
     for (const code of requiredCodes) {
@@ -116,8 +172,12 @@ export const examinationService = {
       }
     }
 
-    const child = MOCK_CHILDREN.find(c => c.id === childId);
-    const birthYear = child ? new Date(child.date_of_birth).getFullYear() : 2024;
+    // Temukan anak dari localStorage / mock
+    const child = getStoredChild(childId);
+    const birthYear = child?.date_of_birth
+      ? new Date(child.date_of_birth).getFullYear()
+      : 2024;
+    const childName = child?.name || 'Balita';
 
     if (isSupabaseConfigured()) {
       try {
@@ -153,18 +213,27 @@ export const examinationService = {
       }
     }
 
-    // Local Store Mode
+    // Cek apakah sudah ada pemeriksaan untuk anak & periode ini di store lokal
+    const existingIndex = examStore.findIndex(
+      e => e.child_id === childId && e.period_code === periodCode
+    );
+
+    const ageInfo = getChildAgeGroup(child?.date_of_birth, examinedAt || periodCode);
+
     const newExam = {
-      id: `exam-${Date.now()}`,
+      id: existingIndex !== -1 ? examStore[existingIndex].id : `exam-${Date.now()}`,
       child_id: childId,
-      child_name: child?.name || 'Balita',
+      child_name: childName,
       birth_year: birthYear,
+      age_in_months: ageInfo.ageInMonths,
+      age_group_id: ageInfo.groupId,
+      age_group_name: ageInfo.groupName,
       examined_at: examinedAt || new Date().toISOString(),
       period_code: periodCode,
       status: 'pending_verification',
       notes: notes || '',
       recorded_by: recordedBy || 'u-staff-1',
-      recorded_by_name: recordedByName || 'Bdn. Dewi Anggraini, S.Tr.Keb',
+      recorded_by_name: recordedByName || 'dr. Dewi Anggraini, Sp.A',
       values: {
         C1: Number(values.C1),
         C2: Number(values.C2),
@@ -177,11 +246,19 @@ export const examinationService = {
       saw_rank: null
     };
 
-    examStore.unshift(newExam);
+    if (existingIndex !== -1) {
+      examStore[existingIndex] = newExam;
+    } else {
+      examStore.unshift(newExam);
+    }
+
+    saveStoredExaminations(examStore);
     return { data: newExam, error: null };
   },
 
   async verifyExamination(examinationId, staffId, staffName) {
+    this.syncFromStorage();
+
     if (isSupabaseConfigured()) {
       try {
         const { data, error } = await supabase.rpc('verify_examination', {
@@ -203,6 +280,7 @@ export const examinationService = {
       examStore[idx].verified_by = staffId;
       examStore[idx].verified_by_name = staffName;
       examStore[idx].verified_at = new Date().toISOString();
+      saveStoredExaminations(examStore);
       return { data: examStore[idx], error: null };
     }
 

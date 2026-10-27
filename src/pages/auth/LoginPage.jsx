@@ -17,12 +17,16 @@ export function LoginPage() {
     setError('');
     setLoading(true);
 
+    const form = e.currentTarget;
+    const targetEmail = email || form.elements?.email?.value || '';
+    const targetPassword = password || form.elements?.password?.value || '';
+
     try {
-      const res = await login(email, password);
+      const res = await login(targetEmail, targetPassword);
       if (res.error) {
         setError(res.error.message || 'Gagal masuk. Periksa kembali email dan kata sandi Anda.');
       } else {
-        const userRole = res.data?.profile?.role || role || 'parent';
+        const userRole = res.data?.profile?.role || res.data?.user?.role || role || 'parent';
         if (userRole === 'admin') navigate('/admin');
         else if (userRole === 'staff') navigate('/staff');
         else navigate('/parent');
@@ -101,6 +105,8 @@ export function LoginPage() {
                   <Mail className="h-5 h-5" />
                 </div>
                 <input
+                  id="email"
+                  name="email"
                   type="email"
                   required
                   value={email}
@@ -122,6 +128,8 @@ export function LoginPage() {
                   <Lock className="h-5 h-5" />
                 </div>
                 <input
+                  id="password"
+                  name="password"
                   type="password"
                   required
                   value={password}

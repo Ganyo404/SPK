@@ -170,13 +170,13 @@ export function StaffDashboard() {
             <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center mb-3">
               <Users className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-slate-900 text-base">Kelompok Tahun Kelahiran</h3>
+            <h3 className="font-bold text-slate-900 text-base">Kelompok Umur Balita SPK</h3>
             <p className="mt-1 text-xs text-slate-500 leading-relaxed">
-              Pengelompokan dinamis cohort balita (2024, 2025, dst) dan isolasi periode SPK.
+              8 Kelompok umur berbasis rentang bulan lengkap untuk komparasi SPK yang adil.
             </p>
           </div>
           <div className="mt-4 flex items-center justify-between text-xs font-semibold text-teal-600">
-            <span>Lihat Kelompok Cohort</span>
+            <span>Lihat 8 Kelompok Umur</span>
             <ArrowRight className="w-4 h-4" />
           </div>
         </div>
@@ -191,7 +191,7 @@ export function StaffDashboard() {
             </div>
             <h3 className="font-bold text-slate-900 text-base">Metode AHP + SAW</h3>
             <p className="mt-1 text-xs text-slate-500 leading-relaxed">
-              Jalankan normalisasi SAW menggunakan bobot AHP tervalidasi per kelompok tahun lahir.
+              Jalankan normalisasi SAW menggunakan bobot AHP tervalidasi per kelompok umur balita.
             </p>
           </div>
           <div className="mt-4 flex items-center justify-between text-xs font-semibold text-purple-600">
