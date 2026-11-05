@@ -1,26 +1,25 @@
 import React, { useState } from 'react';
 import { spkService } from '../../services/spkService';
 import { adminService } from '../../services/adminService';
-import { calculateAHP, DEFAULT_AHP_6X6_MATRIX, DEFAULT_CRITERIA_CODES, SAATY_RANDOM_INDEX } from '../../lib/spk/ahp';
+import { calculateAHP, DEFAULT_AHP_5X5_MATRIX, DEFAULT_5_CRITERIA_CODES, SAATY_RANDOM_INDEX } from '../../lib/spk/ahp';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { Sliders, CheckCircle2, AlertCircle, Save, RotateCcw, ShieldCheck, Info } from 'lucide-react';
 
 const CRITERIA_NAMES = [
-  'C1: Berat Badan (BB)',
-  'C2: Tinggi Badan (TB)',
-  'C3: Lingkar Kepala (LK)',
-  'C4: LiLA Gizi',
-  'C5: Imunisasi Dasar',
-  'C6: Frekuensi Sakit',
+  'K1: Berat Badan (BB/U)',
+  'K2: Tinggi/Panjang (PB/TB)',
+  'K3: Lingkar Kepala (LK/U)',
+  'K4: Kelengkapan Imunisasi',
+  'K5: Asupan Gizi & PMBA',
 ];
 
 export function AHPConfigPage() {
   const [matrix, setMatrix] = useState(() => {
-    return DEFAULT_AHP_6X6_MATRIX.map(row => [...row]);
+    return DEFAULT_AHP_5X5_MATRIX.map(row => [...row]);
   });
 
   const [calculation, setCalculation] = useState(() => {
-    return calculateAHP(DEFAULT_AHP_6X6_MATRIX, DEFAULT_CRITERIA_CODES);
+    return calculateAHP(DEFAULT_AHP_5X5_MATRIX, DEFAULT_5_CRITERIA_CODES);
   });
 
   const [saveSuccess, setSaveSuccess] = useState('');
@@ -38,14 +37,14 @@ export function AHPConfigPage() {
     }
 
     setMatrix(newMatrix);
-    const newCalc = calculateAHP(newMatrix, DEFAULT_CRITERIA_CODES);
+    const newCalc = calculateAHP(newMatrix, DEFAULT_5_CRITERIA_CODES);
     setCalculation(newCalc);
   };
 
   const handleResetDefault = () => {
-    const defaultCopy = DEFAULT_AHP_6X6_MATRIX.map(r => [...r]);
+    const defaultCopy = DEFAULT_AHP_5X5_MATRIX.map(r => [...r]);
     setMatrix(defaultCopy);
-    setCalculation(calculateAHP(defaultCopy, DEFAULT_CRITERIA_CODES));
+    setCalculation(calculateAHP(defaultCopy, DEFAULT_5_CRITERIA_CODES));
     setSaveSuccess('');
     setSaveError('');
   };
@@ -83,7 +82,7 @@ export function AHPConfigPage() {
             <span>Konfigurasi Matriks AHP (Analytic Hierarchy Process)</span>
           </h1>
           <p className="text-sm text-slate-500">
-            Penetapan bobot prioritas 6 kriteria balita dengan verifikasi rasio konsistensi Saaty (RI = 1.24)
+            Penetapan bobot prioritas 5 kriteria balita dengan verifikasi rasio konsistensi Saaty (RI = 1.12)
           </p>
         </div>
 

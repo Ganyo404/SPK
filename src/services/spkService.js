@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { calculateAHP, DEFAULT_AHP_6X6_MATRIX, DEFAULT_CRITERIA_CODES } from '../lib/spk/ahp';
+import { calculateAHP, DEFAULT_AHP_5X5_MATRIX, DEFAULT_5_CRITERIA_CODES } from '../lib/spk/ahp';
 import { calculateSAW } from '../lib/spk/saw';
 import {
   SPK_AGE_GROUPS,
@@ -8,10 +8,27 @@ import {
   getChildAgeGroup
 } from '../lib/spk/ageGroups';
 import { MOCK_EXAMINATIONS, MOCK_CHILDREN, MOCK_CRITERIA } from '../lib/mockData';
+import {
+  OFFICIAL_CRITERIA_5,
+  OFFICIAL_AHP_WEIGHTS,
+  convertRawToStandardScores
+} from '../lib/spk/scoringStandard';
 
-// Initial AHP active weights
-let currentAHPMatrix = DEFAULT_AHP_6X6_MATRIX;
-let currentAHPResult = calculateAHP(currentAHPMatrix, DEFAULT_CRITERIA_CODES);
+// Initial AHP active weights for 5 standardized criteria
+let currentAHPMatrix = DEFAULT_AHP_5X5_MATRIX;
+let currentAHPResult = {
+  valid: true,
+  n: 5,
+  matrix: DEFAULT_AHP_5X5_MATRIX,
+  weights: [0.122833, 0.122833, 0.084737, 0.423687, 0.245910],
+  weightsMap: OFFICIAL_AHP_WEIGHTS,
+  lambdaMax: 5.000136,
+  ci: 0.000034,
+  cr: 0.00003,
+  ri: 1.12,
+  crThreshold: 0.10,
+  isConsistent: true
+};
 
 const SPK_RUNS_KEY = 'spk_runs_store';
 
@@ -115,7 +132,7 @@ export const spkService = {
   },
 
   updateAHPMatrix(newMatrix) {
-    const calc = calculateAHP(newMatrix, DEFAULT_CRITERIA_CODES);
+    const calc = calculateAHP(newMatrix, DEFAULT_5_CRITERIA_CODES);
     if (calc.valid && calc.isConsistent) {
       currentAHPMatrix = newMatrix;
       currentAHPResult = calc;
@@ -234,12 +251,15 @@ export const spkService = {
       };
     }
 
-    // 2. Format alternatif untuk input SAW dengan info usia & jenis kelamin detail
+    // 2. Format alternatif untuk input SAW dengan standarisasi skor Permenkes/WHO
     const alternatives = candidates.map((c) => {
       const matchedChild = children.find((ch) => ch.id === c.child_id);
       const dob = matchedChild?.date_of_birth || c.date_of_birth;
       const ageInMonths = dob ? calculateAgeInMonths(dob, periodCode) : (c.age_in_months ?? 0);
       const childSex = matchedChild?.sex || c.sex || 'L';
+
+      // Konversi nilai ukur riil menjadi Skor Standar (1 - 4)
+      const conversion = convertRawToStandardScores(c.values || {}, targetGroup.id, childSex);
 
       return {
         childId: c.child_id,
@@ -251,12 +271,16 @@ export const spkService = {
         birthYear: matchedChild ? new Date(matchedChild.date_of_birth).getFullYear() : (c.birth_year || 2024),
         examinationId: c.id,
         period: c.period_code,
-        values: c.values
+        values: conversion.scores, // Skor 1 - 4 yang diproses oleh SAW
+        standardScores: conversion.scores,
+        scoreLabels: conversion.labels,
+        rawValues: conversion.rawValues,
+        statusFlag: conversion.statusFlag
       };
     });
 
-    // 3. Jalankan perhitungan SAW dengan bobot AHP aktif
-    const sawResult = calculateSAW(alternatives, MOCK_CRITERIA, currentAHPResult.weightsMap, { gender });
+    // 3. Jalankan perhitungan SAW dengan 5 Kriteria Baku (semua Benefit, skala 1-4)
+    const sawResult = calculateSAW(alternatives, OFFICIAL_CRITERIA_5, currentAHPResult.weightsMap, { gender });
 
     if (!sawResult.valid) {
       return { data: null, error: { message: sawResult.error } };
@@ -299,6 +323,8 @@ export const spkService = {
         ex.age_group_id = targetGroup.id;
         ex.age_group_name = targetGroup.name;
         if (res.sex) ex.sex = res.sex;
+        if (res.statusFlag) ex.status_flag = res.statusFlag;
+        if (res.standardScores) ex.standard_scores = res.standardScores;
       }
     });
     saveLiveExaminations(exams);

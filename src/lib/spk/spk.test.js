@@ -1,84 +1,127 @@
-import { calculateAHP, DEFAULT_AHP_6X6_MATRIX, DEFAULT_CRITERIA_CODES } from './ahp.js';
+import { calculateAHP, DEFAULT_AHP_5X5_MATRIX, DEFAULT_5_CRITERIA_CODES } from './ahp.js';
 import { calculateSAW } from './saw.js';
+import {
+  OFFICIAL_AHP_WEIGHTS,
+  OFFICIAL_CRITERIA_5,
+  convertRawToStandardScores,
+  getBBScore,
+  getTBScore,
+  getLKScore
+} from './scoringStandard.js';
 
-console.log('=== TEST 1: PENGUJIAN METODE AHP 6x6 ===');
-const ahpResult = calculateAHP(DEFAULT_AHP_6X6_MATRIX, DEFAULT_CRITERIA_CODES);
+console.log('=== TEST 1: PENGUJIAN METODE AHP 5x5 BAKU (CR <= 0.10) ===');
+const ahpResult = calculateAHP(DEFAULT_AHP_5X5_MATRIX, DEFAULT_5_CRITERIA_CODES);
 console.log('AHP Valid:', ahpResult.valid);
-console.log('Weights:', ahpResult.weights);
+console.log('Criteria:', DEFAULT_5_CRITERIA_CODES);
 console.log('Weights Map:', ahpResult.weightsMap);
 console.log('Lambda Max:', ahpResult.lambdaMax);
 console.log('CI (Consistency Index):', ahpResult.ci);
 console.log('CR (Consistency Ratio):', ahpResult.cr);
 console.log('Is Consistent (CR <= 0.10):', ahpResult.isConsistent);
 
-if (!ahpResult.valid || !ahpResult.isConsistent) {
-  throw new Error('AHP Test FAILED: Matriks default tidak konsisten!');
+if (!ahpResult.valid || !ahpResult.isConsistent || ahpResult.cr > 0.10) {
+  throw new Error('AHP Test FAILED: Matriks default 5x5 tidak konsisten!');
 }
-console.log('--> AHP TEST PASSED!\n');
+console.log('--> AHP 5x5 TEST PASSED (CR = ' + ahpResult.cr + ' <= 0.10)!\n');
 
-console.log('=== TEST 2: PENGUJIAN METODE SAW ===');
-const mockCriteria = [
-  { code: 'C1', name: 'Berat Badan', direction: 'benefit' },
-  { code: 'C2', name: 'Tinggi Badan', direction: 'benefit' },
-  { code: 'C3', name: 'Lingkar Kepala', direction: 'benefit' },
-  { code: 'C4', name: 'LiLA', direction: 'benefit' },
-  { code: 'C5', name: 'Imunisasi', direction: 'benefit' },
-  { code: 'C6', name: 'Frekuensi Sakit', direction: 'cost' },
+console.log('=== TEST 2: PENGUJIAN STANDARISASI SKOR PERMENKES NO. 2/2020 & WHO ===');
+// Pengujian balita usia 10 bulan Laki-laki (Kelompok 4: 9 - 11 bulan)
+// BB 8.5 kg -> Ideal (Skor 4)
+const bbIdeal = getBBScore(8.5, 4, 'L');
+console.log('BB 8.5 kg (L 10 bln):', bbIdeal.score, bbIdeal.label);
+if (bbIdeal.score !== 4) throw new Error('BB Ideal standardization failed');
+
+// BB 7.2 kg -> Kurang (Skor 2)
+const bbKurang = getBBScore(7.2, 4, 'L');
+console.log('BB 7.2 kg (L 10 bln):', bbKurang.score, bbKurang.label);
+if (bbKurang.score !== 2) throw new Error('BB Kurang standardization failed');
+
+// Konversi lengkap A7 (Haris) & A3 (Kevin)
+const harisStd = convertRawToStandardScores(
+  { C1: 7.2, C2: 68.0, C3: 42.5, C5: 50, gizi: 4 },
+  4,
+  'L'
+);
+console.log('Haris Standard Scores:', harisStd.scores, 'Status:', harisStd.statusFlag);
+if (harisStd.scores.K1 !== 2 || harisStd.scores.K2 !== 2 || harisStd.scores.K3 !== 2 || harisStd.statusFlag !== 'Perlu Tinjau') {
+  throw new Error('Haris standardization mismatch');
+}
+
+const kevinStd = convertRawToStandardScores(
+  { C1: 9.2, C2: 74.0, C3: 45.8, C5: 100, gizi: 4 },
+  4,
+  'L'
+);
+console.log('Kevin Standard Scores:', kevinStd.scores, 'Status:', kevinStd.statusFlag);
+if (kevinStd.scores.K1 !== 4 || kevinStd.scores.K2 !== 4 || kevinStd.statusFlag !== 'Normal') {
+  throw new Error('Kevin standardization mismatch');
+}
+console.log('--> STANDARDIZATION TEST PASSED!\n');
+
+console.log('=== TEST 3: PENGUJIAN 12 BALITA BENCHMARK SIMULASI EXCEL SAW ===');
+const benchmarkAlts = [
+  { childId: 'a1', childName: 'Rehan', values: { K1: 4, K2: 4, K3: 4, K4: 4, K5: 3 }, statusFlag: 'Normal' },
+  { childId: 'a2', childName: 'Suci', values: { K1: 4, K2: 4, K3: 4, K4: 3, K5: 4 }, statusFlag: 'Normal' },
+  { childId: 'a3', childName: 'Kevin', values: { K1: 4, K2: 4, K3: 4, K4: 4, K5: 4 }, statusFlag: 'Normal' },
+  { childId: 'a4', childName: 'Tiara', values: { K1: 4, K2: 4, K3: 4, K4: 4, K5: 3 }, statusFlag: 'Normal' },
+  { childId: 'a5', childName: 'Layla', values: { K1: 4, K2: 4, K3: 4, K4: 3, K5: 4 }, statusFlag: 'Normal' },
+  { childId: 'a6', childName: 'Revi', values: { K1: 4, K2: 4, K3: 4, K4: 4, K5: 3 }, statusFlag: 'Normal' },
+  { childId: 'a7', childName: 'Haris', values: { K1: 2, K2: 2, K3: 2, K4: 2, K5: 4 }, statusFlag: 'Perlu Tinjau' },
+  { childId: 'a8', childName: 'Rafael', values: { K1: 4, K2: 4, K3: 4, K4: 3, K5: 3 }, statusFlag: 'Normal' },
+  { childId: 'a9', childName: 'Hafizah', values: { K1: 4, K2: 4, K3: 4, K4: 4, K5: 4 }, statusFlag: 'Normal' },
+  { childId: 'a10', childName: 'Hakim', values: { K1: 4, K2: 4, K3: 4, K4: 3, K5: 2 }, statusFlag: 'Normal' },
+  { childId: 'a11', childName: 'Ega', values: { K1: 2, K2: 4, K3: 4, K4: 4, K5: 3 }, statusFlag: 'Perlu Tinjau' },
+  { childId: 'a12', childName: 'Bily', values: { K1: 4, K2: 4, K3: 4, K4: 3, K5: 4 }, statusFlag: 'Normal' },
 ];
 
-const mockAlternatives = [
-  {
-    childId: 'c-1',
-    childName: 'Aisyah Putri',
-    birthYear: 2024,
-    examinationId: 'e-1',
-    period: '2026-10',
-    values: { C1: 12.5, C2: 88, C3: 47, C4: 15.5, C5: 100, C6: 0 } // cost C6 = 0 (perfect!)
-  },
-  {
-    childId: 'c-2',
-    childName: 'Budi Santoso',
-    birthYear: 2024,
-    examinationId: 'e-2',
-    period: '2026-10',
-    values: { C1: 11.0, C2: 84, C3: 46, C4: 14.0, C5: 85, C6: 1 }
-  },
-  {
-    childId: 'c-3',
-    childName: 'Citra Kirana',
-    birthYear: 2024,
-    examinationId: 'e-3',
-    period: '2026-10',
-    values: { C1: 9.8, C2: 81, C3: 45, C4: 12.0, C5: 60, C6: 3 }
-  }
-];
-
-const sawResult = calculateSAW(mockAlternatives, mockCriteria, ahpResult.weightsMap);
-console.log('SAW Valid:', sawResult.valid);
-console.log('Alternative count:', sawResult.alternativeCount);
-console.log('Min-Max Summary:', sawResult.minMaxSummary);
-console.log('Ranking Results:');
-sawResult.results.forEach(r => {
-  console.log(`Rank ${r.rank}: ${r.childName} | Score: ${r.preferenceScore} | C6 norm: ${r.normalizedValues.C6}`);
+const sawSimResult = calculateSAW(benchmarkAlts, OFFICIAL_CRITERIA_5, OFFICIAL_AHP_WEIGHTS, { strictGrouping: false });
+console.log('SAW Simulation Valid:', sawSimResult.valid);
+sawSimResult.results.forEach(r => {
+  console.log(`Rank ${r.rank} | ${r.childName} | Score Vi: ${r.preferenceScore.toFixed(7)} | Status: ${r.statusFlag}`);
 });
 
-if (!sawResult.valid || sawResult.results.length !== 3 || sawResult.results[0].childName !== 'Aisyah Putri') {
-  throw new Error('SAW Test FAILED!');
+// Verifikasi Exact Rank & Score:
+// Rank 1: Kevin & Hafizah (1.0000000)
+const rank1List = sawSimResult.results.filter(r => r.rank === 1);
+if (rank1List.length !== 2 || Math.abs(rank1List[0].preferenceScore - 1.0) > 0.00001) {
+  throw new Error('Rank 1 simulation mismatch!');
 }
-console.log('--> SAW TEST PASSED!\n');
 
-console.log('=== TEST 3: PENGUJIAN ISOLASI KELOMPOK TAHUN KELAHIRAN ===');
-const mixedAlternatives = [
-  { ...mockAlternatives[0], birthYear: 2024 },
-  { ...mockAlternatives[1], birthYear: 2025 } // different birth year!
+// Rank 3: Rehan, Revi, Tiara (0.9385225)
+const rank3List = sawSimResult.results.filter(r => r.rank === 3);
+if (rank3List.length !== 3 || Math.abs(rank3List[0].preferenceScore - 0.9385225) > 0.00001) {
+  throw new Error('Rank 3 simulation mismatch!');
+}
+
+// Rank 6: Bily, Layla, Suci (0.8940782)
+const rank6List = sawSimResult.results.filter(r => r.rank === 6);
+if (rank6List.length !== 3 || Math.abs(rank6List[0].preferenceScore - 0.8940782) > 0.00001) {
+  throw new Error('Rank 6 simulation mismatch!');
+}
+
+// Rank 9: Ega (0.8771060, Perlu Tinjau)
+const ega = sawSimResult.results.find(r => r.childName === 'Ega');
+if (!ega || ega.rank !== 9 || Math.abs(ega.preferenceScore - 0.8771060) > 0.00001 || ega.statusFlag !== 'Perlu Tinjau') {
+  throw new Error('Ega simulation mismatch!');
+}
+
+// Rank 12: Haris (0.6229550, Perlu Tinjau)
+const haris = sawSimResult.results.find(r => r.childName === 'Haris');
+if (!haris || haris.rank !== 12 || Math.abs(haris.preferenceScore - 0.6229550) > 0.00001 || haris.statusFlag !== 'Perlu Tinjau') {
+  throw new Error('Haris simulation mismatch!');
+}
+
+console.log('--> EXACT 12 BALITA BENCHMARK SIMULATION PASSED (100% MATCH)!\n');
+
+console.log('=== TEST 4: PENGUJIAN ISOLASI KELOMPOK & PERIODE ===');
+const mixedAlts = [
+  { childId: 'x1', childName: 'Anak A', ageGroupId: 4, period: '2026-10', values: { K1: 4, K2: 4, K3: 4, K4: 4, K5: 4 } },
+  { childId: 'x2', childName: 'Anak B', ageGroupId: 5, period: '2026-10', values: { K1: 4, K2: 4, K3: 4, K4: 4, K5: 4 } }
 ];
-const mixedResult = calculateSAW(mixedAlternatives, mockCriteria, ahpResult.weightsMap);
-console.log('Should reject mixed birth years:', !mixedResult.valid);
-console.log('Error message:', mixedResult.error);
-
-if (mixedResult.valid) {
-  throw new Error('Grouping isolation FAILED: Harus menolak percampuran tahun lahir!');
+const mixedCheck = calculateSAW(mixedAlts, OFFICIAL_CRITERIA_5, OFFICIAL_AHP_WEIGHTS);
+if (mixedCheck.valid) {
+  throw new Error('Isolation check failed: mixed ageGroupId should be rejected!');
 }
 console.log('--> ISOLATION TEST PASSED!\n');
 
-console.log('ALL SPK CORE MATHEMATICAL TESTS PASSED SUCCESSFULLY!');
+console.log('ALL SPK CORE MATHEMATICAL & CLINICAL TESTS PASSED SUCCESSFULLY!');

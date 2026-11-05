@@ -1,6 +1,7 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { MOCK_EXAMINATIONS, MOCK_CHILDREN } from '../lib/mockData';
 import { getChildAgeGroup } from '../lib/spk/ageGroups';
+import { convertRawToStandardScores } from '../lib/spk/scoringStandard';
 
 const EXAMINATIONS_STORAGE_KEY = 'spk_examinations_store';
 
@@ -174,20 +175,47 @@ export const examinationService = {
   async saveExaminationDraft({ childId, examinedAt, periodCode, notes, values, recordedBy, recordedByName }) {
     this.syncFromStorage();
 
-    // Validasi 6 kriteria
-    const requiredCodes = ['C1', 'C2', 'C3', 'C4', 'C5', 'C6'];
-    for (const code of requiredCodes) {
-      if (values[code] === undefined || values[code] === null || values[code] === '') {
-        return { data: null, error: { message: `Kriteria ${code} belum diisi. Lengkapi 6 kriteria pemeriksaan.` } };
-      }
-    }
-
     // Temukan anak dari localStorage / mock
     const child = getStoredChild(childId);
     const birthYear = child?.date_of_birth
       ? new Date(child.date_of_birth).getFullYear()
       : 2024;
     const childName = child?.name || 'Balita';
+    const childSex = child?.sex || 'L';
+
+    // Ekstraksi nilai antropometri & gizi fleksibel (C1-C6 atau K1-K5 atau rawValues)
+    const rawBB = Number(values.raw_bb ?? values.BB ?? values.C1 ?? values.K1);
+    const rawTB = Number(values.raw_tb ?? values.TB ?? values.C2 ?? values.K2);
+    const rawLK = Number(values.raw_lk ?? values.LK ?? values.C3 ?? values.K3);
+    const rawImun = Number(values.raw_imun ?? values.Imunisasi ?? values.C5 ?? values.K4 ?? 100);
+    const rawGizi = Number(values.raw_gizi ?? values.Gizi ?? values.gizi ?? values.K5 ?? 4);
+    const rawLiLA = values.C4 !== undefined && values.C4 !== '' ? Number(values.C4) : (values.raw_lila ?? null);
+
+    if (isNaN(rawBB) || rawBB <= 0) {
+      return { data: null, error: { message: 'Nilai Berat Badan (BB) wajib diisi angka valid.' } };
+    }
+    if (isNaN(rawTB) || rawTB <= 0) {
+      return { data: null, error: { message: 'Nilai Tinggi/Panjang Badan (TB) wajib diisi angka valid.' } };
+    }
+    if (isNaN(rawLK) || rawLK <= 0) {
+      return { data: null, error: { message: 'Nilai Lingkar Kepala (LK) wajib diisi angka valid.' } };
+    }
+
+    const ageInfo = getChildAgeGroup(child?.date_of_birth, examinedAt || periodCode);
+
+    // Hitung standarisasi skor WHO / Permenkes (1 s/d 4)
+    const standardization = convertRawToStandardScores(
+      {
+        C1: rawBB,
+        C2: rawTB,
+        C3: rawLK,
+        C4: rawLiLA,
+        C5: rawImun,
+        gizi: rawGizi
+      },
+      ageInfo.groupId,
+      childSex
+    );
 
     if (isSupabaseConfigured()) {
       try {
@@ -212,7 +240,7 @@ export const examinationService = {
             const detailsPayload = criteriaList.map(c => ({
               examination_id: exam.id,
               criterion_id: c.id,
-              raw_value: Number(values[c.code])
+              raw_value: Number(values[c.code] ?? standardization.scores[c.code] ?? 0)
             }));
             await supabase.from('examination_details').insert(detailsPayload);
           }
@@ -228,13 +256,13 @@ export const examinationService = {
       e => e.child_id === childId && e.period_code === periodCode
     );
 
-    const ageInfo = getChildAgeGroup(child?.date_of_birth, examinedAt || periodCode);
-
     const newExam = {
       id: existingIndex !== -1 ? examStore[existingIndex].id : `exam-${Date.now()}`,
       child_id: childId,
       child_name: childName,
+      sex: childSex,
       birth_year: birthYear,
+      date_of_birth: child?.date_of_birth,
       age_in_months: ageInfo.ageInMonths,
       age_group_id: ageInfo.groupId,
       age_group_name: ageInfo.groupName,
@@ -245,13 +273,24 @@ export const examinationService = {
       recorded_by: recordedBy || 'u-staff-1',
       recorded_by_name: recordedByName || 'dr. Dewi Anggraini, Sp.A',
       values: {
-        C1: Number(values.C1),
-        C2: Number(values.C2),
-        C3: Number(values.C3),
-        C4: Number(values.C4),
-        C5: Number(values.C5),
-        C6: Number(values.C6),
+        // Legacy keys
+        C1: rawBB,
+        C2: rawTB,
+        C3: rawLK,
+        C4: rawLiLA ?? 14.5,
+        C5: rawImun,
+        C6: Number(values.C6 ?? 0),
+        // Official SPK 5-criteria standardized keys
+        K1: standardization.scores.K1,
+        K2: standardization.scores.K2,
+        K3: standardization.scores.K3,
+        K4: standardization.scores.K4,
+        K5: standardization.scores.K5,
       },
+      standard_scores: standardization.scores,
+      score_labels: standardization.labels,
+      raw_values: standardization.rawValues,
+      status_flag: standardization.statusFlag,
       saw_score: null,
       saw_rank: null
     };
