@@ -183,13 +183,12 @@ export const examinationService = {
     const childName = child?.name || 'Balita';
     const childSex = child?.sex || 'L';
 
-    // Ekstraksi nilai antropometri & gizi fleksibel (C1-C6 atau K1-K5 atau rawValues)
+    // Ekstraksi nilai antropometri & gizi fleksibel (K1-K5 atau rawValues)
     const rawBB = Number(values.raw_bb ?? values.BB ?? values.C1 ?? values.K1);
     const rawTB = Number(values.raw_tb ?? values.TB ?? values.C2 ?? values.K2);
     const rawLK = Number(values.raw_lk ?? values.LK ?? values.C3 ?? values.K3);
     const rawImun = Number(values.raw_imun ?? values.Imunisasi ?? values.C5 ?? values.K4 ?? 100);
     const rawGizi = Number(values.raw_gizi ?? values.Gizi ?? values.gizi ?? values.K5 ?? 4);
-    const rawLiLA = values.C4 !== undefined && values.C4 !== '' ? Number(values.C4) : (values.raw_lila ?? null);
 
     if (isNaN(rawBB) || rawBB <= 0) {
       return { data: null, error: { message: 'Nilai Berat Badan (BB) wajib diisi angka valid.' } };
@@ -209,7 +208,6 @@ export const examinationService = {
         C1: rawBB,
         C2: rawTB,
         C3: rawLK,
-        C4: rawLiLA,
         C5: rawImun,
         gizi: rawGizi
       },
@@ -273,19 +271,21 @@ export const examinationService = {
       recorded_by: recordedBy || 'u-staff-1',
       recorded_by_name: recordedByName || 'dr. Dewi Anggraini, Sp.A',
       values: {
-        // Legacy keys
         C1: rawBB,
         C2: rawTB,
         C3: rawLK,
-        C4: rawLiLA ?? 14.5,
         C5: rawImun,
-        C6: Number(values.C6 ?? 0),
-        // Official SPK 5-criteria standardized keys
+        // Official SPK 5-criteria standardized keys (1 s/d 4)
         K1: standardization.scores.K1,
         K2: standardization.scores.K2,
         K3: standardization.scores.K3,
         K4: standardization.scores.K4,
         K5: standardization.scores.K5,
+        raw_bb: rawBB,
+        raw_tb: rawTB,
+        raw_lk: rawLK,
+        raw_imun: rawImun,
+        raw_gizi: rawGizi
       },
       standard_scores: standardization.scores,
       score_labels: standardization.labels,

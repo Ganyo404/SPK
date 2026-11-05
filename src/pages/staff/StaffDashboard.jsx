@@ -46,8 +46,8 @@ export function StaffDashboard() {
       const drafts = exams.filter(e => e.status === 'draft').length;
       const pendingVerif = exams.filter(e => e.status === 'pending_verification').length;
       const verified = exams.filter(e => e.status === 'verified').length;
-      // Kriteria perhatian: LiLA < 12.5 cm atau Sakit >= 3 kali
-      const alerts = exams.filter(e => (e.values?.C4 && e.values.C4 < 12.5) || (e.values?.C6 && e.values.C6 >= 3)).length;
+      // Kriteria perhatian klinis: Status Perlu Tinjau atau skor fisik <= 2
+      const alerts = exams.filter(e => e.status_flag === 'Perlu Tinjau' || (e.values?.K1 && e.values.K1 <= 2) || (e.values?.K2 && e.values.K2 <= 2)).length;
 
       setMetrics({
         pendingRegistration: pendingReg,
@@ -80,7 +80,7 @@ export function StaffDashboard() {
             Pusat Pemantauan Balita Sehat
           </h1>
           <p className="mt-1 text-sm text-teal-100/80 max-w-xl">
-            Pencatatan pemeriksaan 6 kriteria, verifikasi fisik, pengelompokan tahun lahir, dan perhitungan SPK AHP + SAW.
+            Pencatatan pemeriksaan 5 kriteria baku, verifikasi fisik, pengelompokan umur balita, dan perhitungan SPK AHP + SAW.
           </p>
         </div>
 
@@ -135,7 +135,7 @@ export function StaffDashboard() {
         <SummaryCard
           title="Perlu Evaluasi"
           value={metrics.needsAttention}
-          subtitle="LiLA rendah / sering sakit"
+          subtitle="Status perlu tinjau klinis"
           icon={AlertTriangle}
           color="rose"
         />
@@ -225,7 +225,7 @@ export function StaffDashboard() {
                 <th className="py-3 px-3.5">Periode</th>
                 <th className="py-3 px-3.5">BB (kg)</th>
                 <th className="py-3 px-3.5">TB (cm)</th>
-                <th className="py-3 px-3.5">LiLA (cm)</th>
+                <th className="py-3 px-3.5">LK (cm)</th>
                 <th className="py-3 px-3.5">Status</th>
                 <th className="py-3 px-3.5 text-right">Aksi</th>
               </tr>
@@ -249,7 +249,7 @@ export function StaffDashboard() {
                     {exam.values?.C2 || '-'}
                   </td>
                   <td className="py-3 px-3.5 text-slate-700">
-                    {exam.values?.C4 || '-'}
+                    {exam.values?.C3 ?? exam.raw_values?.LK ?? '-'}
                   </td>
                   <td className="py-3 px-3.5">
                     <StatusBadge status={exam.status} />

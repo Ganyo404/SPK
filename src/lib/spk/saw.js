@@ -21,7 +21,7 @@ export function normalizeCriterionValue(val, maxVal, minVal, direction = 'benefi
     return val / maxVal;
   }
 
-  // Arah 'cost' (nilai lebih kecil lebih baik, misal frekuensi sakit)
+  // Arah 'cost' (nilai lebih kecil lebih baik)
   if (direction === 'cost') {
     // Penanganan khusus jika terdapat nilai 0 (misal anak tidak pernah sakit = 0 kali)
     // 0 kali sakit adalah kondisi terbaik (skor normalisasi = 1.0)

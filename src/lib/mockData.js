@@ -917,7 +917,7 @@ export const MOCK_EXAMINATIONS = [
     verified_by: 'u-staff-1',
     verified_at: '2026-10-15T11:15:00Z',
     status: 'verified',
-    notes: 'LiLA dalam rentang normal, imunisasi booster telah terjadwal.',
+    notes: 'Pertumbuhan fisik dalam rentang ideal, imunisasi booster telah terjadwal.',
     values: { C1: 11.2, C2: 85.0, C3: 46.2, C4: 14.2, C5: 85, C6: 1 },
     saw_score: 0.878,
     saw_rank: 3

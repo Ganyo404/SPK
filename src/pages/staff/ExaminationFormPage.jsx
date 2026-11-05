@@ -115,12 +115,11 @@ export function ExaminationFormPage() {
   // Periode SPK gabungan (YYYY-MM)
   const periodCode = `${(selectedYear || '2026').trim()}-${selectedMonth}`;
 
-  // State Form Kriteria Riil Antropometri & Gizi
+  // State Form Kriteria Riil Antropometri & Gizi (5 Kriteria Sesuai Standar Excel & Permenkes)
   const [values, setValues] = useState({
     bb: '',         // Berat Badan (kg) -> K1
     tb: '',         // Tinggi Badan (cm) -> K2
     lk: '',         // Lingkar Kepala (cm) -> K3
-    lila: '14.5',   // LiLA (cm) - companion screening
     imunisasi: '100', // Imunisasi (%) -> K4
     gizi: '4',      // Asupan Gizi & PMBA (1 - 4) -> K5
   });
@@ -218,7 +217,6 @@ export function ExaminationFormPage() {
           C1: values.bb,
           C2: values.tb,
           C3: values.lk,
-          C4: values.lila,
           C5: values.imunisasi,
           gizi: values.gizi
         },
@@ -290,10 +288,9 @@ export function ExaminationFormPage() {
     const lk = Number(values.lk);
     const imun = Number(values.imunisasi);
     const gizi = Number(values.gizi);
-    const lila = values.lila !== '' ? Number(values.lila) : 14.5;
 
     const std = convertRawToStandardScores(
-      { C1: bb, C2: tb, C3: lk, C4: lila, C5: imun, gizi },
+      { C1: bb, C2: tb, C3: lk, C5: imun, gizi },
       childAgeGroupInfo.groupId,
       childSex
     );
@@ -307,10 +304,8 @@ export function ExaminationFormPage() {
         C1: bb,
         C2: tb,
         C3: lk,
-        C4: lila,
         C5: imun,
-        C6: 0,
-        // Standarisasi Skor K1 - K5 (1 s/d 4)
+        // Standarisasi Skor 5 Kriteria Baku (1 s/d 4) Sesuai Excel
         K1: std.scores.K1,
         K2: std.scores.K2,
         K3: std.scores.K3,
@@ -320,8 +315,7 @@ export function ExaminationFormPage() {
         raw_tb: tb,
         raw_lk: lk,
         raw_imun: imun,
-        raw_gizi: gizi,
-        raw_lila: lila
+        raw_gizi: gizi
       },
       recordedBy: user?.id || 'u-staff-1',
       recordedByName: profile?.full_name || 'dr. Dewi Anggraini, Sp.A'
@@ -747,13 +741,13 @@ export function ExaminationFormPage() {
           )}
         </div>
 
-        {/* Section 1: Pengukuran Antropometri Fisik Balita (K1 - K3 & LiLA) */}
+        {/* Section 1: Pengukuran Antropometri Fisik Balita (K1 - K3 Sesuai Standar Baku) */}
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
                 <Scale className="w-5 h-5 text-teal-600" />
-                <span>Pengukuran Antropometri Fisik (Permenkes No. 2 Th 2020)</span>
+                <span>Pengukuran Tiga Kriteria Fisik (K1, K2, K3)</span>
               </h3>
               <p className="text-xs text-slate-500">
                 Ambang batas ideal dihitung otomatis berdasarkan usia ({childAgeMonths} bln, {childAgeGroupInfo.rangeLabel}) & jenis kelamin ({childSex === 'P' ? 'Perempuan' : 'Laki-Laki'})
@@ -847,28 +841,6 @@ export function ExaminationFormPage() {
                 </div>
               </div>
               {renderScorePill(liveLK?.score, liveLK?.label)}
-            </div>
-          </div>
-
-          {/* Screening LiLA (Lingkar Lengan Atas) */}
-          <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2">
-              <span className="p-1.5 bg-amber-100 text-amber-800 rounded-lg font-bold">LiLA</span>
-              <div>
-                <strong className="text-amber-950">Skrining Lingkar Lengan Atas (KMS):</strong>
-                <span className="text-amber-800 ml-1">Ambang batas pita: Hijau (&ge;12.5 cm), Kuning (11.5 - 12.4 cm), Merah (&lt;11.5 cm)</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 self-end sm:self-auto">
-              <input
-                type="number"
-                step="0.1"
-                placeholder="14.5"
-                value={values.lila}
-                onChange={(e) => handleInputChange('lila', e.target.value)}
-                className="w-24 p-1.5 px-2.5 rounded-lg border border-amber-300 bg-white text-xs font-bold text-amber-950 focus:border-teal-600 outline-hidden"
-              />
-              <span className="font-semibold text-amber-900">cm</span>
             </div>
           </div>
         </div>

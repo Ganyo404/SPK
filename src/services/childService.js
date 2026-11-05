@@ -214,9 +214,17 @@ export const childService = {
           C1: birthWeight ? Number(birthWeight) : 3.2,
           C2: birthHeight ? Number(birthHeight) : 50.0,
           C3: 35.0,
-          C4: 11.5,
           C5: 100,
-          C6: 0
+          K1: 4,
+          K2: 4,
+          K3: 4,
+          K4: 4,
+          K5: 4,
+          raw_bb: birthWeight ? Number(birthWeight) : 3.2,
+          raw_tb: birthHeight ? Number(birthHeight) : 50.0,
+          raw_lk: 35.0,
+          raw_imun: 100,
+          raw_gizi: 4
         },
         saw_score: null,
         saw_rank: null
