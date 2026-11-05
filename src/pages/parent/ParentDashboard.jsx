@@ -6,7 +6,7 @@ import { StatusBadge } from '../../components/ui/StatusBadge';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { LoadingState } from '../../components/ui/LoadingState';
 import { AddChildModal } from './AddChildModal';
-import { Plus, Baby, Calendar, Building2, ChevronRight, Sparkles, Clock, AlertTriangle } from 'lucide-react';
+import { Plus, Baby, Calendar, Building2, ChevronRight, Clock, AlertTriangle, Heart } from 'lucide-react';
 
 export function ParentDashboard() {
   const navigate = useNavigate();
@@ -49,24 +49,24 @@ export function ParentDashboard() {
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
-      <div className="rounded-3xl bg-gradient-to-r from-teal-700 via-teal-800 to-slate-900 p-6 lg:p-8 text-white shadow-lg relative overflow-hidden">
-        <div className="relative z-10 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/20 text-teal-200 text-xs font-semibold mb-3 border border-teal-400/20">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Portal Orang Tua Balita</span>
+      <div className="rounded-3xl bg-teal-800 p-6 lg:p-8 text-white shadow-xs">
+        <div className="max-w-2xl">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-700/60 text-teal-200 text-xs font-semibold mb-3 border border-teal-600">
+            <Heart className="w-3.5 h-3.5 text-teal-300" />
+            <span>Portal Orang Tua</span>
           </div>
           <h1 className="text-2xl lg:text-3xl font-extrabold tracking-tight">
-            Selamat Datang, {profile?.full_name || 'Bunda/Ayah'}!
+            Selamat Datang, {profile?.full_name || 'Orang Tua'}
           </h1>
-          <p className="mt-2 text-sm text-teal-100/90 leading-relaxed">
-            Pantau pertumbuhan, riwayat kunjungan Posyandu, serta edukasi gizi dan rekomendasi perkembangan anak Anda secara berkala.
+          <p className="mt-2 text-sm text-teal-100 leading-relaxed">
+            Pantau pertumbuhan fisik, riwayat imunisasi, dan perkembangan anak secara berkala.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <button
               onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-teal-800 font-semibold text-sm hover:bg-teal-50 shadow-sm transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-teal-900 font-semibold text-sm hover:bg-teal-50 shadow-xs transition-all cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 text-teal-700" />
               <span>Tambah Anak</span>
             </button>
           </div>

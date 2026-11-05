@@ -94,10 +94,10 @@ export function StaffChildrenListPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
             <Baby className="w-7 h-7 text-teal-600" />
-            <span>Data & Riwayat Balita Posyandu</span>
+            <span>Data Balita</span>
           </h1>
           <p className="text-sm text-slate-500">
-            Daftar seluruh balita terdaftar, rekam medis penimbangan bulanan, dan grafik pertumbuhan fisik
+            Daftar balita terdaftar dan riwayat pemantauan Posyandu
           </p>
         </div>
 
@@ -106,7 +106,7 @@ export function StaffChildrenListPage() {
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 text-white font-semibold text-sm hover:bg-teal-700 shadow-xs transition-all cursor-pointer self-start sm:self-auto"
         >
           <Stethoscope className="w-4 h-4" />
-          <span>Catat Pemeriksaan Baru</span>
+          <span>Catat Pemeriksaan</span>
         </button>
       </div>
 
@@ -118,7 +118,7 @@ export function StaffChildrenListPage() {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Cari nama balita, nama orang tua, atau Posyandu..."
+            placeholder="Cari nama balita, orang tua, atau Posyandu..."
             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 outline-hidden"
           />
         </div>
@@ -130,7 +130,7 @@ export function StaffChildrenListPage() {
             onChange={(e) => setSelectedCohort(e.target.value)}
             className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 focus:border-teal-600 outline-hidden cursor-pointer"
           >
-            <option value="all">Semua Kelompok Umur SPK</option>
+            <option value="all">Semua Kelompok Umur</option>
             {SPK_AGE_GROUPS.map((g) => (
               <option key={g.id} value={String(g.id)}>
                 {g.name}
