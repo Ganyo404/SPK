@@ -11,7 +11,7 @@ export function AppLayout() {
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       <Navbar onToggleSidebar={() => setSidebarOpen(prev => !prev)} />
 
-      <div className="flex-1 flex max-w-7xl w-full mx-auto">
+      <div className="flex-1 flex items-start max-w-7xl w-full mx-auto">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         <main className="flex-1 min-w-0 p-4 lg:p-8">
