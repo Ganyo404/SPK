@@ -490,32 +490,105 @@ export function getLKScore(rawLK, groupId = 4, sex = 'L') {
 }
 
 /**
- * K4 - Konversi Riwayat Kelengkapan Imunisasi Dasar ke Skor 1 - 4
- * @param {number|string} val - Persentase (0 - 100) atau kode skor langsung (1 - 4)
+ * Master Tabel Ambang Batas Dosis Imunisasi per Kelompok Umur
+ * Sesuai Jadwal Standar Imunisasi Dasar Kemenkes RI:
+ * - Kelompok 1 (0–2 bulan): Target ideal 6 dosis
+ * - Kelompok 2 (3–5 bulan): Target ideal 15 dosis
+ * - Kelompok 3 (6–8 bulan): Target ideal 15 dosis
+ * - Kelompok 4 (9–11 bulan): Target ideal 17 dosis (maksimal tuntas di 11 bulan)
+ * - Kelompok 5 s/d 8 (12–59 bulan): Target tetap 17 dosis (maksimal)
  */
-export function getImunisasiScore(val) {
-  const num = Number(val);
-  if (isNaN(num)) return { score: 1, label: 'Sangat Kurang (< 40%)' };
+export const IMMUNIZATION_STANDARDS = {
+  // Kelompok 1: 0 - 2 bulan (Target ideal: 6 dosis)
+  1: {
+    ageRange: '0 - 2 bulan',
+    targetIdeal: 6,
+    maxDoses: 6,
+    rules: [
+      { min: 6, max: 6, score: 4, label: 'Lengkap Target (6 dosis)' },
+      { min: 5, max: 5, score: 3, label: 'Hampir Lengkap (5 dosis)' },
+      { min: 3, max: 4, score: 2, label: 'Kurang (3 - 4 dosis)' },
+      { min: 0, max: 2, score: 1, label: 'Sangat Kurang (0 - 2 dosis)' }
+    ]
+  },
+  // Kelompok 2: 3 - 5 bulan (Target ideal: 15 dosis)
+  2: {
+    ageRange: '3 - 5 bulan',
+    targetIdeal: 15,
+    maxDoses: 15,
+    rules: [
+      { min: 15, max: 15, score: 4, label: 'Lengkap Target (15 dosis)' },
+      { min: 12, max: 14, score: 3, label: 'Hampir Lengkap (12 - 14 dosis)' },
+      { min: 8, max: 11, score: 2, label: 'Kurang (8 - 11 dosis)' },
+      { min: 0, max: 7, score: 1, label: 'Sangat Kurang (0 - 7 dosis)' }
+    ]
+  },
+  // Kelompok 3: 6 - 8 bulan (Target ideal: 15 dosis)
+  3: {
+    ageRange: '6 - 8 bulan',
+    targetIdeal: 15,
+    maxDoses: 15,
+    rules: [
+      { min: 15, max: 15, score: 4, label: 'Lengkap Target (15 dosis)' },
+      { min: 12, max: 14, score: 3, label: 'Hampir Lengkap (12 - 14 dosis)' },
+      { min: 8, max: 11, score: 2, label: 'Kurang (8 - 11 dosis)' },
+      { min: 0, max: 7, score: 1, label: 'Sangat Kurang (0 - 7 dosis)' }
+    ]
+  },
+  // Kelompok 4: 9 - 11 bulan (Target ideal: 17 dosis)
+  4: {
+    ageRange: '9 - 11 bulan',
+    targetIdeal: 17,
+    maxDoses: 17,
+    rules: [
+      { min: 17, max: 17, score: 4, label: 'Lengkap Target (17 dosis)' },
+      { min: 13, max: 16, score: 3, label: 'Hampir Lengkap (13 - 16 dosis)' },
+      { min: 9, max: 12, score: 2, label: 'Kurang (9 - 12 dosis)' },
+      { min: 0, max: 8, score: 1, label: 'Sangat Kurang (0 - 8 dosis)' }
+    ]
+  }
+};
 
-  // Jika nilai input adalah skor 1 - 4 langsung
-  if (num >= 1 && num <= 4 && Number.isInteger(num) && val <= 4) {
-    switch (num) {
-      case 4: return { score: 4, label: 'Lengkap Tepat Waktu (100%)' };
-      case 3: return { score: 3, label: 'Hampir Lengkap (75% - 99%)' };
-      case 2: return { score: 2, label: 'Kurang / Tidak Teratur (40% - 74%)' };
-      default: return { score: 1, label: 'Sangat Kurang / Menolak (< 40%)' };
+// Kelompok 5 s/d 8 (12 s/d 59 bulan): Imunisasi dasar tuntas di usia 11 bulan (maksimal 17 dosis)
+[5, 6, 7, 8].forEach((grpId) => {
+  IMMUNIZATION_STANDARDS[grpId] = {
+    ...IMMUNIZATION_STANDARDS[4],
+    isPostSchedule: true
+  };
+});
+
+/**
+ * K4 - Konversi Riwayat Kelengkapan Imunisasi Dasar ke Skor 1 - 4
+ * Berdasarkan jumlah dosis yang telah diterima sesuai kelompok usia balita.
+ * @param {number|string} val - Jumlah dosis diterima (0 s/d 17) atau persentase legacy (> 17)
+ * @param {number|string} groupId - Kelompok Umur 1 s/d 8 (default 4)
+ */
+export function getImunisasiScore(val, groupId = 4) {
+  let num = Math.round(Number(val));
+  if (isNaN(num) || num < 0) return { score: 1, label: 'Tidak Valid (0 dosis)' };
+
+  const grp = Number(groupId) || 4;
+  const standard = IMMUNIZATION_STANDARDS[grp] || IMMUNIZATION_STANDARDS[4];
+
+  // Kompatibilitas mundur dengan data legacy persentase (> 17)
+  if (num > 17) {
+    num = Math.min(standard.maxDoses, Math.round((num / 100) * standard.targetIdeal));
+  }
+
+  // Jika mencapai atau melebihi target ideal kelompok umur balita
+  if (num >= standard.targetIdeal) {
+    return { score: 4, label: `Lengkap Ideal (${num} dosis)` };
+  }
+
+  for (const rule of standard.rules) {
+    const minPass = rule.min === undefined || num >= rule.min;
+    const maxPass = rule.max === undefined || num <= rule.max;
+    if (minPass && maxPass) {
+      return { score: rule.score, label: rule.label };
     }
   }
 
-  // Jika berupa persentase 0 - 100%
-  if (num >= 100) {
-    return { score: 4, label: 'Lengkap Tepat Waktu (100%)' };
-  } else if (num >= 75) {
-    return { score: 3, label: 'Hampir Lengkap (75% - 99%)' };
-  } else if (num >= 40) {
-    return { score: 2, label: 'Kurang / Tidak Teratur (40% - 74%)' };
-  }
-  return { score: 1, label: 'Sangat Kurang / Menolak (< 40%)' };
+  return { score: 1, label: `Sangat Kurang (${num} dosis)` };
 }
 
 /**
@@ -546,13 +619,13 @@ export function convertRawToStandardScores(rawValues = {}, ageGroupId = 4, sex =
   const rawBB = rawValues.K1 ?? rawValues.C1 ?? rawValues.beratBadan ?? 0;
   const rawTB = rawValues.K2 ?? rawValues.C2 ?? rawValues.tinggiBadan ?? 0;
   const rawLK = rawValues.K3 ?? rawValues.C3 ?? rawValues.lingkarKepala ?? 0;
-  const rawImun = rawValues.K4 ?? rawValues.C5 ?? rawValues.imunisasi ?? 100;
+  const rawImun = rawValues.K4 ?? rawValues.C5 ?? rawValues.imunisasi ?? rawValues.raw_imun ?? 17;
   const rawGizi = rawValues.K5 ?? rawValues.asupanGizi ?? rawValues.gizi ?? 4;
 
   const bbRes = getBBScore(rawBB, ageGroupId, sex);
   const tbRes = getTBScore(rawTB, ageGroupId, sex);
   const lkRes = getLKScore(rawLK, ageGroupId, sex);
-  const imunRes = getImunisasiScore(rawImun);
+  const imunRes = getImunisasiScore(rawImun, ageGroupId);
   const giziRes = getAsupanGiziScore(rawGizi);
 
   const scores = {
@@ -646,10 +719,10 @@ export const OFFICIAL_CRITERIA_5 = [
     name: 'Riwayat Kelengkapan Imunisasi',
     shortName: 'Imunisasi',
     unit: 'Skor 1-4',
-    rawUnit: '%',
+    rawUnit: 'dosis',
     direction: 'benefit',
     weight: OFFICIAL_AHP_WEIGHTS.K4,
-    description: 'Skor 4 = Lengkap 100%, Skor 3 = 75-99%, Skor 2 = 40-74%, Skor 1 = < 40%'
+    description: 'Target dosis sesuai kelompok usia (maksimal 17 dosis tuntas di 11 bulan)'
   },
   {
     code: 'K5',

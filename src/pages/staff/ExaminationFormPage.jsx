@@ -85,12 +85,31 @@ const PMBA_OPTIONS = [
   }
 ];
 
-const IMUNISASI_SHORTCUTS = [
-  { label: 'Lengkap (100%)', value: '100', score: 4 },
-  { label: 'Hampir Lengkap (80%)', value: '80', score: 3 },
-  { label: 'Sebagian (50%)', value: '50', score: 2 },
-  { label: 'Kurang / Belum (25%)', value: '25', score: 1 }
-];
+function getImmunizationShortcuts(groupId = 4) {
+  const grp = Number(groupId) || 4;
+  if (grp === 1) {
+    return [
+      { label: 'Lengkap Target (6 dosis)', value: '6', score: 4, range: 'Target ideal: 6 dosis' },
+      { label: 'Hampir Lengkap (5 dosis)', value: '5', score: 3, range: '5 dosis' },
+      { label: 'Kurang (3 - 4 dosis)', value: '4', score: 2, range: '3 - 4 dosis' },
+      { label: 'Sangat Kurang (0 - 2 dosis)', value: '1', score: 1, range: '0 - 2 dosis' }
+    ];
+  }
+  if (grp === 2 || grp === 3) {
+    return [
+      { label: 'Lengkap Target (15 dosis)', value: '15', score: 4, range: 'Target ideal: 15 dosis' },
+      { label: 'Hampir Lengkap (12 - 14 dosis)', value: '13', score: 3, range: '12 - 14 dosis' },
+      { label: 'Kurang (8 - 11 dosis)', value: '10', score: 2, range: '8 - 11 dosis' },
+      { label: 'Sangat Kurang (0 - 7 dosis)', value: '5', score: 1, range: '0 - 7 dosis' }
+    ];
+  }
+  return [
+    { label: 'Lengkap Target (17 dosis)', value: '17', score: 4, range: 'Target ideal: 17 dosis' },
+    { label: 'Hampir Lengkap (13 - 16 dosis)', value: '15', score: 3, range: '13 - 16 dosis' },
+    { label: 'Kurang (9 - 12 dosis)', value: '11', score: 2, range: '9 - 12 dosis' },
+    { label: 'Sangat Kurang (0 - 8 dosis)', value: '5', score: 1, range: '0 - 8 dosis' }
+  ];
+}
 
 export function ExaminationFormPage() {
   const navigate = useNavigate();
@@ -119,7 +138,7 @@ export function ExaminationFormPage() {
     bb: '',         // Berat Badan (kg) -> K1
     tb: '',         // Tinggi Badan (cm) -> K2
     lk: '',         // Lingkar Kepala (cm) -> K3
-    imunisasi: '100', // Imunisasi (%) -> K4
+    imunisasi: '17', // Riwayat Imunisasi (Dosis, 0 - 17) -> K4
     gizi: '4',      // Asupan Gizi & PMBA (1 - 4) -> K5
   });
 
@@ -194,7 +213,7 @@ export function ExaminationFormPage() {
     : null;
 
   const liveImun = values.imunisasi !== '' && !isNaN(Number(values.imunisasi))
-    ? getImunisasiScore(values.imunisasi)
+    ? getImunisasiScore(values.imunisasi, childAgeGroupInfo.groupId)
     : null;
 
   const liveGizi = values.gizi !== '' && !isNaN(Number(values.gizi))
@@ -269,8 +288,8 @@ export function ExaminationFormPage() {
     }
 
     const imun = Number(values.imunisasi);
-    if (isNaN(imun) || values.imunisasi === '' || imun < 0 || imun > 100) {
-      return 'Nilai Kelengkapan Imunisasi wajib antara 0 s/d 100%.';
+    if (isNaN(imun) || values.imunisasi === '' || imun < 0 || imun > 17) {
+      return 'Jumlah Dosis Imunisasi wajib diisi antara 0 s/d 17 dosis.';
     }
 
     const gizi = Number(values.gizi);
@@ -852,23 +871,23 @@ export function ExaminationFormPage() {
           </div>
         </div>
 
-        {/* Section 2: K4 - Kelengkapan Imunisasi */}
+        {/* Section 2: K4 - Riwayat Dosis Imunisasi */}
         <div className="pt-4 border-t border-slate-100 space-y-3">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-teal-600" />
-                <span>2. Kelengkapan Imunisasi</span>
+                <span>2. Riwayat Dosis Imunisasi</span>
               </h3>
               <p className="text-xs text-slate-500">
-                Status imunisasi wajib sesuai usia balita
+                Jumlah dosis vaksin diterima balita • Target {childAgeGroupInfo.groupId === 1 ? '6' : (childAgeGroupInfo.groupId <= 3 ? '15' : '17')} dosis ({childAgeGroupInfo.groupName || childAgeGroupInfo.name || 'Usia Saat Ini'})
               </p>
             </div>
           </div>
 
-          {/* Pilihan Cepat Persentase / Status Imunisasi */}
+          {/* Pilihan Cepat Dosis Imunisasi Sesuai Kelompok Usia */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-            {IMUNISASI_SHORTCUTS.map((item) => {
+            {getImmunizationShortcuts(childAgeGroupInfo.groupId).map((item) => {
               const isSelected = values.imunisasi === item.value;
               return (
                 <button
@@ -892,7 +911,7 @@ export function ExaminationFormPage() {
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-500">
-                    Nilai acuan: <strong>{item.value}%</strong>
+                    Acuan: <strong>{item.range}</strong>
                   </p>
                 </button>
               );
@@ -900,18 +919,19 @@ export function ExaminationFormPage() {
           </div>
 
           <div className="flex items-center gap-3 pt-1">
-            <span className="text-xs font-semibold text-slate-600">Atau input manual:</span>
-            <div className="relative w-32">
+            <span className="text-xs font-semibold text-slate-600">Atau input manual (0–17):</span>
+            <div className="relative w-36">
               <input
                 type="number"
                 min="0"
-                max="100"
+                max="17"
                 required
+                placeholder="0 - 17"
                 value={values.imunisasi}
                 onChange={(e) => handleInputChange('imunisasi', e.target.value)}
-                className="w-full p-2 pr-8 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 focus:border-teal-600 outline-hidden"
+                className="w-full p-2 pr-12 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 focus:border-teal-600 outline-hidden"
               />
-              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">%</span>
+              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">dosis</span>
             </div>
             {renderScorePill(liveImun?.score, liveImun?.label)}
           </div>
