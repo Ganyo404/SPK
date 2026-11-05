@@ -85,32 +85,6 @@ const PMBA_OPTIONS = [
   }
 ];
 
-function getImmunizationShortcuts(groupId = 4) {
-  const grp = Number(groupId) || 4;
-  if (grp === 1) {
-    return [
-      { label: 'Lengkap Target (6 dosis)', value: '6', score: 4, range: 'Target ideal: 6 dosis' },
-      { label: 'Hampir Lengkap (5 dosis)', value: '5', score: 3, range: '5 dosis' },
-      { label: 'Kurang (3 - 4 dosis)', value: '4', score: 2, range: '3 - 4 dosis' },
-      { label: 'Sangat Kurang (0 - 2 dosis)', value: '1', score: 1, range: '0 - 2 dosis' }
-    ];
-  }
-  if (grp === 2 || grp === 3) {
-    return [
-      { label: 'Lengkap Target (15 dosis)', value: '15', score: 4, range: 'Target ideal: 15 dosis' },
-      { label: 'Hampir Lengkap (12 - 14 dosis)', value: '13', score: 3, range: '12 - 14 dosis' },
-      { label: 'Kurang (8 - 11 dosis)', value: '10', score: 2, range: '8 - 11 dosis' },
-      { label: 'Sangat Kurang (0 - 7 dosis)', value: '5', score: 1, range: '0 - 7 dosis' }
-    ];
-  }
-  return [
-    { label: 'Lengkap Target (17 dosis)', value: '17', score: 4, range: 'Target ideal: 17 dosis' },
-    { label: 'Hampir Lengkap (13 - 16 dosis)', value: '15', score: 3, range: '13 - 16 dosis' },
-    { label: 'Kurang (9 - 12 dosis)', value: '11', score: 2, range: '9 - 12 dosis' },
-    { label: 'Sangat Kurang (0 - 8 dosis)', value: '5', score: 1, range: '0 - 8 dosis' }
-  ];
-}
-
 export function ExaminationFormPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -767,16 +741,16 @@ export function ExaminationFormPage() {
           )}
         </div>
 
-        {/* Section 1: Pengukuran Antropometri Fisik Balita (K1 - K3) */}
+        {/* Section 1: Pengukuran Antropometri Fisik & Riwayat Imunisasi Balita (K1 - K4) */}
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
                 <Scale className="w-5 h-5 text-teal-600" />
-                <span>1. Pengukuran Fisik</span>
+                <span>1. Pemeriksaan Fisik & Imunisasi</span>
               </h3>
               <p className="text-xs text-slate-500">
-                Ambang batas dihitung untuk usia {childAgeMonths} bln ({childAgeGroupInfo.rangeLabel}) & jenis kelamin {childSex === 'P' ? 'Perempuan' : 'Laki-Laki'}
+                Ambang batas antropometri & target dosis imunisasi dihitung untuk usia {childAgeMonths} bln ({childAgeGroupInfo.rangeLabel}) & jenis kelamin {childSex === 'P' ? 'Perempuan' : 'Laki-Laki'}
               </p>
             </div>
             <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-3 py-1 rounded-full border border-slate-200 self-start sm:self-auto">
@@ -784,7 +758,8 @@ export function ExaminationFormPage() {
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Grid 2x2: Kiri Atas (BB), Kanan Atas (TB), Kiri Bawah (LK), Kanan Bawah (Imunisasi) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* K1: Berat Badan menurut Umur */}
             <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 flex flex-col justify-between">
               <div>
@@ -868,82 +843,46 @@ export function ExaminationFormPage() {
               </div>
               {renderScorePill(liveLK?.score, liveLK?.label)}
             </div>
+
+            {/* K4: Riwayat Imunisasi (Kanan Bawah) */}
+            <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5 text-teal-600" />
+                    <span>K4. Riwayat Imunisasi</span>
+                  </span>
+                  <span className="text-[10px] font-bold text-teal-700 uppercase bg-teal-100/60 px-1.5 py-0.5 rounded">
+                    Bobot 42.37%
+                  </span>
+                </div>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="0"
+                    max="17"
+                    step="1"
+                    required
+                    placeholder={`Contoh: ${childAgeGroupInfo.groupId === 1 ? '6' : (childAgeGroupInfo.groupId <= 3 ? '15' : '17')}`}
+                    value={values.imunisasi}
+                    onChange={(e) => handleInputChange('imunisasi', e.target.value)}
+                    className="w-full p-2.5 pr-14 rounded-xl border border-slate-300 bg-white text-sm font-bold text-slate-900 focus:border-teal-600 outline-hidden"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">dosis</span>
+                </div>
+              </div>
+              {renderScorePill(liveImun?.score, liveImun?.label)}
+            </div>
           </div>
         </div>
 
-        {/* Section 2: K4 - Riwayat Dosis Imunisasi */}
-        <div className="pt-4 border-t border-slate-100 space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-teal-600" />
-                <span>2. Riwayat Dosis Imunisasi</span>
-              </h3>
-              <p className="text-xs text-slate-500">
-                Jumlah dosis vaksin diterima balita • Target {childAgeGroupInfo.groupId === 1 ? '6' : (childAgeGroupInfo.groupId <= 3 ? '15' : '17')} dosis ({childAgeGroupInfo.groupName || childAgeGroupInfo.name || 'Usia Saat Ini'})
-              </p>
-            </div>
-          </div>
-
-          {/* Pilihan Cepat Dosis Imunisasi Sesuai Kelompok Usia */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-            {getImmunizationShortcuts(childAgeGroupInfo.groupId).map((item) => {
-              const isSelected = values.imunisasi === item.value;
-              return (
-                <button
-                  key={item.value}
-                  type="button"
-                  onClick={() => handleInputChange('imunisasi', item.value)}
-                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
-                    isSelected
-                      ? 'bg-teal-50 border-teal-500 ring-2 ring-teal-500/20'
-                      : 'bg-slate-50/60 border-slate-200 hover:bg-slate-100/80 text-slate-700'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-slate-900">{item.label}</span>
-                    <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${
-                      item.score === 4 ? 'bg-emerald-100 text-emerald-800' :
-                      item.score === 3 ? 'bg-teal-100 text-teal-800' :
-                      item.score === 2 ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'
-                    }`}>
-                      Skor: {item.score}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-500">
-                    Acuan: <strong>{item.range}</strong>
-                  </p>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="flex items-center gap-3 pt-1">
-            <span className="text-xs font-semibold text-slate-600">Atau input manual (0–17):</span>
-            <div className="relative w-36">
-              <input
-                type="number"
-                min="0"
-                max="17"
-                required
-                placeholder="0 - 17"
-                value={values.imunisasi}
-                onChange={(e) => handleInputChange('imunisasi', e.target.value)}
-                className="w-full p-2 pr-12 rounded-xl border border-slate-300 text-xs font-bold text-slate-800 focus:border-teal-600 outline-hidden"
-              />
-              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">dosis</span>
-            </div>
-            {renderScorePill(liveImun?.score, liveImun?.label)}
-          </div>
-        </div>
-
-        {/* Section 3: K5 - Asupan Gizi & PMBA */}
+        {/* Section 2: K5 - Asupan Gizi & PMBA */}
         <div className="pt-4 border-t border-slate-100 space-y-3">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
                 <Utensils className="w-5 h-5 text-teal-600" />
-                <span>3. Asupan Gizi & Pola Makan (PMBA)</span>
+                <span>2. Asupan Gizi & Pola Makan (PMBA)</span>
               </h3>
               <p className="text-xs text-slate-500">
                 Praktik pemberian makan bayi dan anak sesuai pedoman gizi
@@ -977,7 +916,7 @@ export function ExaminationFormPage() {
           </div>
         </div>
 
-        {/* Section 4: Live Standarisasi Hasil Skoring */}
+        {/* Section 3: Live Standarisasi Hasil Skoring */}
         {isAllFilled && liveStandardization && (
           <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/70 pb-3">
