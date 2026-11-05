@@ -33,8 +33,8 @@ export function Navbar({ onToggleSidebar }) {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 lg:px-8 py-3.5">
-      <div className="flex items-center justify-between gap-4 max-w-7xl mx-auto">
+    <header className="sticky top-0 z-40 h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 lg:px-8 flex items-center">
+      <div className="flex items-center justify-between gap-4 max-w-7xl w-full mx-auto">
         {/* Brand */}
         <div className="flex items-center gap-3">
           <button

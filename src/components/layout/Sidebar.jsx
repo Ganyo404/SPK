@@ -68,11 +68,11 @@ export function Sidebar({ isOpen, onClose }) {
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-white border-r border-slate-200/80 transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:z-0 flex flex-col ${
+        className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-white border-r border-slate-200/80 transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:sticky lg:top-16 lg:self-start lg:h-[calc(100vh-4rem)] lg:z-30 flex flex-col flex-shrink-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between lg:hidden">
+        <div className="p-4 border-b border-slate-100 flex items-center justify-between lg:hidden flex-shrink-0">
           <span className="font-bold text-slate-800">Menu Navigasi</span>
           <button onClick={onClose} className="p-1 rounded-md text-slate-500 hover:bg-slate-100">
             ✕
@@ -80,7 +80,7 @@ export function Sidebar({ isOpen, onClose }) {
         </div>
 
         {/* Role Header Banner */}
-        <div className="px-4 py-3 mx-3 mt-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs">
+        <div className="flex-shrink-0 px-4 py-3 mx-3 mt-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs">
           <p className="text-slate-500 font-medium">Navigasi Akses</p>
           <p className="font-bold text-teal-800 uppercase tracking-wider text-[11px] mt-0.5">
             {role === 'admin' ? 'Administrator' : role === 'staff' ? 'Petugas Posyandu' : 'Orang Tua Balita'}
@@ -113,7 +113,7 @@ export function Sidebar({ isOpen, onClose }) {
         </nav>
 
         {/* Medical Disclaimer in Sidebar */}
-        <div className="p-3 m-3 rounded-xl bg-teal-50/70 border border-teal-100 text-[11px] text-teal-900 leading-relaxed">
+        <div className="flex-shrink-0 p-3 m-3 rounded-xl bg-teal-50/70 border border-teal-100 text-[11px] text-teal-900 leading-relaxed">
           <div className="flex items-center gap-1.5 font-bold text-teal-800 mb-1">
             <Info className="w-3.5 h-3.5" />
             <span>Pemberitahuan Medis</span>
