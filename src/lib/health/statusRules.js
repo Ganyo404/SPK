@@ -81,9 +81,9 @@ export function evaluateHealthStatus(examination, child = {}) {
 
   // 4. K4: Riwayat Imunisasi
   if (k4Score === 1) {
-    alerts.push('Cakupan imunisasi dasar sangat kurang (< 40%). Balita rentan terhadap penyakit infeksi PD3I.');
+    alerts.push('Cakupan imunisasi dasar sangat kurang (Skor 1). Balita rentan terhadap penyakit infeksi PD3I.');
   } else if (k4Score === 2) {
-    notes.push('Cakupan imunisasi belum lengkap sesuai jadwal usia (40% - 74%). Lengkapi di Posyandu.');
+    notes.push('Cakupan imunisasi belum lengkap sesuai target dosis usia (Skor 2). Segera lengkapi di Posyandu.');
   }
 
   // 5. K5: Asupan Gizi & PMBA

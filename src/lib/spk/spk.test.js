@@ -6,7 +6,8 @@ import {
   convertRawToStandardScores,
   getBBScore,
   getTBScore,
-  getLKScore
+  getLKScore,
+  getImunisasiScore
 } from './scoringStandard.js';
 
 console.log('=== TEST 1: PENGUJIAN METODE AHP 5x5 BAKU (CR <= 0.10) ===');
@@ -48,14 +49,49 @@ if (harisStd.scores.K1 !== 2 || harisStd.scores.K2 !== 2 || harisStd.scores.K3 !
 }
 
 const kevinStd = convertRawToStandardScores(
-  { C1: 9.2, C2: 74.0, C3: 45.8, C5: 100, gizi: 4 },
+  { C1: 9.2, C2: 74.0, C3: 45.8, C5: 17, gizi: 4 },
   4,
   'L'
 );
 console.log('Kevin Standard Scores:', kevinStd.scores, 'Status:', kevinStd.statusFlag);
-if (kevinStd.scores.K1 !== 4 || kevinStd.scores.K2 !== 4 || kevinStd.statusFlag !== 'Normal') {
+if (kevinStd.scores.K1 !== 4 || kevinStd.scores.K2 !== 4 || kevinStd.scores.K4 !== 4 || kevinStd.statusFlag !== 'Normal') {
   throw new Error('Kevin standardization mismatch');
 }
+
+// Pengujian K4: Target Dosis Imunisasi per Kelompok Umur
+console.log('--- Pengujian K4: Standar Dosis Imunisasi per Kelompok ---');
+// Kelompok 1 (0-2 bln): Target 6
+if (getImunisasiScore(6, 1).score !== 4) throw new Error('K4 Kelompok 1 (6 dosis) failed');
+if (getImunisasiScore(5, 1).score !== 3) throw new Error('K4 Kelompok 1 (5 dosis) failed');
+if (getImunisasiScore(4, 1).score !== 2) throw new Error('K4 Kelompok 1 (4 dosis) failed');
+if (getImunisasiScore(3, 1).score !== 2) throw new Error('K4 Kelompok 1 (3 dosis) failed');
+if (getImunisasiScore(2, 1).score !== 1) throw new Error('K4 Kelompok 1 (2 dosis) failed');
+if (getImunisasiScore(0, 1).score !== 1) throw new Error('K4 Kelompok 1 (0 dosis) failed');
+
+// Kelompok 2 (3-5 bln): Target 15
+if (getImunisasiScore(15, 2).score !== 4) throw new Error('K4 Kelompok 2 (15 dosis) failed');
+if (getImunisasiScore(13, 2).score !== 3) throw new Error('K4 Kelompok 2 (13 dosis) failed');
+if (getImunisasiScore(10, 2).score !== 2) throw new Error('K4 Kelompok 2 (10 dosis) failed');
+if (getImunisasiScore(5, 2).score !== 1) throw new Error('K4 Kelompok 2 (5 dosis) failed');
+
+// Kelompok 3 (6-8 bln): Target 15
+if (getImunisasiScore(15, 3).score !== 4) throw new Error('K4 Kelompok 3 (15 dosis) failed');
+if (getImunisasiScore(14, 3).score !== 3) throw new Error('K4 Kelompok 3 (14 dosis) failed');
+if (getImunisasiScore(8, 3).score !== 2) throw new Error('K4 Kelompok 3 (8 dosis) failed');
+if (getImunisasiScore(6, 3).score !== 1) throw new Error('K4 Kelompok 3 (6 dosis) failed');
+
+// Kelompok 4 (9-11 bln): Target 17
+if (getImunisasiScore(17, 4).score !== 4) throw new Error('K4 Kelompok 4 (17 dosis) failed');
+if (getImunisasiScore(15, 4).score !== 3) throw new Error('K4 Kelompok 4 (15 dosis) failed');
+if (getImunisasiScore(11, 4).score !== 2) throw new Error('K4 Kelompok 4 (11 dosis) failed');
+if (getImunisasiScore(7, 4).score !== 1) throw new Error('K4 Kelompok 4 (7 dosis) failed');
+
+// Kelompok 5-8 (12-59 bln): Target 17
+if (getImunisasiScore(17, 6).score !== 4) throw new Error('K4 Kelompok 6 (17 dosis) failed');
+if (getImunisasiScore(14, 6).score !== 3) throw new Error('K4 Kelompok 6 (14 dosis) failed');
+if (getImunisasiScore(9, 6).score !== 2) throw new Error('K4 Kelompok 6 (9 dosis) failed');
+if (getImunisasiScore(3, 6).score !== 1) throw new Error('K4 Kelompok 6 (3 dosis) failed');
+console.log('Semua rentang dosis Kelompok 1 s/d 8 terverifikasi valid!');
 console.log('--> STANDARDIZATION TEST PASSED!\n');
 
 console.log('=== TEST 3: PENGUJIAN 12 BALITA BENCHMARK SIMULASI EXCEL SAW ===');

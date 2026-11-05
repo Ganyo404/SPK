@@ -98,8 +98,8 @@ const CRITERIA_CONFIG = [
     key: 'K4',
     code: 'K4',
     dataKey: 'imunisasi',
-    label: 'Kelengkapan Imunisasi',
-    unit: '%',
+    label: 'Riwayat Imunisasi',
+    unit: 'dosis',
     color: '#0891b2', // cyan-600
     bg: 'bg-cyan-50',
     border: 'border-cyan-200',
@@ -108,7 +108,7 @@ const CRITERIA_CONFIG = [
     category: 'kesehatan',
     yAxisId: 'health-left',
     type: 'benefit',
-    description: 'Bobot AHP: 42.37% • Riwayat vaksinasi tepat waktu'
+    description: 'Bobot AHP: 42.37% • Jumlah dosis diterima (maks 17 dosis)'
   },
   {
     key: 'K5',
@@ -249,7 +249,13 @@ export function ChildProfilePage() {
       beratBadan: e.values?.C1 ?? e.raw_values?.BB ?? (e.values?.raw_bb != null ? Number(e.values.raw_bb) : null),
       tinggiBadan: e.values?.C2 ?? e.raw_values?.TB ?? (e.values?.raw_tb != null ? Number(e.values.raw_tb) : null),
       lingkarKepala: e.values?.C3 ?? e.raw_values?.LK ?? (e.values?.raw_lk != null ? Number(e.values.raw_lk) : null),
-      imunisasi: e.values?.C5 ?? e.raw_values?.Imunisasi ?? (e.values?.raw_imun != null ? Number(e.values.raw_imun) : (e.values?.K4 ? e.values.K4 * 25 : 100)),
+      imunisasi: (() => {
+        const raw = e.values?.C5 ?? e.raw_values?.Imunisasi ?? (e.values?.raw_imun != null ? Number(e.values.raw_imun) : (e.values?.K4 ? e.values.K4 : 17));
+        const num = Number(raw);
+        if (isNaN(num)) return 17;
+        if (num > 17) return Math.min(17, Math.round((num / 100) * 17));
+        return num;
+      })(),
       asupanGizi: e.values?.K5 ?? e.standard_scores?.K5 ?? e.raw_values?.Gizi ?? (e.values?.gizi != null ? Number(e.values.gizi) : 4),
     }));
 
@@ -262,7 +268,11 @@ export function ChildProfilePage() {
       if (critKey === 'K1') return exam.values.C1 ?? exam.raw_values?.BB ?? exam.values.raw_bb;
       if (critKey === 'K2') return exam.values.C2 ?? exam.raw_values?.TB ?? exam.values.raw_tb;
       if (critKey === 'K3') return exam.values.C3 ?? exam.raw_values?.LK ?? exam.values.raw_lk;
-      if (critKey === 'K4') return exam.values.C5 ?? exam.raw_values?.Imunisasi ?? exam.values.raw_imun ?? 100;
+      if (critKey === 'K4') {
+        const raw = exam.values.C5 ?? exam.raw_values?.Imunisasi ?? exam.values.raw_imun ?? 17;
+        const num = Number(raw);
+        return !isNaN(num) && num > 17 ? Math.min(17, Math.round((num / 100) * 17)) : (num || 17);
+      }
       if (critKey === 'K5') return exam.values.K5 ?? exam.standard_scores?.K5 ?? exam.values.raw_gizi ?? 4;
       return exam.values[critKey];
     };
@@ -671,7 +681,7 @@ export function ChildProfilePage() {
                               Imunisasi & Asupan Gizi
                             </h4>
                             <p className="text-xs text-slate-500">
-                              Kelengkapan imunisasi dasar (%) dan skor pola makan PMBA (1–4)
+                              Jumlah dosis imunisasi diterima (0–17 dosis) dan skor asupan gizi PMBA (1–4)
                             </p>
                           </div>
                         </div>
@@ -685,7 +695,7 @@ export function ChildProfilePage() {
                           <LineChart data={chartData} margin={{ top: 12, right: 30, left: 0, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                             <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} tickLine={false} />
-                            <YAxis yAxisId="health-left" stroke="#0891b2" fontSize={12} domain={[0, 100]} />
+                            <YAxis yAxisId="health-left" stroke="#0891b2" fontSize={12} domain={[0, 17]} ticks={[0, 5, 10, 15, 17]} />
                             <YAxis yAxisId="health-right" orientation="right" stroke="#ea580c" fontSize={12} domain={[1, 4]} ticks={[1, 2, 3, 4]} />
                             <Tooltip content={<UnifiedChartTooltip />} />
                             <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '12px' }} />
@@ -694,7 +704,7 @@ export function ChildProfilePage() {
                                 yAxisId="health-left"
                                 type="monotone"
                                 dataKey="imunisasi"
-                                name="K4: Kelengkapan Imunisasi (%)"
+                                name="K4: Riwayat Imunisasi (Dosis)"
                                 stroke="#0891b2"
                                 strokeWidth={2.5}
                                 dot={{ r: 4, fill: '#0891b2' }}
@@ -891,7 +901,12 @@ export function ChildProfilePage() {
                         {exam.values?.C3 ?? exam.raw_values?.LK ?? '-'}
                       </td>
                       <td className="py-3.5 px-3.5 text-teal-700 font-semibold">
-                        {exam.values?.C5 ?? exam.raw_values?.Imunisasi ?? 100}%
+                        {(() => {
+                          const raw = exam.values?.C5 ?? exam.raw_values?.Imunisasi ?? (exam.values?.raw_imun != null ? Number(exam.values.raw_imun) : 17);
+                          const num = Number(raw);
+                          const doses = !isNaN(num) && num > 17 ? Math.min(17, Math.round((num / 100) * 17)) : (num || 17);
+                          return `${doses} dosis`;
+                        })()}
                       </td>
                       <td className="py-3.5 px-3.5 text-amber-700 font-semibold">
                         Skor {exam.values?.K5 ?? exam.standard_scores?.K5 ?? 4}
@@ -969,8 +984,15 @@ export function ChildProfilePage() {
                   </span>
                 </div>
                 <div className="p-2.5 rounded-xl border border-slate-200 bg-white">
-                  <span className="text-slate-500 block">K4. Kelengkapan Imunisasi</span>
-                  <span className="font-bold text-slate-900 text-sm">{selectedExamDetail.values?.C5 ?? selectedExamDetail.raw_values?.Imunisasi ?? 100} %</span>
+                  <span className="text-slate-500 block">K4. Riwayat Imunisasi</span>
+                  <span className="font-bold text-slate-900 text-sm">
+                    {(() => {
+                      const raw = selectedExamDetail.values?.C5 ?? selectedExamDetail.raw_values?.Imunisasi ?? (selectedExamDetail.values?.raw_imun != null ? Number(selectedExamDetail.values.raw_imun) : 17);
+                      const num = Number(raw);
+                      const doses = !isNaN(num) && num > 17 ? Math.min(17, Math.round((num / 100) * 17)) : (num || 17);
+                      return `${doses} dosis`;
+                    })()}
+                  </span>
                   <span className="text-[10px] text-cyan-700 block font-semibold mt-0.5">
                     Skor: {selectedExamDetail.values?.K4 ?? selectedExamDetail.standard_scores?.K4 ?? 4} (Bobot 42.37%)
                   </span>

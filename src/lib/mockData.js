@@ -765,7 +765,7 @@ export const MOCK_CRITERIA = [
     name: 'Riwayat Kelengkapan Imunisasi',
     shortName: 'Imunisasi',
     unit: 'Skor 1-4',
-    rawUnit: '%',
+    rawUnit: 'dosis',
     direction: 'benefit',
     weight: 0.423687,
     validation_rules: { min: 1, max: 4, step: 1 }

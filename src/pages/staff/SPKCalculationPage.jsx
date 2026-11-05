@@ -610,7 +610,14 @@ export function SPKCalculationPage() {
                           <span className={`inline-flex items-center justify-center w-max px-2 py-0.5 rounded-md border text-[11px] ${getScoreBadgeClass(k4Score)}`}>
                             Skor {k4Score}
                           </span>
-                          <span className="text-[10px] text-slate-400 mt-0.5">{rawImun}%</span>
+                          <span className="text-[10px] text-slate-400 mt-0.5">
+                            {(() => {
+                              const num = Number(rawImun);
+                              if (isNaN(num)) return '-';
+                              const doses = num > 17 ? Math.min(17, Math.round((num / 100) * 17)) : num;
+                              return `${doses} dosis`;
+                            })()}
+                          </span>
                         </div>
                       </td>
 

@@ -106,7 +106,12 @@ export function PendingExaminationsPage() {
                       LK: <strong>{exam.values?.C3 ?? exam.raw_values?.LK ?? '-'} cm</strong>
                     </span>
                     <span className="px-2.5 py-1 rounded-lg bg-teal-50 text-teal-800 font-medium border border-teal-200">
-                      Imunisasi: <strong>{exam.values?.C5 ?? exam.raw_values?.Imunisasi ?? 100}%</strong>
+                      Imunisasi: <strong>{(() => {
+                        const raw = exam.values?.C5 ?? exam.raw_values?.Imunisasi ?? 17;
+                        const num = Number(raw);
+                        const doses = !isNaN(num) && num > 17 ? Math.min(17, Math.round((num / 100) * 17)) : (num || 17);
+                        return `${doses} dosis`;
+                      })()}</strong>
                     </span>
                     <span className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 font-medium border border-emerald-200">
                       Gizi: <strong>Skor {exam.values?.K5 ?? exam.standard_scores?.K5 ?? 4}</strong>
