@@ -671,7 +671,7 @@ export function SPKCalculationPage() {
           {/* Catatan Standarisasi */}
           <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 text-xs flex items-center gap-2">
             <Info className="w-4 h-4 text-slate-400 flex-shrink-0" />
-            <span>Nilai antropometri dan riwayat kesehatan balita telah distandarisasi ke skor ideal 1–4 (benefit) sebelum normalisasi SAW.</span>
+            <span>Kriteria telah terstandarisasi skala 1–4 sebelum normalisasi SAW.</span>
           </div>
         </div>
       )}

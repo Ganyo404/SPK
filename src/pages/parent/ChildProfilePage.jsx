@@ -681,7 +681,7 @@ export function ChildProfilePage() {
                               Imunisasi & Asupan Gizi
                             </h4>
                             <p className="text-xs text-slate-500">
-                              Jumlah dosis imunisasi diterima (0–17 dosis) dan skor asupan gizi PMBA (1–4)
+                              Riwayat imunisasi dan asupan gizi PMBA
                             </p>
                           </div>
                         </div>
