@@ -51,15 +51,15 @@ export function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-3xl bg-gradient-to-r from-purple-900 via-slate-900 to-teal-900 p-6 lg:p-8 text-white shadow-lg">
-        <span className="text-xs font-bold text-purple-300 uppercase tracking-wider bg-purple-500/20 px-3 py-1 rounded-full border border-purple-400/20">
-          Administrator Panel
+      <div className="rounded-3xl bg-slate-900 p-6 lg:p-8 text-white shadow-xs">
+        <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+          Panel Administrator
         </span>
         <h1 className="text-2xl lg:text-3xl font-extrabold tracking-tight mt-2">
-          Pusat Kontrol & Tata Kelola Operasional
+          Dashboard Administrator
         </h1>
-        <p className="mt-1 text-sm text-purple-100/80 max-w-xl">
-          Kelola hak akses pengguna, penugasan Posyandu, audit log, serta verifikasi konfigurasi AHP 5 Kriteria Baku.
+        <p className="mt-1 text-sm text-slate-300 max-w-xl">
+          Kelola pengguna, data Posyandu, konfigurasi kriteria AHP, dan log aktivitas sistem.
         </p>
       </div>
 

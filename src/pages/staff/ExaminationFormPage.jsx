@@ -38,7 +38,6 @@ import {
   Check,
   UserCheck,
   Award,
-  Sparkles,
   Utensils,
   ShieldCheck,
   AlertTriangle
@@ -62,35 +61,35 @@ const MONTH_OPTIONS = [
 const PMBA_OPTIONS = [
   {
     score: 4,
-    title: 'Sangat Sesuai / Ideal (4 Indikator Terpenuhi)',
-    desc: 'ASI Eksklusif/Lanjutan + MP-ASI 4 Bintang (karbo, protein hewani, nabati, sayur) + Frekuensi & porsi cukup + Higienitas & stimulasi makan baik.',
+    title: '4 Indikator (Sangat Baik / Ideal)',
+    desc: 'ASI/MP-ASI 4 bintang, frekuensi cukup, dan higienis.',
     badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-300'
   },
   {
     score: 3,
-    title: 'Sesuai dengan Catatan (3 Indikator Terpenuhi)',
-    desc: 'Asupan gizi cukup baik namun salah satu elemen variasi pangan atau frekuensi pemberian makan belum sepenuhnya konsisten.',
+    title: '3 Indikator (Cukup Baik)',
+    desc: 'Asupan memadai, variasi pangan belum konsisten.',
     badgeClass: 'bg-teal-50 text-teal-800 border-teal-300'
   },
   {
     score: 2,
-    title: 'Kurang Sesuai (2 Indikator Terpenuhi)',
-    desc: 'Terdapat batasan variasi pangan, frekuensi makan kurang dari anjuran usia, atau anak cenderung memilih-milih makanan (picky eater).',
+    title: '2 Indikator (Kurang)',
+    desc: 'Variasi atau porsi makan belum mencukupi kebutuhan usia.',
     badgeClass: 'bg-amber-50 text-amber-800 border-amber-300'
   },
   {
     score: 1,
-    title: 'Buruk / Defisit Berat (<= 1 Indikator Terpenuhi)',
-    desc: 'Asupan makronutrien/mikronutrien sangat minim, tidak mendapat ASI/MP-ASI sesuai tahapan usia balita, atau mengalami defisit asupan berat.',
+    title: '≤ 1 Indikator (Defisit Berat)',
+    desc: 'Asupan sangat minim atau tidak sesuai tahapan usia balita.',
     badgeClass: 'bg-rose-50 text-rose-800 border-rose-300'
   }
 ];
 
 const IMUNISASI_SHORTCUTS = [
-  { label: 'Lengkap 100% (Tepat Waktu)', value: '100', score: 4 },
-  { label: 'Hampir Lengkap (75% - 99%)', value: '80', score: 3 },
-  { label: 'Kurang / Tidak Teratur (40% - 74%)', value: '50', score: 2 },
-  { label: 'Sangat Kurang / Menolak (< 40%)', value: '25', score: 1 }
+  { label: 'Lengkap (100%)', value: '100', score: 4 },
+  { label: 'Hampir Lengkap (80%)', value: '80', score: 3 },
+  { label: 'Sebagian (50%)', value: '50', score: 2 },
+  { label: 'Kurang / Belum (25%)', value: '25', score: 1 }
 ];
 
 export function ExaminationFormPage() {
@@ -435,17 +434,25 @@ export function ExaminationFormPage() {
   const renderScorePill = (score, label) => {
     if (!score) return null;
     let bg = 'bg-rose-50 text-rose-700 border-rose-200';
-    if (score === 4) bg = 'bg-emerald-50 text-emerald-800 border-emerald-300';
-    else if (score === 3) bg = 'bg-teal-50 text-teal-800 border-teal-300';
-    else if (score === 2) bg = 'bg-amber-50 text-amber-800 border-amber-300';
+    let dot = 'bg-rose-500';
+    if (score === 4) {
+      bg = 'bg-emerald-50 text-emerald-800 border-emerald-200';
+      dot = 'bg-emerald-500';
+    } else if (score === 3) {
+      bg = 'bg-teal-50 text-teal-800 border-teal-200';
+      dot = 'bg-teal-500';
+    } else if (score === 2) {
+      bg = 'bg-amber-50 text-amber-800 border-amber-200';
+      dot = 'bg-amber-500';
+    }
 
     return (
-      <div className={`mt-2 p-2 rounded-xl border text-xs font-semibold flex items-center justify-between gap-2 ${bg} animate-in fade-in duration-200`}>
+      <div className={`mt-2 p-2 rounded-xl border text-xs font-medium flex items-center justify-between gap-2 ${bg}`}>
         <div className="flex items-center gap-1.5 min-w-0">
-          <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
+          <span className={`w-2 h-2 rounded-full ${dot} flex-shrink-0`} />
           <span className="truncate">{label}</span>
         </div>
-        <span className="px-2 py-0.5 rounded-md font-bold text-[11px] bg-white/80 border border-current shadow-2xs flex-shrink-0">
+        <span className="px-2 py-0.5 rounded-md font-bold text-[11px] bg-white border border-current shadow-2xs flex-shrink-0">
           Skor: {score}
         </span>
       </div>
@@ -458,10 +465,10 @@ export function ExaminationFormPage() {
       <div>
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
           <Stethoscope className="w-6 h-6 text-teal-600" />
-          <span>Form Pemeriksaan & Skoring Klinis Balita</span>
+          <span>Pemeriksaan Balita</span>
         </h1>
         <p className="text-sm text-slate-500">
-          Pencatatan data antropometri riil dan standarisasi skor ideal (1 s/d 4) sesuai Permenkes No. 2 Tahun 2020 & Standar WHO
+          Pencatatan data antropometri fisik dan riwayat kesehatan balita
         </p>
       </div>
 
@@ -653,7 +660,7 @@ export function ExaminationFormPage() {
         </div>
 
         {/* Banner Riwayat Kunjungan Bulan Sebelumnya */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-teal-50/90 via-slate-50 to-blue-50/80 border border-teal-200/80">
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-teal-600 text-white flex items-center justify-center flex-shrink-0">
@@ -661,10 +668,10 @@ export function ExaminationFormPage() {
               </div>
               <div>
                 <h4 className="font-bold text-slate-900 text-sm">
-                  Riwayat Kunjungan & Timbangan Sebelumnya
+                  Pemeriksaan Terakhir
                 </h4>
                 <p className="text-xs text-slate-500">
-                  Data antropometri historis balita untuk rujukan perbandingan dokter/nakes
+                  Data rujukan kunjungan balita sebelumnya
                 </p>
               </div>
             </div>
@@ -676,7 +683,7 @@ export function ExaminationFormPage() {
                 className="text-xs font-semibold text-teal-700 hover:text-teal-800 hover:underline flex items-center gap-1 self-start sm:self-auto cursor-pointer"
               >
                 <TrendingUp className="w-3.5 h-3.5" />
-                <span>Buka Grafik & Riwayat Lengkap</span>
+                <span>Lihat Riwayat Lengkap</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             )}
@@ -685,7 +692,7 @@ export function ExaminationFormPage() {
           {previousExam ? (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
               <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
-                <span className="text-slate-500 block text-[11px]">Periode Terakhir</span>
+                <span className="text-slate-500 block text-[11px]">Periode</span>
                 <span className="font-mono font-bold text-slate-800 text-sm">
                   {previousExam.period_code}
                 </span>
@@ -694,9 +701,9 @@ export function ExaminationFormPage() {
                 </span>
               </div>
 
-              <div className="p-3 rounded-xl bg-white border border-teal-200 shadow-2xs">
-                <span className="text-teal-700 block text-[11px] font-semibold">BB Bulan Lalu</span>
-                <span className="font-bold text-teal-900 text-base">
+              <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                <span className="text-slate-600 block text-[11px] font-medium">BB Bulan Lalu</span>
+                <span className="font-bold text-slate-900 text-base">
                   {previousExam.values?.C1 ?? previousExam.raw_values?.BB ?? '-'} <span className="text-xs font-normal text-slate-500">kg</span>
                 </span>
                 {values.bb && previousExam.values?.C1 && (
@@ -710,13 +717,13 @@ export function ExaminationFormPage() {
                 )}
               </div>
 
-              <div className="p-3 rounded-xl bg-white border border-blue-200 shadow-2xs">
-                <span className="text-blue-700 block text-[11px] font-semibold">TB Bulan Lalu</span>
-                <span className="font-bold text-blue-900 text-base">
+              <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                <span className="text-slate-600 block text-[11px] font-medium">TB Bulan Lalu</span>
+                <span className="font-bold text-slate-900 text-base">
                   {previousExam.values?.C2 ?? previousExam.raw_values?.TB ?? '-'} <span className="text-xs font-normal text-slate-500">cm</span>
                 </span>
                 {values.tb && previousExam.values?.C2 && (
-                  <span className="block text-[10px] font-bold text-blue-600 mt-0.5">
+                  <span className="block text-[10px] font-bold text-teal-600 mt-0.5">
                     {Number(values.tb) >= Number(previousExam.values.C2)
                       ? `▲ +${(Number(values.tb) - Number(previousExam.values.C2)).toFixed(1)} cm`
                       : `${(Number(values.tb) - Number(previousExam.values.C2)).toFixed(1)} cm`}
@@ -724,9 +731,9 @@ export function ExaminationFormPage() {
                 )}
               </div>
 
-              <div className="p-3 rounded-xl bg-white border border-purple-200 shadow-2xs">
-                <span className="text-purple-700 block text-[11px] font-semibold">LK Bulan Lalu</span>
-                <span className="font-bold text-purple-900 text-base">
+              <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                <span className="text-slate-600 block text-[11px] font-medium">LK Bulan Lalu</span>
+                <span className="font-bold text-slate-900 text-base">
                   {previousExam.values?.C3 ?? previousExam.raw_values?.LK ?? '-'} <span className="text-xs font-normal text-slate-500">cm</span>
                 </span>
                 <span className="block text-[10px] font-medium text-slate-400 mt-0.5">
@@ -736,25 +743,25 @@ export function ExaminationFormPage() {
             </div>
           ) : (
             <div className="p-3 rounded-xl bg-white/80 border border-slate-200 text-xs text-slate-500 italic">
-              Balita ini belum memiliki riwayat pemeriksaan fisik terverifikasi (kunjungan pertama).
+              Belum ada riwayat pemeriksaan fisik terverifikasi sebelumnya.
             </div>
           )}
         </div>
 
-        {/* Section 1: Pengukuran Antropometri Fisik Balita (K1 - K3 Sesuai Standar Baku) */}
+        {/* Section 1: Pengukuran Antropometri Fisik Balita (K1 - K3) */}
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
                 <Scale className="w-5 h-5 text-teal-600" />
-                <span>Pengukuran Tiga Kriteria Fisik (K1, K2, K3)</span>
+                <span>1. Pengukuran Fisik</span>
               </h3>
               <p className="text-xs text-slate-500">
-                Ambang batas ideal dihitung otomatis berdasarkan usia ({childAgeMonths} bln, {childAgeGroupInfo.rangeLabel}) & jenis kelamin ({childSex === 'P' ? 'Perempuan' : 'Laki-Laki'})
+                Ambang batas dihitung untuk usia {childAgeMonths} bln ({childAgeGroupInfo.rangeLabel}) & jenis kelamin {childSex === 'P' ? 'Perempuan' : 'Laki-Laki'}
               </p>
             </div>
-            <span className="text-[11px] font-bold text-teal-800 bg-teal-50 px-3 py-1 rounded-full border border-teal-200 self-start sm:self-auto">
-              Standar WHO Antropometri
+            <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-3 py-1 rounded-full border border-slate-200 self-start sm:self-auto">
+              Standar Permenkes & WHO
             </span>
           </div>
 
@@ -845,21 +852,18 @@ export function ExaminationFormPage() {
           </div>
         </div>
 
-        {/* Section 2: K4 - Riwayat Kelengkapan Imunisasi */}
+        {/* Section 2: K4 - Kelengkapan Imunisasi */}
         <div className="pt-4 border-t border-slate-100 space-y-3">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-teal-600" />
-                <span>K4. Riwayat Kelengkapan Imunisasi (Jatuh Tempo Umur)</span>
+                <span>2. Kelengkapan Imunisasi</span>
               </h3>
               <p className="text-xs text-slate-500">
-                Kriteria dengan prioritas tertinggi AHP (Bobot 42.37%)
+                Status imunisasi wajib sesuai usia balita
               </p>
             </div>
-            <span className="text-[10px] font-bold text-emerald-800 uppercase bg-emerald-100 px-2 py-0.5 rounded">
-              Prioritas Utama
-            </span>
           </div>
 
           {/* Pilihan Cepat Persentase / Status Imunisasi */}
@@ -873,7 +877,7 @@ export function ExaminationFormPage() {
                   onClick={() => handleInputChange('imunisasi', item.value)}
                   className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-teal-50/90 border-teal-500 ring-2 ring-teal-500/20 shadow-xs'
+                      ? 'bg-teal-50 border-teal-500 ring-2 ring-teal-500/20'
                       : 'bg-slate-50/60 border-slate-200 hover:bg-slate-100/80 text-slate-700'
                   }`}
                 >
@@ -888,7 +892,7 @@ export function ExaminationFormPage() {
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-500">
-                    Input nilai acuan: <strong>{item.value}%</strong>
+                    Nilai acuan: <strong>{item.value}%</strong>
                   </p>
                 </button>
               );
@@ -896,8 +900,8 @@ export function ExaminationFormPage() {
           </div>
 
           <div className="flex items-center gap-3 pt-1">
-            <span className="text-xs font-semibold text-slate-600">Atau input persentase manual:</span>
-            <div className="relative w-36">
+            <span className="text-xs font-semibold text-slate-600">Atau input manual:</span>
+            <div className="relative w-32">
               <input
                 type="number"
                 min="0"
@@ -913,21 +917,18 @@ export function ExaminationFormPage() {
           </div>
         </div>
 
-        {/* Section 3: K5 - Asupan Gizi & Praktik Pemberian Makan Balita (PMBA) */}
+        {/* Section 3: K5 - Asupan Gizi & PMBA */}
         <div className="pt-4 border-t border-slate-100 space-y-3">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
                 <Utensils className="w-5 h-5 text-teal-600" />
-                <span>K5. Asupan Gizi & Praktik Pemberian Makan Balita (PMBA)</span>
+                <span>3. Asupan Gizi & Pola Makan (PMBA)</span>
               </h3>
               <p className="text-xs text-slate-500">
-                Kriteria prioritas kedua AHP (Bobot 24.59%) sesuai standar PMBA Kemenkes RI & UNICEF
+                Praktik pemberian makan bayi dan anak sesuai pedoman gizi
               </p>
             </div>
-            <span className="text-[10px] font-bold text-teal-800 uppercase bg-teal-100 px-2 py-0.5 rounded">
-              Bobot 24.59%
-            </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -939,8 +940,8 @@ export function ExaminationFormPage() {
                   onClick={() => handleInputChange('gizi', String(opt.score))}
                   className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
                     isSelected
-                      ? 'bg-teal-50/80 border-teal-500 ring-2 ring-teal-500/20 shadow-xs'
-                      : 'bg-slate-50/60 border-slate-200/90 hover:bg-slate-100/70'
+                      ? 'bg-teal-50 border-teal-500 ring-2 ring-teal-500/20'
+                      : 'bg-slate-50/60 border-slate-200 hover:bg-slate-100/70'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1.5">
@@ -956,56 +957,56 @@ export function ExaminationFormPage() {
           </div>
         </div>
 
-        {/* Section 4: Live SPK Clinical Decision Support Card */}
+        {/* Section 4: Live Standarisasi Hasil Skoring */}
         {isAllFilled && liveStandardization && (
-          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-teal-950 text-white shadow-lg space-y-3 animate-in fade-in duration-300">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
-              <div className="flex items-center gap-2">
-                <Award className="w-5 h-5 text-teal-400" />
-                <span className="font-bold text-sm">Prediksi Hasil Standarisasi SAW (Benefit Scale 1 - 4)</span>
+          <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/70 pb-3">
+              <div>
+                <span className="font-bold text-sm text-slate-900">Hasil Standarisasi Kriteria (Skala 1–4)</span>
+                <p className="text-xs text-slate-500">Konversi nilai riil menjadi skor ordinal untuk kriteria SAW</p>
               </div>
               <span className={`text-xs font-bold px-3 py-1 rounded-full border ${
                 liveStandardization.statusFlag === 'Normal'
-                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40'
-                  : 'bg-amber-500/20 text-amber-300 border-amber-400/40'
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                  : 'bg-amber-50 text-amber-800 border-amber-200'
               }`}>
                 Status: {liveStandardization.statusFlag}
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-xs">
-              <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
-                <span className="text-[11px] text-teal-300 block font-semibold">K1 (BB/U)</span>
-                <span className="text-lg font-bold text-white">Skor {liveStandardization.scores.K1}</span>
-                <span className="text-[10px] text-slate-400 block truncate">{liveStandardization.labels.K1}</span>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-center text-xs">
+              <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                <span className="text-[11px] text-teal-700 block font-semibold">K1: Berat Badan</span>
+                <span className="text-lg font-bold text-slate-900 my-0.5 block">Skor {liveStandardization.scores.K1}</span>
+                <span className="text-[10px] text-slate-500 block truncate">{liveStandardization.labels.K1}</span>
               </div>
-              <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
-                <span className="text-[11px] text-blue-300 block font-semibold">K2 (PB/TB)</span>
-                <span className="text-lg font-bold text-white">Skor {liveStandardization.scores.K2}</span>
-                <span className="text-[10px] text-slate-400 block truncate">{liveStandardization.labels.K2}</span>
+              <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                <span className="text-[11px] text-blue-700 block font-semibold">K2: Tinggi Badan</span>
+                <span className="text-lg font-bold text-slate-900 my-0.5 block">Skor {liveStandardization.scores.K2}</span>
+                <span className="text-[10px] text-slate-500 block truncate">{liveStandardization.labels.K2}</span>
               </div>
-              <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
-                <span className="text-[11px] text-purple-300 block font-semibold">K3 (LK/U)</span>
-                <span className="text-lg font-bold text-white">Skor {liveStandardization.scores.K3}</span>
-                <span className="text-[10px] text-slate-400 block truncate">{liveStandardization.labels.K3}</span>
+              <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                <span className="text-[11px] text-purple-700 block font-semibold">K3: Lingkar Kepala</span>
+                <span className="text-lg font-bold text-slate-900 my-0.5 block">Skor {liveStandardization.scores.K3}</span>
+                <span className="text-[10px] text-slate-500 block truncate">{liveStandardization.labels.K3}</span>
               </div>
-              <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
-                <span className="text-[11px] text-emerald-300 block font-semibold">K4 (Imunisasi)</span>
-                <span className="text-lg font-bold text-white">Skor {liveStandardization.scores.K4}</span>
-                <span className="text-[10px] text-slate-400 block truncate">{liveStandardization.labels.K4}</span>
+              <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                <span className="text-[11px] text-emerald-700 block font-semibold">K4: Imunisasi</span>
+                <span className="text-lg font-bold text-slate-900 my-0.5 block">Skor {liveStandardization.scores.K4}</span>
+                <span className="text-[10px] text-slate-500 block truncate">{liveStandardization.labels.K4}</span>
               </div>
-              <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
-                <span className="text-[11px] text-amber-300 block font-semibold">K5 (Asupan Gizi)</span>
-                <span className="text-lg font-bold text-white">Skor {liveStandardization.scores.K5}</span>
-                <span className="text-[10px] text-slate-400 block truncate">{liveStandardization.labels.K5}</span>
+              <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                <span className="text-[11px] text-amber-700 block font-semibold">K5: Asupan Gizi</span>
+                <span className="text-lg font-bold text-slate-900 my-0.5 block">Skor {liveStandardization.scores.K5}</span>
+                <span className="text-[10px] text-slate-500 block truncate">{liveStandardization.labels.K5}</span>
               </div>
             </div>
 
             {liveStandardization.statusFlag === 'Perlu Tinjau' && (
-              <div className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-400/30 text-amber-200 text-xs flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
                 <span>
-                  Perhatian Klinis: Balita memiliki skor &le; 2 pada indikator berat/tinggi badan atau skor 1 pada kriteria fisik sehingga ditandai 'Perlu Tinjau' untuk intervensi nakes.
+                  Perhatian: Terdapat skor &le; 2 pada indikator fisik atau asupan, disarankan evaluasi berkala oleh tenaga kesehatan.
                 </span>
               </div>
             )}
@@ -1015,13 +1016,13 @@ export function ExaminationFormPage() {
         {/* Catatan Petugas */}
         <div>
           <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-            Catatan Tambahan & Tindak Lanjut Petugas
+            Catatan Petugas
           </label>
           <textarea
-            rows={3}
+            rows={2}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Tuliskan catatan kondisi khusus, nafsu makan, kebiasaan MPASI, atau instruksi pemantauan berikutnya..."
+            placeholder="Catatan kondisi khusus balita atau anjuran untuk orang tua (opsional)..."
             className="w-full p-3 text-sm rounded-xl border border-slate-300 focus:border-teal-600 outline-hidden"
           />
         </div>

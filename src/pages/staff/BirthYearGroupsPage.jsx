@@ -11,7 +11,6 @@ import {
   Info,
   CheckCircle2,
   Clock,
-  Sparkles,
   RefreshCw
 } from 'lucide-react';
 
@@ -77,30 +76,28 @@ export function BirthYearGroupsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Title & Research Overview */}
+      {/* Title & Overview */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
             <Users className="w-6 h-6 text-teal-600" />
-            <span>Usulan Kelompok Umur untuk Penelitian SPK</span>
+            <span>Kelompok Umur Balita</span>
           </h1>
           <p className="text-sm text-slate-500">
-            Rentang dalam bulan lengkap; bukan klasifikasi resmi WHO atau Kemenkes.
+            Pembagian 8 kelompok umur berbasis bulan untuk penilaian komparasi yang adil
           </p>
         </div>
       </div>
 
       {/* Rationale Banner */}
-      <div className="p-5 rounded-3xl bg-teal-50 border border-teal-200/80 text-teal-900 text-xs flex items-start gap-3.5 leading-relaxed shadow-xs">
-        <ShieldCheck className="w-5 h-5 flex-shrink-0 text-teal-700 mt-0.5" />
-        <div className="space-y-1">
-          <strong className="block font-bold text-teal-950 text-sm">
-            Prinsip Keadilan Pemeringkatan SPK (AHP + SAW):
+      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs flex items-start gap-3 leading-relaxed">
+        <ShieldCheck className="w-5 h-5 flex-shrink-0 text-teal-600 mt-0.5" />
+        <div>
+          <strong className="block font-bold text-slate-900 mb-0.5">
+            Pengelompokan Umur (8 Kategori):
           </strong>
-          <p>
-            Pengelompokan berbasis tahun kalender murni dapat menimbulkan ketimpangan (misal bayi lahir Januari vs Desember berselisih hingga 11 bulan).
-            Oleh karena itu, sistem membagi balita ke dalam <strong>8 kelompok umur berbasis bulan lengkap</strong> agar alternatif SAW
-            hanya diperbandingkan secara setara dan adil sesuai tahapan perkembangan gizi dan antropometri balita.
+          <p className="text-slate-600">
+            Balita dikelompokkan berdasarkan usia bulan berjalan agar perbandingan tumbuh kembang dan penilaian preferensi SAW berlangsung setara dan objektif.
           </p>
         </div>
       </div>
@@ -253,7 +250,7 @@ export function BirthYearGroupsPage() {
                     }
                     className="inline-flex items-center justify-center gap-1 py-1.5 px-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 font-bold text-[11px] border border-blue-200 transition-colors cursor-pointer"
                   >
-                    <span>👦 Ranking L</span>
+                    <span>Laki-Laki</span>
                   </button>
                   <button
                     onClick={() =>
@@ -263,7 +260,7 @@ export function BirthYearGroupsPage() {
                     }
                     className="inline-flex items-center justify-center gap-1 py-1.5 px-2 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-800 font-bold text-[11px] border border-pink-200 transition-colors cursor-pointer"
                   >
-                    <span>👧 Ranking P</span>
+                    <span>Perempuan</span>
                   </button>
                 </div>
                 <button
@@ -275,7 +272,7 @@ export function BirthYearGroupsPage() {
                   className="w-full inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl bg-slate-100 hover:bg-teal-600 hover:text-white text-slate-700 font-semibold text-[11px] transition-colors cursor-pointer"
                 >
                   <Calculator className="w-3.5 h-3.5" />
-                  <span>Semua Balita (#{cohort.id})</span>
+                  <span>Semua Alternatif (#{cohort.id})</span>
                 </button>
               </div>
             </div>

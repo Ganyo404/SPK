@@ -355,7 +355,7 @@ export function ChildProfilePage() {
           {/* Bagian B: Ringkasan Pemeriksaan Terbaru & Status Kesehatan */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Kartu Status Skrining & SPK */}
-            <div className="lg:col-span-1 bg-gradient-to-br from-teal-700 to-teal-900 rounded-3xl p-6 text-white shadow-md flex flex-col justify-between">
+            <div className="lg:col-span-1 bg-teal-800 rounded-3xl p-6 text-white shadow-xs flex flex-col justify-between">
               <div>
                 <span className="text-xs font-semibold uppercase tracking-wider text-teal-200">
                   Status Skrining Posyandu
@@ -370,9 +370,9 @@ export function ChildProfilePage() {
                 </p>
 
                 {/* Skor SPK & Ranking Cohort */}
-                <div className="mt-6 p-4 rounded-2xl bg-white/10 backdrop-blur-xs border border-white/15">
+                <div className="mt-6 p-4 rounded-2xl bg-white/10 border border-white/15">
                   <div className="flex items-center justify-between text-xs text-teal-100 mb-1">
-                    <span>Skor Preferensi SPK (SAW):</span>
+                    <span>Skor Preferensi SPK:</span>
                     <span className="font-mono font-bold text-white text-base">
                       {latestVerifiedExam.saw_score != null ? latestVerifiedExam.saw_score.toFixed(3) : '-'}
                     </span>
@@ -388,7 +388,7 @@ export function ChildProfilePage() {
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-teal-600/50 text-[11px] text-teal-200">
+              <div className="mt-6 pt-4 border-t border-teal-700 text-[11px] text-teal-200">
                 <p>Periode: <strong>{latestVerifiedExam.period_code}</strong></p>
                 <p className="mt-0.5">Petugas: {latestVerifiedExam.recorded_by_name || 'Petugas Posyandu'}</p>
               </div>
@@ -491,11 +491,11 @@ export function ChildProfilePage() {
                     <TrendingUp className="w-5 h-5 text-teal-600" />
                   </span>
                   <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">
-                    Grafik Perkembangan Balita (5 Kriteria SPK)
+                    Grafik Perkembangan Balita
                   </h3>
                 </div>
-                <p className="text-xs text-slate-500 max-w-2xl leading-relaxed">
-                  Kurva perkembangan lengkap 5 parameter: Berat Badan (K1), Tinggi Badan (K2), Lingkar Kepala (K3), Imunisasi (K4), dan Asupan Gizi & PMBA (K5).
+                <p className="text-xs text-slate-500 max-w-2xl">
+                  Tren pertumbuhan fisik, kelengkapan imunisasi, dan asupan gizi anak
                 </p>
               </div>
 
@@ -510,7 +510,7 @@ export function ChildProfilePage() {
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  Semua 5 Kriteria
+                  Semua
                 </button>
                 <button
                   type="button"
@@ -538,18 +538,18 @@ export function ChildProfilePage() {
             </div>
 
             {/* Filter Toggle Pills for K1 - K5 */}
-            <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-2.5">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
                   <Filter className="w-3.5 h-3.5 text-teal-600" />
-                  <span>Filter Garis Kurva (Klik untuk Aktifkan / Sembunyikan):</span>
+                  <span>Filter Garis Kurva:</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setActiveMetrics({ K1: true, K2: true, K3: true, K4: true, K5: true })}
                   className="text-[11px] font-semibold text-teal-700 hover:text-teal-800 underline cursor-pointer"
                 >
-                  Tampilkan Semua 5 Kriteria
+                  Tampilkan Semua
                 </button>
               </div>
 
@@ -583,11 +583,11 @@ export function ChildProfilePage() {
 
             {chartData.length > 0 ? (
               <div className="space-y-6">
-                {/* Visualisasi Kurva Recharts (Tersusun Atas - Bawah Lebar Penuh) */}
+                {/* Visualisasi Kurva Recharts */}
                 <div className="space-y-6">
                   {/* Panel Atas: Antropometri & Pertumbuhan Fisik (K1-K3) */}
                   {(activeChartTab === 'all' || activeChartTab === 'antropometri') && (
-                    <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-b from-slate-50/60 to-white border border-slate-200/90 shadow-2xs">
+                    <div className="p-4 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-2xs">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                         <div className="flex items-center gap-2.5">
                           <div className="w-8 h-8 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
@@ -595,15 +595,15 @@ export function ChildProfilePage() {
                           </div>
                           <div>
                             <h4 className="font-bold text-slate-900 text-sm sm:text-base">
-                              1. Kurva Antropometri & Pertumbuhan Fisik Balita
+                              Pertumbuhan Fisik
                             </h4>
                             <p className="text-xs text-slate-500">
-                              Sumbu Kiri: Berat Badan (kg) | Sumbu Kanan: Tinggi Badan (cm) & Lingkar Kepala (cm)
+                              Berat badan (kg), tinggi badan (cm), dan lingkar kepala (cm)
                             </p>
                           </div>
                         </div>
-                        <span className="text-xs font-bold px-3 py-1 rounded-full bg-teal-100 text-teal-800 self-start sm:self-auto border border-teal-200">
-                          Kriteria K1 — K3
+                        <span className="text-xs font-bold px-3 py-1 rounded-full bg-teal-50 text-teal-800 self-start sm:self-auto border border-teal-200">
+                          K1 — K3
                         </span>
                       </div>
 
@@ -660,7 +660,7 @@ export function ChildProfilePage() {
 
                   {/* Panel Bawah: Status Imunisasi & Asupan Gizi (K4-K5) */}
                   {(activeChartTab === 'all' || activeChartTab === 'kesehatan') && (
-                    <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-b from-slate-50/60 to-white border border-slate-200/90 shadow-2xs">
+                    <div className="p-4 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-2xs">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                         <div className="flex items-center gap-2.5">
                           <div className="w-8 h-8 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
@@ -668,15 +668,15 @@ export function ChildProfilePage() {
                           </div>
                           <div>
                             <h4 className="font-bold text-slate-900 text-sm sm:text-base">
-                              2. Kurva Status Kelengkapan Imunisasi & Asupan Gizi (PMBA)
+                              Imunisasi & Asupan Gizi
                             </h4>
                             <p className="text-xs text-slate-500">
-                              Sumbu Kiri: Kelengkapan Imunisasi Dasar (0-100%) | Sumbu Kanan: Skor Asupan Gizi PMBA (1 - 4)
+                              Kelengkapan imunisasi dasar (%) dan skor pola makan PMBA (1–4)
                             </p>
                           </div>
                         </div>
-                        <span className="text-xs font-bold px-3 py-1 rounded-full bg-cyan-100 text-cyan-800 self-start sm:self-auto border border-cyan-200">
-                          Kriteria K4 — K5
+                        <span className="text-xs font-bold px-3 py-1 rounded-full bg-cyan-50 text-cyan-800 self-start sm:self-auto border border-cyan-200">
+                          K4 — K5
                         </span>
                       </div>
 
@@ -724,14 +724,14 @@ export function ChildProfilePage() {
                 <div className="pt-4 border-t border-slate-100">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                      Ringkasan 5 Kriteria & Tren dari Kunjungan Sebelumnya
+                      Ringkasan Parameter & Tren Kunjungan
                     </span>
                     <span className="text-[11px] text-slate-400">
                       {latestVerifiedExam ? `Kunjungan: ${latestVerifiedExam.period_code || 'Terbaru'}` : ''}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                     {CRITERIA_CONFIG.map((crit) => {
                       const Icon = crit.icon;
                       const val = latestVerifiedExam?.values?.[crit.key];
@@ -844,15 +844,15 @@ export function ChildProfilePage() {
             </div>
           </div>
 
-          {/* Bagian C: Riwayat Seluruh Pemeriksaan (Immutable Visits) */}
+          {/* Bagian C: Riwayat Pemeriksaan */}
           <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-4">
             <div>
               <h3 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
                 <FileText className="w-5 h-5 text-teal-600" />
-                <span>Riwayat Pemeriksaan & Kunjungan Posyandu</span>
+                <span>Riwayat Pemeriksaan Posyandu</span>
               </h3>
               <p className="text-xs text-slate-500">
-                Setiap kunjungan tersimpan permanen sebagai rekam medis pemantauan berkala tanpa saling menimpa
+                Rekam medis dan riwayat penimbangan balita secara berkala
               </p>
             </div>
 
@@ -860,14 +860,14 @@ export function ChildProfilePage() {
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-600 font-semibold">
-                    <th className="py-3 px-3.5">Tanggal Kunjungan</th>
+                    <th className="py-3 px-3.5">Tanggal</th>
                     <th className="py-3 px-3.5">Periode</th>
-                    <th className="py-3 px-3.5">K1: BB (kg)</th>
-                    <th className="py-3 px-3.5">K2: TB (cm)</th>
-                    <th className="py-3 px-3.5">K3: LK (cm)</th>
-                    <th className="py-3 px-3.5">K4: Imun (%)</th>
-                    <th className="py-3 px-3.5">K5: Gizi</th>
-                    <th className="py-3 px-3.5">Skor SAW</th>
+                    <th className="py-3 px-3.5">BB (kg)</th>
+                    <th className="py-3 px-3.5">TB (cm)</th>
+                    <th className="py-3 px-3.5">LK (cm)</th>
+                    <th className="py-3 px-3.5">Imunisasi</th>
+                    <th className="py-3 px-3.5">Gizi (PMBA)</th>
+                    <th className="py-3 px-3.5">Skor SPK</th>
                     <th className="py-3 px-3.5">Status</th>
                     <th className="py-3 px-3.5 text-right">Aksi</th>
                   </tr>

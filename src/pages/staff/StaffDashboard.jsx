@@ -71,33 +71,33 @@ export function StaffDashboard() {
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="rounded-3xl bg-gradient-to-r from-teal-800 via-teal-900 to-slate-900 p-6 lg:p-8 text-white shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="rounded-3xl bg-teal-800 p-6 lg:p-8 text-white shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <span className="text-xs font-bold text-teal-300 uppercase tracking-wider bg-teal-500/20 px-3 py-1 rounded-full border border-teal-400/20">
-            Panel Kerja Posyandu & Tenaga Kesehatan
+          <span className="text-xs font-semibold text-teal-200 uppercase tracking-wider bg-teal-700/60 px-3 py-1 rounded-full border border-teal-600">
+            Panel Posyandu & Tenaga Kesehatan
           </span>
           <h1 className="text-2xl lg:text-3xl font-extrabold tracking-tight mt-2">
-            Pusat Pemantauan Balita Sehat
+            Dashboard Posyandu
           </h1>
-          <p className="mt-1 text-sm text-teal-100/80 max-w-xl">
-            Pencatatan pemeriksaan 5 kriteria baku, verifikasi fisik, pengelompokan umur balita, dan perhitungan SPK AHP + SAW.
+          <p className="mt-1 text-sm text-teal-100 max-w-xl">
+            Pencatatan pemeriksaan balita, verifikasi antrean fisik, dan pemeringkatan SPK.
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2.5">
           <button
             onClick={() => navigate('/staff/examination/new')}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 text-white font-semibold text-sm hover:bg-teal-500 shadow-sm transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-teal-900 font-semibold text-sm hover:bg-teal-50 shadow-xs transition-all cursor-pointer"
           >
-            <Stethoscope className="w-4 h-4" />
+            <Stethoscope className="w-4 h-4 text-teal-700" />
             <span>Catat Pemeriksaan</span>
           </button>
           <button
             onClick={() => navigate('/staff/spk-calculation')}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-slate-800 font-semibold text-sm hover:bg-slate-100 shadow-sm transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-700 text-white font-semibold text-sm hover:bg-teal-600 border border-teal-600 transition-all cursor-pointer"
           >
             <Calculator className="w-4 h-4" />
-            <span>Hitung Ranking SPK</span>
+            <span>Peringkat SPK</span>
           </button>
         </div>
       </div>
@@ -151,9 +151,9 @@ export function StaffDashboard() {
             <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3">
               <Baby className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-slate-900 text-base">Verifikasi Pendaftaran Anak</h3>
+            <h3 className="font-bold text-slate-900 text-base">Verifikasi Pendaftaran</h3>
             <p className="mt-1 text-xs text-slate-500 leading-relaxed">
-              Konfirmasi kedatangan balita pertama kali di Posyandu dan tetapkan status aktif.
+              Konfirmasi kedatangan pertama balita di Posyandu dan aktifkan akun.
             </p>
           </div>
           <div className="mt-4 flex items-center justify-between text-xs font-semibold text-blue-600">
@@ -170,13 +170,13 @@ export function StaffDashboard() {
             <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center mb-3">
               <Users className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-slate-900 text-base">Kelompok Umur Balita SPK</h3>
+            <h3 className="font-bold text-slate-900 text-base">Kelompok Umur Balita</h3>
             <p className="mt-1 text-xs text-slate-500 leading-relaxed">
-              8 Kelompok umur berbasis rentang bulan lengkap untuk komparasi SPK yang adil.
+              Pembagian 8 kelompok umur berbasis bulan untuk penilaian adil.
             </p>
           </div>
           <div className="mt-4 flex items-center justify-between text-xs font-semibold text-teal-600">
-            <span>Lihat 8 Kelompok Umur</span>
+            <span>Lihat 8 Kelompok</span>
             <ArrowRight className="w-4 h-4" />
           </div>
         </div>
@@ -189,13 +189,13 @@ export function StaffDashboard() {
             <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-3">
               <Calculator className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-slate-900 text-base">Metode AHP + SAW</h3>
+            <h3 className="font-bold text-slate-900 text-base">Perhitungan SPK</h3>
             <p className="mt-1 text-xs text-slate-500 leading-relaxed">
-              Jalankan normalisasi SAW menggunakan bobot AHP tervalidasi per kelompok umur balita.
+              Hasil normalisasi SAW dan peringkat prioritas preferensi balita.
             </p>
           </div>
           <div className="mt-4 flex items-center justify-between text-xs font-semibold text-purple-600">
-            <span>Hitung & Lihat Ranking</span>
+            <span>Lihat Peringkat</span>
             <ArrowRight className="w-4 h-4" />
           </div>
         </div>
@@ -205,14 +205,14 @@ export function StaffDashboard() {
       <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-base font-bold text-slate-900 tracking-tight">Kunjungan Pemeriksaan Terbaru</h3>
-            <p className="text-xs text-slate-500">Rekam catatan penimbangan yang baru masuk</p>
+            <h3 className="text-base font-bold text-slate-900 tracking-tight">Kunjungan Terbaru</h3>
+            <p className="text-xs text-slate-500">Pemeriksaan fisik dan penimbangan balita terakhir</p>
           </div>
           <button
             onClick={() => navigate('/staff/examinations/pending')}
-            className="text-xs font-semibold text-teal-700 hover:underline"
+            className="text-xs font-semibold text-teal-700 hover:underline cursor-pointer"
           >
-            Lihat Semua Kunjungan
+            Lihat Semua
           </button>
         </div>
 
@@ -221,7 +221,7 @@ export function StaffDashboard() {
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-600 font-semibold">
                 <th className="py-3 px-3.5">Nama Balita</th>
-                <th className="py-3 px-3.5">Tgl Pemeriksaan</th>
+                <th className="py-3 px-3.5">Tanggal</th>
                 <th className="py-3 px-3.5">Periode</th>
                 <th className="py-3 px-3.5">BB (kg)</th>
                 <th className="py-3 px-3.5">TB (cm)</th>
@@ -257,9 +257,9 @@ export function StaffDashboard() {
                   <td className="py-3 px-3.5 text-right">
                     <button
                       onClick={() => navigate(`/staff/children/${exam.child_id}`)}
-                      className="text-teal-700 font-semibold hover:underline"
+                      className="text-teal-700 font-semibold hover:underline cursor-pointer"
                     >
-                      Buka Profil & Riwayat
+                      Lihat Profil
                     </button>
                   </td>
                 </tr>

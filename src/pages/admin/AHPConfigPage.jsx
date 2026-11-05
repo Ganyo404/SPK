@@ -79,10 +79,10 @@ export function AHPConfigPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <Sliders className="w-6 h-6 text-teal-600" />
-            <span>Konfigurasi Matriks AHP (Analytic Hierarchy Process)</span>
+            <span>Konfigurasi Bobot AHP</span>
           </h1>
           <p className="text-sm text-slate-500">
-            Penetapan bobot prioritas 5 kriteria balita dengan verifikasi rasio konsistensi Saaty (RI = 1.12)
+            Penetapan bobot prioritas 5 kriteria balita dan verifikasi rasio konsistensi
           </p>
         </div>
 

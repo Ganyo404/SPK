@@ -152,10 +152,10 @@ export function SPKCalculationPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <Calculator className="w-6 h-6 text-teal-600" />
-            <span>Perhitungan & Peringkat SPK (AHP + SAW)</span>
+            <span>Perhitungan & Peringkat SPK</span>
           </h1>
           <p className="text-sm text-slate-500">
-            Penerapan Simple Additive Weighting dengan pembobotan Analytic Hierarchy Process berbasis 8 Kelompok Umur
+            Peringkat preferensi balita berdasarkan metode AHP dan SAW
           </p>
         </div>
 
@@ -173,11 +173,11 @@ export function SPKCalculationPage() {
       <div className="p-5 rounded-3xl bg-white border border-slate-200/80 shadow-xs space-y-3 text-xs">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-5">
-            {/* Dropdown Kelompok Umur (8 Kategori Penelitian SPK) */}
+            {/* Dropdown Kelompok Umur */}
             <div className="flex items-center gap-2">
               <span className="font-bold text-slate-700 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
                 <Users className="w-3.5 h-3.5 text-teal-600" />
-                <span>Kelompok Umur SPK:</span>
+                <span>Kelompok Umur:</span>
               </span>
               <select
                 value={ageGroupId}
@@ -192,14 +192,13 @@ export function SPKCalculationPage() {
               </select>
             </div>
 
-            {/* Periode Penimbangan (Bulan Dropbox + Tahun Input Manual) */}
+            {/* Periode Penimbangan (Bulan + Tahun) */}
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-bold text-slate-700 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-teal-600" />
-                <span>Periode Penimbangan:</span>
+                <span>Periode:</span>
               </span>
               <div className="flex items-center gap-1.5">
-                {/* Dropbox Bulan */}
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
@@ -212,7 +211,6 @@ export function SPKCalculationPage() {
                   ))}
                 </select>
 
-                {/* Input Tahun Manual */}
                 <input
                   type="number"
                   min="2000"
@@ -226,13 +224,12 @@ export function SPKCalculationPage() {
                 />
               </div>
 
-              {/* Badge Kode Periode */}
-              <span className="text-[11px] font-mono font-bold text-teal-800 bg-teal-50 border border-teal-200 px-2 py-1.5 rounded-lg shadow-2xs">
-                {periodCode} ({MONTH_OPTIONS.find((m) => m.value === selectedMonth)?.name} {selectedYear})
+              <span className="text-[11px] font-mono font-bold text-teal-800 bg-teal-50 border border-teal-200 px-2 py-1.5 rounded-lg">
+                {periodCode}
               </span>
             </div>
 
-            {/* Pemisah Jenis Kelamin (Gender Selector Buttons) */}
+            {/* Pemisah Jenis Kelamin */}
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-bold text-slate-700 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
                 <Users className="w-3.5 h-3.5 text-teal-600" />
@@ -242,46 +239,42 @@ export function SPKCalculationPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedGender('L')}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     selectedGender === 'L'
                       ? 'bg-blue-600 text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  <span>👦 Laki-Laki</span>
+                  <span>Laki-Laki</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedGender('P')}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     selectedGender === 'P'
                       ? 'bg-pink-600 text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  <span>👧 Perempuan</span>
+                  <span>Perempuan</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedGender('all')}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     selectedGender === 'all'
                       ? 'bg-slate-800 text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  <span>👥 Semua</span>
+                  <span>Semua</span>
                 </button>
               </div>
             </div>
           </div>
-
-          <div className="text-slate-400 italic text-[11px]">
-            *Perbandingan alternatif adil per rentang umur bulan & jenis kelamin sesuai standar kurva pertumbuhan
-          </div>
         </div>
 
-        {/* Informasi Dasar Pertimbangan Kelompok Umur Penelitian */}
+        {/* Informasi Dasar Pertimbangan */}
         {selectedAgeGroup && (
           <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
             <div className="flex flex-wrap items-center gap-2">
@@ -290,12 +283,9 @@ export function SPKCalculationPage() {
                 <span>Rentang: {selectedAgeGroup.rangeLabel}</span>
               </span>
               <span className="text-slate-600">
-                <strong>Dasar Pertimbangan:</strong> {selectedAgeGroup.consideration}
+                {selectedAgeGroup.consideration}
               </span>
             </div>
-            <span className="text-[11px] text-slate-400">
-              Klasifikasi rentang bulan lengkap untuk penelitian SPK
-            </span>
           </div>
         )}
       </div>
@@ -316,73 +306,73 @@ export function SPKCalculationPage() {
 
       {/* AHP Active Weights Summary */}
       {ahpConfig && (
-        <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-xs space-y-4">
+        <div className="p-5 rounded-3xl bg-white border border-slate-200/80 shadow-xs space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                <span>Bobot Kriteria AHP yang Digunakan</span>
+              <h3 className="text-sm font-bold text-slate-900 tracking-tight">
+                Bobot Kriteria AHP
               </h3>
-              <p className="text-xs text-slate-500 font-mono">
-                Consistency Ratio: <strong className="text-teal-700">{ahpConfig.cr?.toFixed(6) || '0.000030'}</strong> (Batas CR &le; 0.10)
+              <p className="text-xs text-slate-500">
+                Consistency Ratio: <strong className="text-teal-700 font-mono">{ahpConfig.cr?.toFixed(6) || '0.000030'}</strong> (Konsisten)
               </p>
             </div>
 
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                 <CheckCircle className="w-3.5 h-3.5" />
-                <span>Matriks Konsisten (Saaty RI = 1.12)</span>
+                <span>Matriks Valid</span>
               </span>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
-            <div className="p-3 rounded-2xl bg-teal-50/50 border border-teal-100">
-              <span className="text-slate-500 block">K1. Berat Badan (BB/U)</span>
-              <span className="text-base font-bold text-teal-900 font-mono">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 text-xs">
+            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
+              <span className="text-slate-500 block text-[11px]">K1. Berat Badan (BB/U)</span>
+              <span className="text-base font-bold text-slate-900 font-mono mt-0.5 block">
                 {(((ahpConfig.weightsMap?.K1 ?? ahpConfig.weightsMap?.C1) || 0.122833) * 100).toFixed(1)}%
               </span>
-              <span className="text-[10px] text-teal-700 block font-mono">
-                w = {(ahpConfig.weightsMap?.K1 ?? ahpConfig.weightsMap?.C1 ?? 0.122833).toFixed(6)}
+              <span className="text-[10px] text-slate-400 block font-mono">
+                w = {(ahpConfig.weightsMap?.K1 ?? ahpConfig.weightsMap?.C1 ?? 0.122833).toFixed(4)}
               </span>
             </div>
 
-            <div className="p-3 rounded-2xl bg-teal-50/50 border border-teal-100">
-              <span className="text-slate-500 block">K2. Tinggi Badan (PB/TB)</span>
-              <span className="text-base font-bold text-teal-900 font-mono">
+            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
+              <span className="text-slate-500 block text-[11px]">K2. Tinggi Badan (PB/TB)</span>
+              <span className="text-base font-bold text-slate-900 font-mono mt-0.5 block">
                 {(((ahpConfig.weightsMap?.K2 ?? ahpConfig.weightsMap?.C2) || 0.122833) * 100).toFixed(1)}%
               </span>
-              <span className="text-[10px] text-teal-700 block font-mono">
-                w = {(ahpConfig.weightsMap?.K2 ?? ahpConfig.weightsMap?.C2 ?? 0.122833).toFixed(6)}
+              <span className="text-[10px] text-slate-400 block font-mono">
+                w = {(ahpConfig.weightsMap?.K2 ?? ahpConfig.weightsMap?.C2 ?? 0.122833).toFixed(4)}
               </span>
             </div>
 
-            <div className="p-3 rounded-2xl bg-teal-50/50 border border-teal-100">
-              <span className="text-slate-500 block">K3. Lingkar Kepala (LK/U)</span>
-              <span className="text-base font-bold text-teal-900 font-mono">
+            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
+              <span className="text-slate-500 block text-[11px]">K3. Lingkar Kepala (LK/U)</span>
+              <span className="text-base font-bold text-slate-900 font-mono mt-0.5 block">
                 {(((ahpConfig.weightsMap?.K3 ?? ahpConfig.weightsMap?.C3) || 0.084737) * 100).toFixed(1)}%
               </span>
-              <span className="text-[10px] text-teal-700 block font-mono">
-                w = {(ahpConfig.weightsMap?.K3 ?? ahpConfig.weightsMap?.C3 ?? 0.084737).toFixed(6)}
+              <span className="text-[10px] text-slate-400 block font-mono">
+                w = {(ahpConfig.weightsMap?.K3 ?? ahpConfig.weightsMap?.C3 ?? 0.084737).toFixed(4)}
               </span>
             </div>
 
-            <div className="p-3 rounded-2xl bg-teal-50/50 border border-teal-100">
-              <span className="text-slate-500 block">K4. Imunisasi (Jatuh Tempo)</span>
-              <span className="text-base font-bold text-teal-900 font-mono">
+            <div className="p-3 rounded-2xl bg-teal-50/70 border border-teal-200/80">
+              <span className="text-teal-700 block text-[11px] font-semibold">K4. Imunisasi (Prioritas)</span>
+              <span className="text-base font-bold text-teal-900 font-mono mt-0.5 block">
                 {(((ahpConfig.weightsMap?.K4 ?? ahpConfig.weightsMap?.C5) || 0.423687) * 100).toFixed(1)}%
               </span>
               <span className="text-[10px] text-teal-700 block font-mono">
-                w = {(ahpConfig.weightsMap?.K4 ?? ahpConfig.weightsMap?.C5 ?? 0.423687).toFixed(6)}
+                w = {(ahpConfig.weightsMap?.K4 ?? ahpConfig.weightsMap?.C5 ?? 0.423687).toFixed(4)}
               </span>
             </div>
 
-            <div className="p-3 rounded-2xl bg-teal-50/50 border border-teal-100">
-              <span className="text-slate-500 block">K5. Asupan Gizi (PMBA)</span>
-              <span className="text-base font-bold text-teal-900 font-mono">
+            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
+              <span className="text-slate-500 block text-[11px]">K5. Asupan Gizi (PMBA)</span>
+              <span className="text-base font-bold text-slate-900 font-mono mt-0.5 block">
                 {(((ahpConfig.weightsMap?.K5 ?? ahpConfig.weightsMap?.C4) || 0.245910) * 100).toFixed(1)}%
               </span>
-              <span className="text-[10px] text-teal-700 block font-mono">
-                w = {(ahpConfig.weightsMap?.K5 ?? ahpConfig.weightsMap?.C4 ?? 0.245910).toFixed(6)}
+              <span className="text-[10px] text-slate-400 block font-mono">
+                w = {(ahpConfig.weightsMap?.K5 ?? ahpConfig.weightsMap?.C4 ?? 0.245910).toFixed(4)}
               </span>
             </div>
           </div>
@@ -453,7 +443,7 @@ export function SPKCalculationPage() {
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
                     <FileSpreadsheet className="w-5 h-5 text-teal-600" />
-                    <span>Tabel Peringkat Preferensi SPK Balita</span>
+                    <span>Tabel Peringkat Balita</span>
                     {isUpdating && (
                       <span className="inline-flex items-center gap-1 text-[11px] font-medium text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">
                         <RefreshCw className="w-3 h-3 animate-spin text-teal-600" />
@@ -462,7 +452,7 @@ export function SPKCalculationPage() {
                     )}
                   </h3>
                   <p className="text-xs text-slate-500">
-                    {selectedAgeGroup?.name} • Periode {periodCode} • Kelompok: <strong>{selectedGender === 'L' ? 'Laki-Laki (L)' : selectedGender === 'P' ? 'Perempuan (P)' : 'Semua Jenis Kelamin'}</strong> • {results.length} Balita Masuk Pemeringkatan
+                    {selectedAgeGroup?.name} • Periode {periodCode} • {selectedGender === 'L' ? 'Laki-Laki' : selectedGender === 'P' ? 'Perempuan' : 'Semua'} ({results.length} balita)
                   </p>
                 </div>
 
@@ -472,35 +462,35 @@ export function SPKCalculationPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedGender('L')}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     selectedGender === 'L'
                       ? 'bg-blue-600 text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
                   }`}
                 >
-                  <span>👦 Laki-Laki</span>
+                  <span>Laki-Laki</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedGender('P')}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     selectedGender === 'P'
                       ? 'bg-pink-600 text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
                   }`}
                 >
-                  <span>👧 Perempuan</span>
+                  <span>Perempuan</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedGender('all')}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     selectedGender === 'all'
                       ? 'bg-slate-800 text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
                   }`}
                 >
-                  <span>👥 Semua</span>
+                  <span>Semua</span>
                 </button>
               </div>
 
@@ -509,7 +499,7 @@ export function SPKCalculationPage() {
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
               >
                 <Eye className="w-4 h-4" />
-                <span>Transparansi Matriks</span>
+                <span>Matriks SAW</span>
               </button>
             </div>
           </div>
@@ -519,17 +509,17 @@ export function SPKCalculationPage() {
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-600 font-semibold">
                   <th className="py-3 px-3 text-center w-16">Peringkat</th>
-                  <th className="py-3 px-3.5">Nama Alternatif Balita</th>
+                  <th className="py-3 px-3.5">Nama Balita</th>
                   <th className="py-3 px-3 text-center">Jenis Kelamin</th>
                   <th className="py-3 px-3 text-center">Usia</th>
-                  <th className="py-3 px-3">K1 (BB/U)</th>
-                  <th className="py-3 px-3">K2 (PB/TB)</th>
-                  <th className="py-3 px-3">K3 (LK/U)</th>
+                  <th className="py-3 px-3">K1 (BB)</th>
+                  <th className="py-3 px-3">K2 (TB)</th>
+                  <th className="py-3 px-3">K3 (LK)</th>
                   <th className="py-3 px-3">K4 (Imun)</th>
                   <th className="py-3 px-3">K5 (Gizi)</th>
-                  <th className="py-3 px-3.5 font-bold text-teal-800">Skor Preferensi (Vi)</th>
-                  <th className="py-3 px-3 text-center">Status Flag</th>
-                  <th className="py-3 px-3 text-right">Rincian</th>
+                  <th className="py-3 px-3.5 font-bold text-teal-800">Skor (Vi)</th>
+                  <th className="py-3 px-3 text-center">Status</th>
+                  <th className="py-3 px-3 text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -671,14 +661,10 @@ export function SPKCalculationPage() {
             </table>
           </div>
 
-          {/* Educational Disclaimer */}
-          <div className="mt-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-600 text-xs flex items-start gap-2.5 leading-relaxed">
-            <Info className="w-4 h-4 text-slate-500 flex-shrink-0 mt-0.5" />
-            <p>
-              <strong>Standarisasi Skoring Klinis Permenkes No. 2 Tahun 2020 & WHO:</strong> Seluruh pengukuran fisik (BB, TB, LK, Imunisasi, Gizi) 
-              dikonversikan ke skala skor ordinal standar 1 s.d 4 (Skor 4 = Ideal/Normal, Skor 1 = Defisit Berat/Risiko Tinggi).
-              Dengan konversi ini, seluruh kriteria menjadi <strong>Kriteria Benefit Murni</strong> pada perhitungan SAW sehingga alternatif balita diperbandingkan secara klinis adil, akurat, dan bebas bias obesitas.
-            </p>
+          {/* Catatan Standarisasi */}
+          <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 text-xs flex items-center gap-2">
+            <Info className="w-4 h-4 text-slate-400 flex-shrink-0" />
+            <span>Nilai antropometri dan riwayat kesehatan balita telah distandarisasi ke skor ideal 1–4 (benefit) sebelum normalisasi SAW.</span>
           </div>
         </div>
       )}
