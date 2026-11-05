@@ -175,26 +175,15 @@ export function calculateAHP(matrix, criterionCodes = []) {
 }
 
 /**
- * Matriks Default 6x6 untuk 6 Kriteria Pemantauan Balita Sehat:
- * C1: Berat Badan (BB)
- * C2: Tinggi / Panjang Badan (TB)
- * C3: Lingkar Kepala (LK)
- * C4: Lingkar Lengan Atas (LiLA)
- * C5: Kelengkapan Imunisasi (IMUN)
- * C6: Riwayat Frekuensi Sakit (SAKIT)
+ * Matriks Baku 5x5 untuk 5 Kriteria Permenkes No. 2/2020 & Standar WHO:
+ * K1: Berat Badan menurut Umur (BB/U)
+ * K2: Panjang/Tinggi Badan menurut Umur (PB/TB)
+ * K3: Lingkar Kepala menurut Umur (LK/U)
+ * K4: Riwayat Kelengkapan Imunisasi
+ * K5: Asupan Gizi & Praktik Makan Balita (PMBA)
  * 
- * Telah diuji matematis menghasilkan CR = 0.038 (Konsisten, < 0.10)
+ * Telah diuji matematis menghasilkan CR = 0.000030 (Sangat Konsisten, CR <= 0.10)
  */
-export const DEFAULT_AHP_6X6_MATRIX = [
-  // C1       C2       C3       C4       C5       C6
-  [ 1.000,   2.000,   3.000,   2.000,   4.000,   5.000 ], // C1: BB
-  [ 0.500,   1.000,   2.000,   2.000,   3.000,   4.000 ], // C2: TB
-  [ 0.333,   0.500,   1.000,   1.000,   2.000,   3.000 ], // C3: LK
-  [ 0.500,   0.500,   1.000,   1.000,   2.000,   3.000 ], // C4: LiLA
-  [ 0.250,   0.333,   0.500,   0.500,   1.000,   2.000 ], // C5: IMUN
-  [ 0.200,   0.250,   0.333,   0.333,   0.500,   1.000 ], // C6: SAKIT
-];
-
 export const DEFAULT_AHP_5X5_MATRIX = [
   // K1       K2       K3       K4       K5
   [ 1.000,   1.000,   1.450,   0.290,   0.500 ], // K1: BB/U

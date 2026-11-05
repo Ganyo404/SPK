@@ -244,9 +244,9 @@ export function StaffChildrenListPage() {
                         </div>
 
                         <div className="p-2.5 rounded-xl bg-purple-50/60 border border-purple-100">
-                          <div className="text-[11px] text-purple-800 font-medium">LiLA Gizi</div>
+                          <div className="text-[11px] text-purple-800 font-medium">Lingkar Kepala</div>
                           <div className="text-base font-extrabold text-purple-900 mt-0.5">
-                            {latestExam.values?.C4 || '-'} <span className="text-xs font-normal">cm</span>
+                            {latestExam.values?.C3 ?? latestExam.raw_values?.LK ?? '-'} <span className="text-xs font-normal">cm</span>
                           </div>
                         </div>
                       </div>

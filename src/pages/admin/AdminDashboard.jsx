@@ -59,7 +59,7 @@ export function AdminDashboard() {
           Pusat Kontrol & Tata Kelola Operasional
         </h1>
         <p className="mt-1 text-sm text-purple-100/80 max-w-xl">
-          Kelola hak akses pengguna, penugasan Posyandu, audit log, serta verifikasi konfigurasi AHP 6 Kriteria.
+          Kelola hak akses pengguna, penugasan Posyandu, audit log, serta verifikasi konfigurasi AHP 5 Kriteria Baku.
         </p>
       </div>
 
@@ -124,7 +124,7 @@ export function AdminDashboard() {
             <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center mb-3">
               <Sliders className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-slate-900 text-base">Konfigurasi AHP (6 Kriteria)</h3>
+            <h3 className="font-bold text-slate-900 text-base">Konfigurasi AHP (5 Kriteria Baku)</h3>
             <p className="mt-1 text-xs text-slate-500 leading-relaxed">
               Tinjau matriks perbandingan berpasangan, verifikasi nilai lambda max, CI, dan uji rasio konsistensi CR.
             </p>

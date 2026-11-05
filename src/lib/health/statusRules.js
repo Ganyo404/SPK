@@ -21,8 +21,8 @@ export const CLINICAL_DISCLAIMER =
   'Untuk penegakan diagnosis klinis, konsultasikan kondisi balita secara langsung ke Puskesmas atau dokter anak.';
 
 /**
- * Evaluasi status skrining fisik balita berdasarkan parameter antropometri dan kesehatan
- * (Berat Badan, Tinggi Badan, LiLA, Imunisasi, Riwayat Sakit)
+ * Evaluasi status skrining fisik balita berdasarkan 5 Kriteria Baku Permenkes No. 2/2020 & WHO
+ * (K1: BB/U, K2: PB/TB, K3: LK/U, K4: Imunisasi, K5: Asupan Gizi & PMBA)
  * 
  * @param {object} examination - Data pemeriksaan balita
  * @param {object} child - Data anak (usia bulan, jenis kelamin)
@@ -45,45 +45,58 @@ export function evaluateHealthStatus(examination, child = {}) {
     };
   }
 
-  const values = examination.values;
-  const lila = values.C4 || values.lila; // Lingkar Lengan Atas (cm)
-  const bb = values.C1 || values.bb;     // Berat Badan (kg)
-  const tb = values.C2 || values.tb;     // Tinggi Badan (cm)
-  const imun = values.C5 || values.imun; // Imunisasi (%)
-  const sakit = values.C6 || values.sakit; // Frekuensi Sakit (kali)
+  const values = examination.values || {};
+  const stdScores = examination.standard_scores || {};
+
+  // Skor 5 Kriteria Baku (1 - 4)
+  const k1Score = stdScores.K1 ?? values.K1 ?? 4;
+  const k2Score = stdScores.K2 ?? values.K2 ?? 4;
+  const k3Score = stdScores.K3 ?? values.K3 ?? 4;
+  const k4Score = stdScores.K4 ?? values.K4 ?? 4;
+  const k5Score = stdScores.K5 ?? values.K5 ?? 4;
 
   const alerts = [];
   const notes = [];
 
-  // 1. Skrining LiLA (Standar Kemenkes: LiLA < 11.5 cm indikasi gizi buruk, 11.5 - 12.5 cm gizi kurang)
-  if (typeof lila === 'number') {
-    if (lila < 11.5) {
-      alerts.push('Lingkar Lengan Atas (LiLA) < 11.5 cm: Indikasi risiko gizi kurang/buruk yang memerlukan evaluasi.');
-    } else if (lila < 12.5) {
-      notes.push('LiLA berada pada ambang batas pemantauan (11.5 - 12.4 cm). Disarankan evaluasi nutrisi berkala.');
-    } else {
-      notes.push('LiLA dalam batas normal (> 12.5 cm).');
-    }
+  // 1. K1: Berat Badan menurut Umur (BB/U)
+  if (k1Score === 1) {
+    alerts.push('Berat Badan (BB/U) sangat kurang atau risiko obesitas. Perlu evaluasi klinis dokter.');
+  } else if (k1Score === 2) {
+    notes.push('Berat Badan (BB/U) kurang atau kelebihan berat badan. Disarankan pemantauan asupan kalori berkala.');
   }
 
-  // 2. Skrining Frekuensi Sakit
-  if (typeof sakit === 'number') {
-    if (sakit >= 4) {
-      alerts.push(`Frekuensi sakit tercatat ${sakit} kali dalam 6 bulan terakhir. Perlu pemeriksaan riwayat infeksi lebih lanjut.`);
-    } else if (sakit >= 2) {
-      notes.push(`Riwayat sakit ${sakit} kali, pantau daya tahan tubuh dan sanitasi lingkungan.`);
-    }
+  // 2. K2: Panjang / Tinggi Badan menurut Umur (PB/TB)
+  if (k2Score === 1) {
+    alerts.push('Tinggi Badan (PB/TB) sangat pendek (severely stunted). Memerlukan intervensi gizi intensif.');
+  } else if (k2Score === 2) {
+    notes.push('Tinggi Badan (PB/TB) berada di bawah garis standar (-2 SD / stunted). Tingkatkan asupan protein hewani.');
   }
 
-  // 3. Skrining Imunisasi
-  if (typeof imun === 'number') {
-    if (imun < 70) {
-      notes.push('Cakupan imunisasi dasar belum lengkap. Harap segera lengkapi di Posyandu/Puskesmas.');
-    }
+  // 3. K3: Lingkar Kepala menurut Umur (LK/U)
+  if (k3Score === 1) {
+    alerts.push('Lingkar Kepala (LK/U) mengarah ke mikrosefali atau makrosefali. Perlu konsultasi spesialis anak.');
+  } else if (k3Score === 2) {
+    notes.push('Lingkar Kepala (LK/U) berada di batas pemantauan (-2 SD s/d -3 SD atau +2 SD s/d +3 SD).');
   }
+
+  // 4. K4: Riwayat Imunisasi
+  if (k4Score === 1) {
+    alerts.push('Cakupan imunisasi dasar sangat kurang (< 40%). Balita rentan terhadap penyakit infeksi PD3I.');
+  } else if (k4Score === 2) {
+    notes.push('Cakupan imunisasi belum lengkap sesuai jadwal usia (40% - 74%). Lengkapi di Posyandu.');
+  }
+
+  // 5. K5: Asupan Gizi & PMBA
+  if (k5Score === 1) {
+    alerts.push('Praktik makan & asupan gizi defisit berat (<= 1 indikator terpenuhi). Risiko malnutrisi.');
+  } else if (k5Score === 2) {
+    notes.push('Praktik makan balita kurang variatif (2 indikator terpenuhi). Terapkan prinsip gizi seimbang 4 bintang.');
+  }
+
+  const isReviewNeeded = examination.status_flag === 'Perlu Tinjau' || alerts.length > 0;
 
   // Penentuan Status Tampilan
-  if (alerts.length > 0) {
+  if (isReviewNeeded && alerts.length > 0) {
     return {
       status: HEALTH_STATUS_LABELS.NEEDS_ATTENTION,
       badgeColor: 'rose',
@@ -93,21 +106,24 @@ export function evaluateHealthStatus(examination, child = {}) {
     };
   }
 
-  if (notes.length > 0 && (imun < 70 || (typeof lila === 'number' && lila < 12.5))) {
+  if (notes.length > 0 || examination.status_flag === 'Perlu Tinjau') {
     return {
       status: HEALTH_STATUS_LABELS.FAIR,
       badgeColor: 'amber',
-      reasons: notes,
+      reasons: notes.length > 0 ? notes : ['Pertumbuhan memerlukan pemantauan berkala pada kunjungan berikutnya.'],
       isClinicalAlert: false,
       disclaimer: CLINICAL_DISCLAIMER
     };
   }
 
-  if (imun >= 90 && (typeof sakit === 'number' && sakit <= 1)) {
+  if (k1Score === 4 && k2Score === 4 && k3Score === 4 && k4Score === 4 && k5Score >= 3) {
     return {
       status: HEALTH_STATUS_LABELS.VERY_GOOD,
       badgeColor: 'emerald',
-      reasons: ['Pertumbuhan dan indikator pemantauan berjalan sangat baik.', 'Cakupan imunisasi optimal.'],
+      reasons: [
+        'Pertumbuhan fisik balita (BB, TB, LK) berada pada batas ideal kurva pertumbuhan WHO.',
+        'Imunisasi lengkap dan asupan gizi PMBA optimal.'
+      ],
       isClinicalAlert: false,
       disclaimer: CLINICAL_DISCLAIMER
     };
@@ -116,7 +132,7 @@ export function evaluateHealthStatus(examination, child = {}) {
   return {
     status: HEALTH_STATUS_LABELS.GOOD,
     badgeColor: 'teal',
-    reasons: ['Tumbuh kembang berjalan sesuai tahap usia balita.', 'Tetap lakukan pemantauan rutin bulanan.'],
+    reasons: ['Tumbuh kembang berjalan sesuai tahap usia balita.', 'Tetap lakukan pemantauan rutin bulanan di Posyandu.'],
     isClinicalAlert: false,
     disclaimer: CLINICAL_DISCLAIMER
   };

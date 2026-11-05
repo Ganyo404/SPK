@@ -29,7 +29,9 @@ import {
   ArrowDown,
   Minus,
   Layers,
-  Filter
+  Filter,
+  ShieldCheck,
+  Utensils
 } from 'lucide-react';
 import {
   LineChart,
@@ -42,12 +44,13 @@ import {
   Legend
 } from 'recharts';
 
-// Konfigurasi 6 Kriteria SPK untuk Visualisasi Kurva & Grafik
+// Konfigurasi 5 Kriteria Baku SPK (Permenkes No. 2/2020 & Standar WHO Sesuai Excel)
 const CRITERIA_CONFIG = [
   {
-    key: 'C1',
+    key: 'K1',
+    code: 'K1',
     dataKey: 'beratBadan',
-    label: 'Berat Badan',
+    label: 'Berat Badan (BB/U)',
     unit: 'kg',
     color: '#0d9488', // teal-600
     bg: 'bg-teal-50',
@@ -57,12 +60,13 @@ const CRITERIA_CONFIG = [
     category: 'antropometri',
     yAxisId: 'antropo-left',
     type: 'benefit',
-    description: 'Massa tubuh balita'
+    description: 'Bobot AHP: 12.28% • Massa tubuh balita'
   },
   {
-    key: 'C2',
+    key: 'K2',
+    code: 'K2',
     dataKey: 'tinggiBadan',
-    label: 'Tinggi Badan',
+    label: 'Tinggi Badan (PB/TB)',
     unit: 'cm',
     color: '#2563eb', // blue-600
     bg: 'bg-blue-50',
@@ -72,12 +76,13 @@ const CRITERIA_CONFIG = [
     category: 'antropometri',
     yAxisId: 'antropo-right',
     type: 'benefit',
-    description: 'Pertumbuhan linier & panjang badan'
+    description: 'Bobot AHP: 12.28% • Pertumbuhan linier balita'
   },
   {
-    key: 'C3',
+    key: 'K3',
+    code: 'K3',
     dataKey: 'lingkarKepala',
-    label: 'Lingkar Kepala',
+    label: 'Lingkar Kepala (LK/U)',
     unit: 'cm',
     color: '#7c3aed', // violet-600
     bg: 'bg-purple-50',
@@ -87,52 +92,39 @@ const CRITERIA_CONFIG = [
     category: 'antropometri',
     yAxisId: 'antropo-right',
     type: 'benefit',
-    description: 'Perkembangan tempurung kepala & otak'
+    description: 'Bobot AHP: 8.47% • Lingkar kepala & volume otak'
   },
   {
-    key: 'C4',
-    dataKey: 'lila',
-    label: 'LiLA',
-    unit: 'cm',
-    color: '#d97706', // amber-600
-    bg: 'bg-amber-50',
-    border: 'border-amber-200',
-    text: 'text-amber-700',
-    icon: Activity,
-    category: 'antropometri',
-    yAxisId: 'antropo-left',
-    type: 'benefit',
-    description: 'Lingkar lengan atas / status gizi'
-  },
-  {
-    key: 'C5',
+    key: 'K4',
+    code: 'K4',
     dataKey: 'imunisasi',
-    label: 'Imunisasi',
+    label: 'Kelengkapan Imunisasi',
     unit: '%',
     color: '#0891b2', // cyan-600
     bg: 'bg-cyan-50',
     border: 'border-cyan-200',
     text: 'text-cyan-700',
-    icon: CheckCircle2,
+    icon: ShieldCheck,
     category: 'kesehatan',
     yAxisId: 'health-left',
     type: 'benefit',
-    description: 'Kelengkapan imunisasi dasar'
+    description: 'Bobot AHP: 42.37% • Riwayat vaksinasi tepat waktu'
   },
   {
-    key: 'C6',
-    dataKey: 'frekuensiSakit',
-    label: 'Frekuensi Sakit',
-    unit: 'kali',
-    color: '#e11d48', // rose-600
-    bg: 'bg-rose-50',
-    border: 'border-rose-200',
-    text: 'text-rose-700',
-    icon: Heart,
+    key: 'K5',
+    code: 'K5',
+    dataKey: 'asupanGizi',
+    label: 'Asupan Gizi (PMBA)',
+    unit: 'Skor 1-4',
+    color: '#ea580c', // orange-600
+    bg: 'bg-orange-50',
+    border: 'border-orange-200',
+    text: 'text-orange-700',
+    icon: Utensils,
     category: 'kesehatan',
     yAxisId: 'health-right',
-    type: 'cost',
-    description: 'Riwayat sakit dalam 6 bulan terakhir'
+    type: 'benefit',
+    description: 'Bobot AHP: 24.59% • ASI, MP-ASI 4 bintang & higienitas'
   }
 ];
 
@@ -175,15 +167,14 @@ export function ChildProfilePage() {
   const [loading, setLoading] = useState(true);
   const [selectedExamDetail, setSelectedExamDetail] = useState(null);
 
-  // Tab & Filter Garis Grafik 6 Kriteria
+  // Tab & Filter Garis Grafik 5 Kriteria Baku
   const [activeChartTab, setActiveChartTab] = useState('all'); // 'all', 'antropometri', 'kesehatan'
   const [activeMetrics, setActiveMetrics] = useState({
-    C1: true,
-    C2: true,
-    C3: true,
-    C4: true,
-    C5: true,
-    C6: true,
+    K1: true,
+    K2: true,
+    K3: true,
+    K4: true,
+    K5: true,
   });
 
   const toggleMetric = (key) => {
@@ -250,31 +241,38 @@ export function ChildProfilePage() {
     ? generateEducationalRecommendations(healthEvaluation.status, latestVerifiedExam)
     : [];
 
-  // Data Grafik Pertumbuhan Fisik 6 Kriteria (kronologis tanggal lama ke baru)
+  // Data Grafik Pertumbuhan Fisik 5 Kriteria Baku (kronologis tanggal lama ke baru)
   const chartData = [...verifiedExams]
     .sort((a, b) => new Date(a.examined_at) - new Date(b.examined_at))
     .map(e => ({
       date: e.period_code || e.examined_at.split('T')[0],
-      beratBadan: e.values?.C1 != null ? Number(e.values.C1) : null,
-      tinggiBadan: e.values?.C2 != null ? Number(e.values.C2) : null,
-      lingkarKepala: e.values?.C3 != null ? Number(e.values.C3) : null,
-      lila: e.values?.C4 != null ? Number(e.values.C4) : null,
-      imunisasi: e.values?.C5 != null ? Number(e.values.C5) : null,
-      frekuensiSakit: e.values?.C6 != null ? Number(e.values.C6) : null,
+      beratBadan: e.values?.C1 ?? e.raw_values?.BB ?? (e.values?.raw_bb != null ? Number(e.values.raw_bb) : null),
+      tinggiBadan: e.values?.C2 ?? e.raw_values?.TB ?? (e.values?.raw_tb != null ? Number(e.values.raw_tb) : null),
+      lingkarKepala: e.values?.C3 ?? e.raw_values?.LK ?? (e.values?.raw_lk != null ? Number(e.values.raw_lk) : null),
+      imunisasi: e.values?.C5 ?? e.raw_values?.Imunisasi ?? (e.values?.raw_imun != null ? Number(e.values.raw_imun) : (e.values?.K4 ? e.values.K4 * 25 : 100)),
+      asupanGizi: e.values?.K5 ?? e.standard_scores?.K5 ?? e.raw_values?.Gizi ?? (e.values?.gizi != null ? Number(e.values.gizi) : 4),
     }));
 
   const previousVerifiedExam = verifiedExams[1] || null;
 
   const getMetricDelta = (critKey, unit) => {
     if (!latestVerifiedExam || !previousVerifiedExam) return null;
-    const curr = latestVerifiedExam.values?.[critKey];
-    const prev = previousVerifiedExam.values?.[critKey];
+    const getVal = (exam) => {
+      if (!exam?.values) return null;
+      if (critKey === 'K1') return exam.values.C1 ?? exam.raw_values?.BB ?? exam.values.raw_bb;
+      if (critKey === 'K2') return exam.values.C2 ?? exam.raw_values?.TB ?? exam.values.raw_tb;
+      if (critKey === 'K3') return exam.values.C3 ?? exam.raw_values?.LK ?? exam.values.raw_lk;
+      if (critKey === 'K4') return exam.values.C5 ?? exam.raw_values?.Imunisasi ?? exam.values.raw_imun ?? 100;
+      if (critKey === 'K5') return exam.values.K5 ?? exam.standard_scores?.K5 ?? exam.values.raw_gizi ?? 4;
+      return exam.values[critKey];
+    };
+    const curr = getVal(latestVerifiedExam);
+    const prev = getVal(previousVerifiedExam);
     if (curr == null || prev == null) return null;
     const diff = Number((Number(curr) - Number(prev)).toFixed(2));
     if (diff === 0) return { text: 'Stabil', type: 'neutral', diff: 0 };
     const sign = diff > 0 ? '+' : '';
-    // Untuk C6 sakit: penurunan adalah positif (hijau), kenaikan adalah negatif (merah)
-    const isPositive = critKey === 'C6' ? diff < 0 : diff > 0;
+    const isPositive = diff > 0;
     return {
       text: `${sign}${diff} ${unit}`,
       type: isPositive ? 'positive' : 'negative',
@@ -396,12 +394,12 @@ export function ChildProfilePage() {
               </div>
             </div>
 
-            {/* Nilai 6 Kriteria Fisik Kunjungan Terakhir */}
+            {/* Nilai 5 Kriteria Baku Kunjungan Terakhir */}
             <div className="lg:col-span-2 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-base font-bold text-slate-900 tracking-tight">
-                    Hasil Pengukuran 6 Kriteria Terakhir
+                    Hasil Pengukuran 5 Kriteria Terakhir
                   </h3>
                   <p className="text-xs text-slate-500">Pemeriksaan tanggal {latestVerifiedExam.examined_at.split('T')[0]}</p>
                 </div>
@@ -412,61 +410,66 @@ export function ChildProfilePage() {
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
                   <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-1">
                     <Scale className="w-3.5 h-3.5 text-teal-600" />
-                    <span>Berat Badan (C1)</span>
+                    <span>K1. Berat Badan (BB/U)</span>
                   </div>
                   <p className="text-lg font-bold text-slate-900">
-                    {latestVerifiedExam.values?.C1} <span className="text-xs font-normal text-slate-500">kg</span>
+                    {latestVerifiedExam.values?.C1 ?? latestVerifiedExam.raw_values?.BB ?? '-'} <span className="text-xs font-normal text-slate-500">kg</span>
                   </p>
+                  <span className="text-[10px] text-teal-700 font-semibold">
+                    Skor: {latestVerifiedExam.values?.K1 ?? latestVerifiedExam.standard_scores?.K1 ?? 4}
+                  </span>
                 </div>
 
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
                   <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-1">
-                    <Ruler className="w-3.5 h-3.5 text-teal-600" />
-                    <span>Tinggi Badan (C2)</span>
+                    <Ruler className="w-3.5 h-3.5 text-blue-600" />
+                    <span>K2. Tinggi Badan (PB/TB)</span>
                   </div>
                   <p className="text-lg font-bold text-slate-900">
-                    {latestVerifiedExam.values?.C2} <span className="text-xs font-normal text-slate-500">cm</span>
+                    {latestVerifiedExam.values?.C2 ?? latestVerifiedExam.raw_values?.TB ?? '-'} <span className="text-xs font-normal text-slate-500">cm</span>
                   </p>
+                  <span className="text-[10px] text-blue-700 font-semibold">
+                    Skor: {latestVerifiedExam.values?.K2 ?? latestVerifiedExam.standard_scores?.K2 ?? 4}
+                  </span>
                 </div>
 
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
                   <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-1">
-                    <Brain className="w-3.5 h-3.5 text-teal-600" />
-                    <span>Lingkar Kepala (C3)</span>
+                    <Brain className="w-3.5 h-3.5 text-purple-600" />
+                    <span>K3. Lingkar Kepala (LK/U)</span>
                   </div>
                   <p className="text-lg font-bold text-slate-900">
-                    {latestVerifiedExam.values?.C3} <span className="text-xs font-normal text-slate-500">cm</span>
+                    {latestVerifiedExam.values?.C3 ?? latestVerifiedExam.raw_values?.LK ?? '-'} <span className="text-xs font-normal text-slate-500">cm</span>
                   </p>
+                  <span className="text-[10px] text-purple-700 font-semibold">
+                    Skor: {latestVerifiedExam.values?.K3 ?? latestVerifiedExam.standard_scores?.K3 ?? 4}
+                  </span>
                 </div>
 
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
                   <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-1">
-                    <Activity className="w-3.5 h-3.5 text-teal-600" />
-                    <span>LiLA Gizi (C4)</span>
+                    <ShieldCheck className="w-3.5 h-3.5 text-cyan-600" />
+                    <span>K4. Kelengkapan Imunisasi</span>
                   </div>
                   <p className="text-lg font-bold text-slate-900">
-                    {latestVerifiedExam.values?.C4} <span className="text-xs font-normal text-slate-500">cm</span>
+                    {latestVerifiedExam.values?.C5 ?? latestVerifiedExam.raw_values?.Imunisasi ?? 100} <span className="text-xs font-normal text-slate-500">%</span>
                   </p>
+                  <span className="text-[10px] text-cyan-700 font-semibold">
+                    Skor: {latestVerifiedExam.values?.K4 ?? latestVerifiedExam.standard_scores?.K4 ?? 4}
+                  </span>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 col-span-2 sm:col-span-2">
                   <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-1">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-teal-600" />
-                    <span>Imunisasi (C5)</span>
+                    <Utensils className="w-3.5 h-3.5 text-amber-600" />
+                    <span>K5. Asupan Gizi & PMBA</span>
                   </div>
-                  <p className="text-lg font-bold text-slate-900">
-                    {latestVerifiedExam.values?.C5} <span className="text-xs font-normal text-slate-500">%</span>
+                  <p className="text-lg font-bold text-amber-900">
+                    Skor {latestVerifiedExam.values?.K5 ?? latestVerifiedExam.standard_scores?.K5 ?? 4} <span className="text-xs font-normal text-slate-500">/ 4 Indikator Baku</span>
                   </p>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
-                  <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-1">
-                    <Heart className="w-3.5 h-3.5 text-teal-600" />
-                    <span>Sakit 6 Bln (C6)</span>
-                  </div>
-                  <p className="text-lg font-bold text-slate-900">
-                    {latestVerifiedExam.values?.C6} <span className="text-xs font-normal text-slate-500">kali</span>
-                  </p>
+                  <span className="text-[10px] text-amber-700 font-semibold">
+                    Standar PMBA Kemenkes RI & WHO
+                  </span>
                 </div>
               </div>
 
@@ -478,7 +481,7 @@ export function ChildProfilePage() {
             </div>
           </div>
 
-          {/* Bagian D: Grafik Perkembangan Balita (6 Kriteria Evaluasi SPK) */}
+          {/* Bagian D: Grafik Perkembangan Balita (5 Kriteria Baku SPK) */}
           <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
             {/* Header Bagian D */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -488,11 +491,11 @@ export function ChildProfilePage() {
                     <TrendingUp className="w-5 h-5 text-teal-600" />
                   </span>
                   <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">
-                    Grafik Perkembangan Balita (6 Kriteria SPK)
+                    Grafik Perkembangan Balita (5 Kriteria SPK)
                   </h3>
                 </div>
                 <p className="text-xs text-slate-500 max-w-2xl leading-relaxed">
-                  Kurva perkembangan lengkap 6 parameter: Berat Badan (C1), Tinggi Badan (C2), Lingkar Kepala (C3), LiLA (C4), Imunisasi Dasar (C5), dan Frekuensi Sakit (C6).
+                  Kurva perkembangan lengkap 5 parameter: Berat Badan (K1), Tinggi Badan (K2), Lingkar Kepala (K3), Imunisasi (K4), dan Asupan Gizi & PMBA (K5).
                 </p>
               </div>
 
@@ -507,7 +510,7 @@ export function ChildProfilePage() {
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  Semua 6 Kriteria
+                  Semua 5 Kriteria
                 </button>
                 <button
                   type="button"
@@ -518,7 +521,7 @@ export function ChildProfilePage() {
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  Fisik (C1–C4)
+                  Fisik (K1–K3)
                 </button>
                 <button
                   type="button"
@@ -529,12 +532,12 @@ export function ChildProfilePage() {
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  Kesehatan (C5–C6)
+                  Imunisasi & Gizi (K4–K5)
                 </button>
               </div>
             </div>
 
-            {/* Filter Toggle Pills for C1 - C6 */}
+            {/* Filter Toggle Pills for K1 - K5 */}
             <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-2.5">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
@@ -543,10 +546,10 @@ export function ChildProfilePage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setActiveMetrics({ C1: true, C2: true, C3: true, C4: true, C5: true, C6: true })}
+                  onClick={() => setActiveMetrics({ K1: true, K2: true, K3: true, K4: true, K5: true })}
                   className="text-[11px] font-semibold text-teal-700 hover:text-teal-800 underline cursor-pointer"
                 >
-                  Tampilkan Semua 6 Kriteria
+                  Tampilkan Semua 5 Kriteria
                 </button>
               </div>
 
@@ -582,7 +585,7 @@ export function ChildProfilePage() {
               <div className="space-y-6">
                 {/* Visualisasi Kurva Recharts (Tersusun Atas - Bawah Lebar Penuh) */}
                 <div className="space-y-6">
-                  {/* Panel Atas: Antropometri & Pertumbuhan Fisik (C1-C4) */}
+                  {/* Panel Atas: Antropometri & Pertumbuhan Fisik (K1-K3) */}
                   {(activeChartTab === 'all' || activeChartTab === 'antropometri') && (
                     <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-b from-slate-50/60 to-white border border-slate-200/90 shadow-2xs">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
@@ -595,12 +598,12 @@ export function ChildProfilePage() {
                               1. Kurva Antropometri & Pertumbuhan Fisik Balita
                             </h4>
                             <p className="text-xs text-slate-500">
-                              Sumbu Kiri: Berat Badan (kg) & LiLA (cm) | Sumbu Kanan: Tinggi Badan (cm) & Lingkar Kepala (cm)
+                              Sumbu Kiri: Berat Badan (kg) | Sumbu Kanan: Tinggi Badan (cm) & Lingkar Kepala (cm)
                             </p>
                           </div>
                         </div>
                         <span className="text-xs font-bold px-3 py-1 rounded-full bg-teal-100 text-teal-800 self-start sm:self-auto border border-teal-200">
-                          Kriteria C1 — C4
+                          Kriteria K1 — K3
                         </span>
                       </div>
 
@@ -613,51 +616,39 @@ export function ChildProfilePage() {
                             <YAxis yAxisId="antropo-right" orientation="right" stroke="#2563eb" fontSize={12} domain={['dataMin - 3', 'dataMax + 3']} />
                             <Tooltip content={<UnifiedChartTooltip />} />
                             <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '12px' }} />
-                            {activeMetrics.C1 && (
+                            {activeMetrics.K1 && (
                               <Line
                                 yAxisId="antropo-left"
                                 type="monotone"
                                 dataKey="beratBadan"
-                                name="C1: Berat Badan (kg)"
+                                name="K1: Berat Badan (kg)"
                                 stroke="#0d9488"
                                 strokeWidth={2.5}
                                 dot={{ r: 4, fill: '#0d9488' }}
                                 activeDot={{ r: 6 }}
                               />
                             )}
-                            {activeMetrics.C2 && (
+                            {activeMetrics.K2 && (
                               <Line
                                 yAxisId="antropo-right"
                                 type="monotone"
                                 dataKey="tinggiBadan"
-                                name="C2: Tinggi Badan (cm)"
+                                name="K2: Tinggi Badan (cm)"
                                 stroke="#2563eb"
                                 strokeWidth={2.5}
                                 dot={{ r: 4, fill: '#2563eb' }}
                                 activeDot={{ r: 6 }}
                               />
                             )}
-                            {activeMetrics.C3 && (
+                            {activeMetrics.K3 && (
                               <Line
                                 yAxisId="antropo-right"
                                 type="monotone"
                                 dataKey="lingkarKepala"
-                                name="C3: Lingkar Kepala (cm)"
+                                name="K3: Lingkar Kepala (cm)"
                                 stroke="#7c3aed"
                                 strokeWidth={2.5}
                                 dot={{ r: 4, fill: '#7c3aed' }}
-                                activeDot={{ r: 6 }}
-                              />
-                            )}
-                            {activeMetrics.C4 && (
-                              <Line
-                                yAxisId="antropo-left"
-                                type="monotone"
-                                dataKey="lila"
-                                name="C4: LiLA (cm)"
-                                stroke="#d97706"
-                                strokeWidth={2.5}
-                                dot={{ r: 4, fill: '#d97706' }}
                                 activeDot={{ r: 6 }}
                               />
                             )}
@@ -667,25 +658,25 @@ export function ChildProfilePage() {
                     </div>
                   )}
 
-                  {/* Panel Bawah: Status Imunisasi & Riwayat Sakit (C5-C6) */}
+                  {/* Panel Bawah: Status Imunisasi & Asupan Gizi (K4-K5) */}
                   {(activeChartTab === 'all' || activeChartTab === 'kesehatan') && (
                     <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-b from-slate-50/60 to-white border border-slate-200/90 shadow-2xs">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                         <div className="flex items-center gap-2.5">
                           <div className="w-8 h-8 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
-                            <CheckCircle2 className="w-4 h-4" />
+                            <ShieldCheck className="w-4 h-4" />
                           </div>
                           <div>
                             <h4 className="font-bold text-slate-900 text-sm sm:text-base">
-                              2. Kurva Status Kelengkapan Imunisasi & Frekuensi Sakit
+                              2. Kurva Status Kelengkapan Imunisasi & Asupan Gizi (PMBA)
                             </h4>
                             <p className="text-xs text-slate-500">
-                              Sumbu Kiri: Kelengkapan Imunisasi Dasar (0-100%) | Sumbu Kanan: Frekuensi Sakit 6 Bulan (kali)
+                              Sumbu Kiri: Kelengkapan Imunisasi Dasar (0-100%) | Sumbu Kanan: Skor Asupan Gizi PMBA (1 - 4)
                             </p>
                           </div>
                         </div>
                         <span className="text-xs font-bold px-3 py-1 rounded-full bg-cyan-100 text-cyan-800 self-start sm:self-auto border border-cyan-200">
-                          Kriteria C5 — C6
+                          Kriteria K4 — K5
                         </span>
                       </div>
 
@@ -695,30 +686,30 @@ export function ChildProfilePage() {
                             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                             <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} tickLine={false} />
                             <YAxis yAxisId="health-left" stroke="#0891b2" fontSize={12} domain={[0, 100]} />
-                            <YAxis yAxisId="health-right" orientation="right" stroke="#e11d48" fontSize={12} domain={[0, 'dataMax + 2']} />
+                            <YAxis yAxisId="health-right" orientation="right" stroke="#ea580c" fontSize={12} domain={[1, 4]} ticks={[1, 2, 3, 4]} />
                             <Tooltip content={<UnifiedChartTooltip />} />
                             <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '12px' }} />
-                            {activeMetrics.C5 && (
+                            {activeMetrics.K4 && (
                               <Line
                                 yAxisId="health-left"
                                 type="monotone"
                                 dataKey="imunisasi"
-                                name="C5: Kelengkapan Imunisasi Dasar (%)"
+                                name="K4: Kelengkapan Imunisasi (%)"
                                 stroke="#0891b2"
                                 strokeWidth={2.5}
                                 dot={{ r: 4, fill: '#0891b2' }}
                                 activeDot={{ r: 6 }}
                               />
                             )}
-                            {activeMetrics.C6 && (
+                            {activeMetrics.K5 && (
                               <Line
                                 yAxisId="health-right"
                                 type="monotone"
-                                dataKey="frekuensiSakit"
-                                name="C6: Frekuensi Sakit (kali)"
-                                stroke="#e11d48"
+                                dataKey="asupanGizi"
+                                name="K5: Asupan Gizi PMBA (Skor 1-4)"
+                                stroke="#ea580c"
                                 strokeWidth={2.5}
-                                dot={{ r: 4, fill: '#e11d48' }}
+                                dot={{ r: 4, fill: '#ea580c' }}
                                 activeDot={{ r: 6 }}
                               />
                             )}
@@ -729,11 +720,11 @@ export function ChildProfilePage() {
                   )}
                 </div>
 
-                {/* 6 Mini Metric Delta & Trend Cards */}
+                {/* 5 Mini Metric Delta & Trend Cards */}
                 <div className="pt-4 border-t border-slate-100">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                      Ringkasan 6 Kriteria & Tren dari Kunjungan Sebelumnya
+                      Ringkasan 5 Kriteria & Tren dari Kunjungan Sebelumnya
                     </span>
                     <span className="text-[11px] text-slate-400">
                       {latestVerifiedExam ? `Kunjungan: ${latestVerifiedExam.period_code || 'Terbaru'}` : ''}
@@ -800,7 +791,7 @@ export function ChildProfilePage() {
             ) : (
               <div className="p-8 text-center rounded-2xl bg-slate-50 border border-dashed border-slate-300">
                 <p className="text-sm font-semibold text-slate-600">Belum Ada Riwayat Kunjungan Terverifikasi</p>
-                <p className="text-xs text-slate-400 mt-1">Data pemeriksaan pertama yang diverifikasi nakes akan otomatis memunculkan grafik 6 kriteria ini.</p>
+                <p className="text-xs text-slate-400 mt-1">Data pemeriksaan pertama yang diverifikasi nakes akan otomatis memunculkan grafik 5 kriteria baku ini.</p>
               </div>
             )}
           </div>
@@ -871,9 +862,11 @@ export function ChildProfilePage() {
                   <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-600 font-semibold">
                     <th className="py-3 px-3.5">Tanggal Kunjungan</th>
                     <th className="py-3 px-3.5">Periode</th>
-                    <th className="py-3 px-3.5">BB (kg)</th>
-                    <th className="py-3 px-3.5">TB (cm)</th>
-                    <th className="py-3 px-3.5">LiLA (cm)</th>
+                    <th className="py-3 px-3.5">K1: BB (kg)</th>
+                    <th className="py-3 px-3.5">K2: TB (cm)</th>
+                    <th className="py-3 px-3.5">K3: LK (cm)</th>
+                    <th className="py-3 px-3.5">K4: Imun (%)</th>
+                    <th className="py-3 px-3.5">K5: Gizi</th>
                     <th className="py-3 px-3.5">Skor SAW</th>
                     <th className="py-3 px-3.5">Status</th>
                     <th className="py-3 px-3.5 text-right">Aksi</th>
@@ -889,13 +882,19 @@ export function ChildProfilePage() {
                         {exam.period_code}
                       </td>
                       <td className="py-3.5 px-3.5 font-semibold text-slate-800">
-                        {exam.values?.C1 ?? '-'}
+                        {exam.values?.C1 ?? exam.raw_values?.BB ?? '-'}
                       </td>
                       <td className="py-3.5 px-3.5 font-semibold text-slate-800">
-                        {exam.values?.C2 ?? '-'}
+                        {exam.values?.C2 ?? exam.raw_values?.TB ?? '-'}
                       </td>
-                      <td className="py-3.5 px-3.5 text-slate-700">
-                        {exam.values?.C4 ?? '-'}
+                      <td className="py-3.5 px-3.5 font-semibold text-slate-800">
+                        {exam.values?.C3 ?? exam.raw_values?.LK ?? '-'}
+                      </td>
+                      <td className="py-3.5 px-3.5 text-teal-700 font-semibold">
+                        {exam.values?.C5 ?? exam.raw_values?.Imunisasi ?? 100}%
+                      </td>
+                      <td className="py-3.5 px-3.5 text-amber-700 font-semibold">
+                        Skor {exam.values?.K5 ?? exam.standard_scores?.K5 ?? 4}
                       </td>
                       <td className="py-3.5 px-3.5 font-mono text-teal-700 font-bold">
                         {exam.saw_score != null ? exam.saw_score.toFixed(3) : '-'}
@@ -906,7 +905,7 @@ export function ChildProfilePage() {
                       <td className="py-3.5 px-3.5 text-right">
                         <button
                           onClick={() => setSelectedExamDetail(exam)}
-                          className="px-3 py-1.5 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 font-semibold text-xs transition-colors"
+                          className="px-3 py-1.5 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 font-semibold text-xs transition-colors cursor-pointer"
                         >
                           Lihat Detail
                         </button>
@@ -923,7 +922,7 @@ export function ChildProfilePage() {
           <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
           <h3 className="font-bold text-slate-800 text-base">Belum Ada Pemeriksaan Terverifikasi</h3>
           <p className="mt-1 text-xs text-slate-500 max-w-md mx-auto">
-            Hasil pemeriksaan fisik 6 kriteria akan tampil di halaman ini secara otomatis setelah petugas Posyandu
+            Hasil pemeriksaan 5 kriteria baku akan tampil di halaman ini secara otomatis setelah petugas Posyandu
             melakukan pemeriksaan fisik dan memverifikasi data penimbangan.
           </p>
         </div>
@@ -946,31 +945,44 @@ export function ChildProfilePage() {
             </div>
 
             <div>
-              <p className="font-bold text-slate-800 mb-2">Nilai 6 Kriteria Fisik:</p>
+              <p className="font-bold text-slate-800 mb-2">5 Kriteria Baku Tumbuh Kembang (Permenkes & WHO):</p>
               <div className="grid grid-cols-2 gap-2">
                 <div className="p-2.5 rounded-xl border border-slate-200 bg-white">
-                  <span className="text-slate-500 block">C1. Berat Badan (BB)</span>
-                  <span className="font-bold text-slate-900 text-sm">{selectedExamDetail.values?.C1} kg</span>
+                  <span className="text-slate-500 block">K1. Berat Badan (BB/U)</span>
+                  <span className="font-bold text-slate-900 text-sm">{selectedExamDetail.values?.C1 ?? selectedExamDetail.raw_values?.BB ?? '-'} kg</span>
+                  <span className="text-[10px] text-teal-700 block font-semibold mt-0.5">
+                    Skor: {selectedExamDetail.values?.K1 ?? selectedExamDetail.standard_scores?.K1 ?? 4} (Bobot 12.28%)
+                  </span>
                 </div>
                 <div className="p-2.5 rounded-xl border border-slate-200 bg-white">
-                  <span className="text-slate-500 block">C2. Tinggi Badan (TB)</span>
-                  <span className="font-bold text-slate-900 text-sm">{selectedExamDetail.values?.C2} cm</span>
+                  <span className="text-slate-500 block">K2. Panjang/Tinggi (PB/TB)</span>
+                  <span className="font-bold text-slate-900 text-sm">{selectedExamDetail.values?.C2 ?? selectedExamDetail.raw_values?.TB ?? '-'} cm</span>
+                  <span className="text-[10px] text-blue-700 block font-semibold mt-0.5">
+                    Skor: {selectedExamDetail.values?.K2 ?? selectedExamDetail.standard_scores?.K2 ?? 4} (Bobot 12.28%)
+                  </span>
                 </div>
                 <div className="p-2.5 rounded-xl border border-slate-200 bg-white">
-                  <span className="text-slate-500 block">C3. Lingkar Kepala</span>
-                  <span className="font-bold text-slate-900 text-sm">{selectedExamDetail.values?.C3} cm</span>
+                  <span className="text-slate-500 block">K3. Lingkar Kepala (LK/U)</span>
+                  <span className="font-bold text-slate-900 text-sm">{selectedExamDetail.values?.C3 ?? selectedExamDetail.raw_values?.LK ?? '-'} cm</span>
+                  <span className="text-[10px] text-purple-700 block font-semibold mt-0.5">
+                    Skor: {selectedExamDetail.values?.K3 ?? selectedExamDetail.standard_scores?.K3 ?? 4} (Bobot 8.47%)
+                  </span>
                 </div>
                 <div className="p-2.5 rounded-xl border border-slate-200 bg-white">
-                  <span className="text-slate-500 block">C4. LiLA Gizi</span>
-                  <span className="font-bold text-slate-900 text-sm">{selectedExamDetail.values?.C4} cm</span>
+                  <span className="text-slate-500 block">K4. Kelengkapan Imunisasi</span>
+                  <span className="font-bold text-slate-900 text-sm">{selectedExamDetail.values?.C5 ?? selectedExamDetail.raw_values?.Imunisasi ?? 100} %</span>
+                  <span className="text-[10px] text-cyan-700 block font-semibold mt-0.5">
+                    Skor: {selectedExamDetail.values?.K4 ?? selectedExamDetail.standard_scores?.K4 ?? 4} (Bobot 42.37%)
+                  </span>
                 </div>
-                <div className="p-2.5 rounded-xl border border-slate-200 bg-white">
-                  <span className="text-slate-500 block">C5. Imunisasi Dasar</span>
-                  <span className="font-bold text-slate-900 text-sm">{selectedExamDetail.values?.C5} %</span>
-                </div>
-                <div className="p-2.5 rounded-xl border border-slate-200 bg-white">
-                  <span className="text-slate-500 block">C6. Frekuensi Sakit</span>
-                  <span className="font-bold text-slate-900 text-sm">{selectedExamDetail.values?.C6} kali</span>
+                <div className="p-2.5 rounded-xl border border-slate-200 bg-white col-span-2">
+                  <span className="text-slate-500 block">K5. Asupan Gizi & Praktik Makan Balita (PMBA)</span>
+                  <span className="font-bold text-amber-900 text-sm">
+                    Skor {selectedExamDetail.values?.K5 ?? selectedExamDetail.standard_scores?.K5 ?? 4} dari 4 Indikator
+                  </span>
+                  <span className="text-[10px] text-slate-500 block mt-0.5">
+                    Bobot 24.59% • Standar Kemenkes RI & WHO
+                  </span>
                 </div>
               </div>
             </div>
@@ -982,7 +994,7 @@ export function ChildProfilePage() {
                 Peringkat Kelompok Umur: <strong>#{selectedExamDetail.saw_rank || '-'}</strong>
                 {selectedExamDetail.age_group_name ? ` (${selectedExamDetail.age_group_name})` : ''}
               </p>
-              <p className="text-[11px] text-teal-700 mt-1">Konfigurasi: Versi Algoritma AHP-SAW-v1.0 (6 Kriteria)</p>
+              <p className="text-[11px] text-teal-700 mt-1">Konfigurasi: Versi Algoritma AHP-SAW (5 Kriteria Baku)</p>
             </div>
 
             {selectedExamDetail.notes && (

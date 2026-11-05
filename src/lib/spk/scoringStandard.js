@@ -538,7 +538,7 @@ export function getAsupanGiziScore(val) {
 
 /**
  * Mengonversi seluruh data mentah pemeriksaan menjadi skor terstandar 5 Kriteria Baku
- * @param {object} rawValues - { C1/BB: number, C2/TB: number, C3/LK: number, C5/Imun: number, C4/LiLA: number, gizi: number }
+ * @param {object} rawValues - { C1/BB: number, C2/TB: number, C3/LK: number, C5/Imun: number, gizi: number }
  * @param {number|string} ageGroupId - 1 s/d 8
  * @param {'L'|'P'} sex - 'L' atau 'P'
  */
@@ -585,7 +585,6 @@ export function convertRawToStandardScores(rawValues = {}, ageGroupId = 4, sex =
       BB: rawBB,
       TB: rawTB,
       LK: rawLK,
-      LiLA: rawValues.C4 ?? rawValues.lila ?? null,
       Imunisasi: rawImun,
       Gizi: rawGizi
     }
@@ -663,3 +662,4 @@ export const OFFICIAL_CRITERIA_5 = [
     description: 'Skor 4 = 4 Indikator Ideal, Skor 3 = 3 Indikator, Skor 2 = 2 Indikator, Skor 1 = <=1'
   }
 ];
+
