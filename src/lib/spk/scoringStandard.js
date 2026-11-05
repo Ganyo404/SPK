@@ -499,49 +499,49 @@ export function getLKScore(rawLK, groupId = 4, sex = 'L') {
  * - Kelompok 5 s/d 8 (12–59 bulan): Target tetap 17 dosis (maksimal)
  */
 export const IMMUNIZATION_STANDARDS = {
-  // Kelompok 1: 0 - 2 bulan (Target ideal: 6 dosis)
+  // Kelompok 1: 0 - 2 bulan (Target: 6 dosis)
   1: {
     ageRange: '0 - 2 bulan',
     targetIdeal: 6,
     maxDoses: 6,
     rules: [
-      { min: 6, max: 6, score: 4, label: 'Lengkap Target (6 dosis)' },
+      { min: 6, max: 6, score: 4, label: 'Lengkap (6 dosis)' },
       { min: 5, max: 5, score: 3, label: 'Hampir Lengkap (5 dosis)' },
       { min: 3, max: 4, score: 2, label: 'Kurang (3 - 4 dosis)' },
       { min: 0, max: 2, score: 1, label: 'Sangat Kurang (0 - 2 dosis)' }
     ]
   },
-  // Kelompok 2: 3 - 5 bulan (Target ideal: 15 dosis)
+  // Kelompok 2: 3 - 5 bulan (Target: 15 dosis)
   2: {
     ageRange: '3 - 5 bulan',
     targetIdeal: 15,
     maxDoses: 15,
     rules: [
-      { min: 15, max: 15, score: 4, label: 'Lengkap Target (15 dosis)' },
+      { min: 15, max: 15, score: 4, label: 'Lengkap (15 dosis)' },
       { min: 12, max: 14, score: 3, label: 'Hampir Lengkap (12 - 14 dosis)' },
       { min: 8, max: 11, score: 2, label: 'Kurang (8 - 11 dosis)' },
       { min: 0, max: 7, score: 1, label: 'Sangat Kurang (0 - 7 dosis)' }
     ]
   },
-  // Kelompok 3: 6 - 8 bulan (Target ideal: 15 dosis)
+  // Kelompok 3: 6 - 8 bulan (Target: 15 dosis)
   3: {
     ageRange: '6 - 8 bulan',
     targetIdeal: 15,
     maxDoses: 15,
     rules: [
-      { min: 15, max: 15, score: 4, label: 'Lengkap Target (15 dosis)' },
+      { min: 15, max: 15, score: 4, label: 'Lengkap (15 dosis)' },
       { min: 12, max: 14, score: 3, label: 'Hampir Lengkap (12 - 14 dosis)' },
       { min: 8, max: 11, score: 2, label: 'Kurang (8 - 11 dosis)' },
       { min: 0, max: 7, score: 1, label: 'Sangat Kurang (0 - 7 dosis)' }
     ]
   },
-  // Kelompok 4: 9 - 11 bulan (Target ideal: 17 dosis)
+  // Kelompok 4: 9 - 11 bulan (Target: 17 dosis)
   4: {
     ageRange: '9 - 11 bulan',
     targetIdeal: 17,
     maxDoses: 17,
     rules: [
-      { min: 17, max: 17, score: 4, label: 'Lengkap Target (17 dosis)' },
+      { min: 17, max: 17, score: 4, label: 'Lengkap (17 dosis)' },
       { min: 13, max: 16, score: 3, label: 'Hampir Lengkap (13 - 16 dosis)' },
       { min: 9, max: 12, score: 2, label: 'Kurang (9 - 12 dosis)' },
       { min: 0, max: 8, score: 1, label: 'Sangat Kurang (0 - 8 dosis)' }
@@ -575,9 +575,9 @@ export function getImunisasiScore(val, groupId = 4) {
     num = Math.min(standard.maxDoses, Math.round((num / 100) * standard.targetIdeal));
   }
 
-  // Jika mencapai atau melebihi target ideal kelompok umur balita
+  // Jika mencapai atau melebihi target kelompok umur balita
   if (num >= standard.targetIdeal) {
-    return { score: 4, label: `Lengkap Ideal (${num} dosis)` };
+    return { score: 4, label: `Lengkap (${num} dosis)` };
   }
 
   for (const rule of standard.rules) {
@@ -722,7 +722,7 @@ export const OFFICIAL_CRITERIA_5 = [
     rawUnit: 'dosis',
     direction: 'benefit',
     weight: OFFICIAL_AHP_WEIGHTS.K4,
-    description: 'Target dosis sesuai kelompok usia (maksimal 17 dosis tuntas di 11 bulan)'
+    description: 'Dosis imunisasi dasar balita (maks. 17 dosis)'
   },
   {
     code: 'K5',

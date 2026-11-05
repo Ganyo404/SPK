@@ -413,7 +413,7 @@ export function ExaminationFormPage() {
         createdBy: profile?.full_name || 'dr. Dewi Anggraini, Sp.A'
       });
 
-      setSuccess(`Pemeriksaan terverifikasi! Nilai dikonversi ke skor ideal (1-4) dan peringkat SAW untuk ${ageGroupInfo.groupName} diperbarui.`);
+      setSuccess('Pemeriksaan berhasil diverifikasi.');
       setTimeout(() => {
         navigate(`/staff/children/${selectedChildId}`);
       }, 1200);
@@ -750,7 +750,7 @@ export function ExaminationFormPage() {
                 <span>1. Pemeriksaan Fisik & Imunisasi</span>
               </h3>
               <p className="text-xs text-slate-500">
-                Ambang batas antropometri & target dosis imunisasi dihitung untuk usia {childAgeMonths} bln ({childAgeGroupInfo.rangeLabel}) & jenis kelamin {childSex === 'P' ? 'Perempuan' : 'Laki-Laki'}
+                Standar pertumbuhan balita usia {childAgeMonths} bulan ({childSex === 'P' ? 'Perempuan' : 'Laki-Laki'})
               </p>
             </div>
             <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-3 py-1 rounded-full border border-slate-200 self-start sm:self-auto">
@@ -863,7 +863,7 @@ export function ExaminationFormPage() {
                     max="17"
                     step="1"
                     required
-                    placeholder={`Contoh: ${childAgeGroupInfo.groupId === 1 ? '6' : (childAgeGroupInfo.groupId <= 3 ? '15' : '17')}`}
+                    placeholder="Contoh: 17"
                     value={values.imunisasi}
                     onChange={(e) => handleInputChange('imunisasi', e.target.value)}
                     className="w-full p-2.5 pr-14 rounded-xl border border-slate-300 bg-white text-sm font-bold text-slate-900 focus:border-teal-600 outline-hidden"
