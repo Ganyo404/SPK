@@ -195,4 +195,23 @@ export const DEFAULT_AHP_6X6_MATRIX = [
   [ 0.200,   0.250,   0.333,   0.333,   0.500,   1.000 ], // C6: SAKIT
 ];
 
-export const DEFAULT_CRITERIA_CODES = ['C1', 'C2', 'C3', 'C4', 'C5', 'C6'];
+export const DEFAULT_AHP_5X5_MATRIX = [
+  // K1       K2       K3       K4       K5
+  [ 1.000,   1.000,   1.450,   0.290,   0.500 ], // K1: BB/U
+  [ 1.000,   1.000,   1.450,   0.290,   0.500 ], // K2: TB/U
+  [ 0.690,   0.690,   1.000,   0.200,   0.345 ], // K3: LK/U
+  [ 3.448,   3.448,   5.000,   1.000,   1.723 ], // K4: Imunisasi
+  [ 2.000,   2.000,   2.900,   0.580,   1.000 ]  // K5: Asupan Gizi
+];
+
+export const DEFAULT_5_CRITERIA_CODES = ['K1', 'K2', 'K3', 'K4', 'K5'];
+
+export const OFFICIAL_AHP_WEIGHTS = {
+  K1: 0.122833,
+  K2: 0.122833,
+  K3: 0.084737,
+  K4: 0.423687,
+  K5: 0.245910
+};
+
+export const DEFAULT_CRITERIA_CODES = ['K1', 'K2', 'K3', 'K4', 'K5'];

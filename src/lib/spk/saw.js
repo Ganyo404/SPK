@@ -207,14 +207,18 @@ export function calculateSAW(alternatives, criteriaList, ahpWeights, options = {
       ageGroupName: alt.ageGroupName,
       examinationId: alt.examinationId,
       period: alt.period,
-      rawValues: { ...alt.values },
+      statusFlag: alt.statusFlag || (preferenceScore >= 0.85 ? 'Normal' : 'Perlu Tinjau'),
+      standardScores: alt.standardScores || { ...alt.values },
+      scoreLabels: alt.scoreLabels || {},
+      rawValues: alt.rawValues || { ...alt.values },
+      values: { ...alt.values },
       normalizedValues,
       contributions,
-      preferenceScore: Number(preferenceScore.toFixed(6))
+      preferenceScore: Number(preferenceScore.toFixed(7))
     };
   });
 
-  // 6. Urutkan berdasarkan Skor Preferensi Tertinggi (Descending) dengan Aturan Tie-Break Konsisten
+  // 6. Urutkan berdasarkan Skor Preferensi Tertinggi (Descending)
   scoredAlternatives.sort((a, b) => {
     // 1st priority: Skor preferensi SAW
     const diff = b.preferenceScore - a.preferenceScore;
@@ -222,24 +226,24 @@ export function calculateSAW(alternatives, criteriaList, ahpWeights, options = {
       return diff;
     }
 
-    // 2nd priority (Tie-Break): bandingkan kontribusi kriteria dengan bobot terbesar
-    for (const crit of criteriaList) {
-      const code = crit.code;
-      const contDiff = (b.contributions[code] || 0) - (a.contributions[code] || 0);
-      if (Math.abs(contDiff) > 0.000001) {
-        return contDiff;
-      }
-    }
-
-    // 3rd priority: deterministik stabil berdasarkan nama dan ID anak
+    // 2nd priority (Tie-Break): deterministik stabil berdasarkan nama dan ID anak
     return a.childName.localeCompare(b.childName) || a.childId.localeCompare(b.childId);
   });
 
-  // 7. Berikan Peringkat (Rank)
-  const results = scoredAlternatives.map((item, index) => ({
-    rank: index + 1,
-    ...item
-  }));
+  // 7. Berikan Peringkat (Standard Competition Ranking 1224)
+  let currentRank = 1;
+  const results = scoredAlternatives.map((item, index) => {
+    if (index > 0) {
+      const prev = scoredAlternatives[index - 1];
+      if (Math.abs(item.preferenceScore - prev.preferenceScore) > 0.000001) {
+        currentRank = index + 1;
+      }
+    }
+    return {
+      rank: currentRank,
+      ...item
+    };
+  });
 
   return {
     valid: true,

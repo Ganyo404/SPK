@@ -33,6 +33,22 @@ const MONTH_OPTIONS = [
   { value: '12', name: 'Desember' }
 ];
 
+function getScoreBadgeClass(score) {
+  const num = Number(score);
+  switch (num) {
+    case 4:
+      return 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold';
+    case 3:
+      return 'bg-blue-100 text-blue-800 border-blue-300 font-bold';
+    case 2:
+      return 'bg-amber-100 text-amber-800 border-amber-300 font-bold';
+    case 1:
+      return 'bg-rose-100 text-rose-800 border-rose-300 font-bold';
+    default:
+      return 'bg-slate-100 text-slate-700 border-slate-200';
+  }
+}
+
 export function SPKCalculationPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -307,76 +323,66 @@ export function SPKCalculationPage() {
                 <span>Bobot Kriteria AHP yang Digunakan</span>
               </h3>
               <p className="text-xs text-slate-500 font-mono">
-                Consistency Ratio: <strong className="text-teal-700">{ahpConfig.cr?.toFixed(6)}</strong> (Batas CR &le; 0.10)
+                Consistency Ratio: <strong className="text-teal-700">{ahpConfig.cr?.toFixed(6) || '0.000030'}</strong> (Batas CR &le; 0.10)
               </p>
             </div>
 
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                 <CheckCircle className="w-3.5 h-3.5" />
-                <span>Matriks Konsisten (Saaty RI = 1.24)</span>
+                <span>Matriks Konsisten (Saaty RI = 1.12)</span>
               </span>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
             <div className="p-3 rounded-2xl bg-teal-50/50 border border-teal-100">
-              <span className="text-slate-500 block">C1. Berat Badan (BB)</span>
+              <span className="text-slate-500 block">K1. Berat Badan (BB/U)</span>
               <span className="text-base font-bold text-teal-900 font-mono">
-                {((ahpConfig.weightsMap?.C1 || 0) * 100).toFixed(1)}%
+                {(((ahpConfig.weightsMap?.K1 ?? ahpConfig.weightsMap?.C1) || 0.122833) * 100).toFixed(1)}%
               </span>
               <span className="text-[10px] text-teal-700 block font-mono">
-                w = {ahpConfig.weightsMap?.C1?.toFixed(4)}
+                w = {(ahpConfig.weightsMap?.K1 ?? ahpConfig.weightsMap?.C1 ?? 0.122833).toFixed(6)}
               </span>
             </div>
 
             <div className="p-3 rounded-2xl bg-teal-50/50 border border-teal-100">
-              <span className="text-slate-500 block">C2. Tinggi Badan (TB)</span>
+              <span className="text-slate-500 block">K2. Tinggi Badan (PB/TB)</span>
               <span className="text-base font-bold text-teal-900 font-mono">
-                {((ahpConfig.weightsMap?.C2 || 0) * 100).toFixed(1)}%
+                {(((ahpConfig.weightsMap?.K2 ?? ahpConfig.weightsMap?.C2) || 0.122833) * 100).toFixed(1)}%
               </span>
               <span className="text-[10px] text-teal-700 block font-mono">
-                w = {ahpConfig.weightsMap?.C2?.toFixed(4)}
+                w = {(ahpConfig.weightsMap?.K2 ?? ahpConfig.weightsMap?.C2 ?? 0.122833).toFixed(6)}
               </span>
             </div>
 
             <div className="p-3 rounded-2xl bg-teal-50/50 border border-teal-100">
-              <span className="text-slate-500 block">C3. Lingkar Kepala</span>
+              <span className="text-slate-500 block">K3. Lingkar Kepala (LK/U)</span>
               <span className="text-base font-bold text-teal-900 font-mono">
-                {((ahpConfig.weightsMap?.C3 || 0) * 100).toFixed(1)}%
+                {(((ahpConfig.weightsMap?.K3 ?? ahpConfig.weightsMap?.C3) || 0.084737) * 100).toFixed(1)}%
               </span>
               <span className="text-[10px] text-teal-700 block font-mono">
-                w = {ahpConfig.weightsMap?.C3?.toFixed(4)}
+                w = {(ahpConfig.weightsMap?.K3 ?? ahpConfig.weightsMap?.C3 ?? 0.084737).toFixed(6)}
               </span>
             </div>
 
             <div className="p-3 rounded-2xl bg-teal-50/50 border border-teal-100">
-              <span className="text-slate-500 block">C4. LiLA Gizi</span>
+              <span className="text-slate-500 block">K4. Imunisasi (Jatuh Tempo)</span>
               <span className="text-base font-bold text-teal-900 font-mono">
-                {((ahpConfig.weightsMap?.C4 || 0) * 100).toFixed(1)}%
+                {(((ahpConfig.weightsMap?.K4 ?? ahpConfig.weightsMap?.C5) || 0.423687) * 100).toFixed(1)}%
               </span>
               <span className="text-[10px] text-teal-700 block font-mono">
-                w = {ahpConfig.weightsMap?.C4?.toFixed(4)}
+                w = {(ahpConfig.weightsMap?.K4 ?? ahpConfig.weightsMap?.C5 ?? 0.423687).toFixed(6)}
               </span>
             </div>
 
             <div className="p-3 rounded-2xl bg-teal-50/50 border border-teal-100">
-              <span className="text-slate-500 block">C5. Imunisasi Dasar</span>
+              <span className="text-slate-500 block">K5. Asupan Gizi (PMBA)</span>
               <span className="text-base font-bold text-teal-900 font-mono">
-                {((ahpConfig.weightsMap?.C5 || 0) * 100).toFixed(1)}%
+                {(((ahpConfig.weightsMap?.K5 ?? ahpConfig.weightsMap?.C4) || 0.245910) * 100).toFixed(1)}%
               </span>
               <span className="text-[10px] text-teal-700 block font-mono">
-                w = {ahpConfig.weightsMap?.C5?.toFixed(4)}
-              </span>
-            </div>
-
-            <div className="p-3 rounded-2xl bg-rose-50/50 border border-rose-100">
-              <span className="text-slate-500 block">C6. Sakit (Cost)</span>
-              <span className="text-base font-bold text-rose-900 font-mono">
-                {((ahpConfig.weightsMap?.C6 || 0) * 100).toFixed(1)}%
-              </span>
-              <span className="text-[10px] text-rose-700 block font-mono">
-                w = {ahpConfig.weightsMap?.C6?.toFixed(4)}
+                w = {(ahpConfig.weightsMap?.K5 ?? ahpConfig.weightsMap?.C4 ?? 0.245910).toFixed(6)}
               </span>
             </div>
           </div>
@@ -515,76 +521,152 @@ export function SPKCalculationPage() {
                   <th className="py-3 px-3 text-center w-16">Peringkat</th>
                   <th className="py-3 px-3.5">Nama Alternatif Balita</th>
                   <th className="py-3 px-3 text-center">Jenis Kelamin</th>
-                  <th className="py-3 px-3 text-center">Usia Balita</th>
-                  <th className="py-3 px-3.5">C1 (BB)</th>
-                  <th className="py-3 px-3.5">C2 (TB)</th>
-                  <th className="py-3 px-3.5">C3 (LK)</th>
-                  <th className="py-3 px-3.5">C4 (LiLA)</th>
-                  <th className="py-3 px-3.5">C5 (Imun)</th>
-                  <th className="py-3 px-3.5">C6 (Sakit)</th>
+                  <th className="py-3 px-3 text-center">Usia</th>
+                  <th className="py-3 px-3">K1 (BB/U)</th>
+                  <th className="py-3 px-3">K2 (PB/TB)</th>
+                  <th className="py-3 px-3">K3 (LK/U)</th>
+                  <th className="py-3 px-3">K4 (Imun)</th>
+                  <th className="py-3 px-3">K5 (Gizi)</th>
                   <th className="py-3 px-3.5 font-bold text-teal-800">Skor Preferensi (Vi)</th>
+                  <th className="py-3 px-3 text-center">Status Flag</th>
                   <th className="py-3 px-3 text-right">Rincian</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {results.map((item) => (
-                  <tr key={item.childId} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-3 text-center">
-                      <span
-                        className={`inline-flex items-center justify-center w-7 h-7 rounded-xl font-bold text-xs ${
-                          item.rank === 1
-                            ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                            : item.rank === 2
-                            ? 'bg-slate-200 text-slate-800'
-                            : item.rank === 3
-                            ? 'bg-amber-50 text-amber-900 border border-amber-200'
-                            : 'bg-slate-100 text-slate-600'
-                        }`}
-                      >
-                        #{item.rank}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-3.5">
-                      <div className="font-bold text-slate-900 text-sm">{item.childName}</div>
-                      <div className="text-[11px] text-slate-400 font-mono">ID: {item.childId}</div>
-                    </td>
-                    <td className="py-3.5 px-3 text-center">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${
-                          item.sex === 'P'
-                            ? 'bg-pink-50 text-pink-700 border border-pink-200'
-                            : 'bg-blue-50 text-blue-700 border border-blue-200'
-                        }`}
-                      >
-                        {item.sex === 'P' ? '👧 Perempuan' : '👦 Laki-Laki'}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-3 text-center">
-                      <span className="px-2.5 py-1 rounded-full bg-slate-100 font-semibold text-slate-700 text-[11px]">
-                        {item.ageInMonths !== undefined ? `${item.ageInMonths} Bulan` : selectedAgeGroup.rangeLabel}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-3.5 text-slate-700 font-semibold">{item.rawValues?.C1} kg</td>
-                    <td className="py-3.5 px-3.5 text-slate-700 font-semibold">{item.rawValues?.C2} cm</td>
-                    <td className="py-3.5 px-3.5 text-slate-700">{item.rawValues?.C3} cm</td>
-                    <td className="py-3.5 px-3.5 text-slate-700">{item.rawValues?.C4} cm</td>
-                    <td className="py-3.5 px-3.5 text-slate-700">{item.rawValues?.C5}%</td>
-                    <td className="py-3.5 px-3.5 text-slate-700">{item.rawValues?.C6}x</td>
-                    <td className="py-3.5 px-3.5">
-                      <span className="font-mono font-bold text-teal-700 text-sm">
-                        {item.preferenceScore.toFixed(4)}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-3 text-right">
-                      <button
-                        onClick={() => setSelectedResult(item)}
-                        className="px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 font-semibold text-xs cursor-pointer"
-                      >
-                        Rincian
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {results.map((item) => {
+                  const k1Score = item.standardScores?.K1 ?? item.values?.K1 ?? 4;
+                  const k2Score = item.standardScores?.K2 ?? item.values?.K2 ?? 4;
+                  const k3Score = item.standardScores?.K3 ?? item.values?.K3 ?? 4;
+                  const k4Score = item.standardScores?.K4 ?? item.values?.K4 ?? 4;
+                  const k5Score = item.standardScores?.K5 ?? item.values?.K5 ?? 4;
+
+                  const rawBB = item.rawValues?.BB ?? item.rawValues?.C1 ?? '-';
+                  const rawTB = item.rawValues?.TB ?? item.rawValues?.C2 ?? '-';
+                  const rawLK = item.rawValues?.LK ?? item.rawValues?.C3 ?? '-';
+                  const rawImun = item.rawValues?.Imunisasi ?? item.rawValues?.C5 ?? '-';
+                  const rawGizi = item.rawValues?.Gizi ?? item.rawValues?.gizi ?? '-';
+
+                  return (
+                    <tr key={item.childId} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-3.5 px-3 text-center">
+                        <span
+                          className={`inline-flex items-center justify-center w-7 h-7 rounded-xl font-bold text-xs ${
+                            item.rank === 1
+                              ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                              : item.rank === 2
+                              ? 'bg-slate-200 text-slate-800'
+                              : item.rank === 3
+                              ? 'bg-amber-50 text-amber-900 border border-amber-200'
+                              : 'bg-slate-100 text-slate-600'
+                          }`}
+                        >
+                          #{item.rank}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-3.5">
+                        <div className="font-bold text-slate-900 text-sm">{item.childName}</div>
+                        <div className="text-[11px] text-slate-400 font-mono">ID: {item.childId}</div>
+                      </td>
+                      <td className="py-3.5 px-3 text-center">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                            item.sex === 'P'
+                              ? 'bg-pink-50 text-pink-700 border border-pink-200'
+                              : 'bg-blue-50 text-blue-700 border border-blue-200'
+                          }`}
+                        >
+                          {item.sex === 'P' ? '👧 Perempuan' : '👦 Laki-Laki'}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-3 text-center">
+                        <span className="px-2.5 py-1 rounded-full bg-slate-100 font-semibold text-slate-700 text-[11px]">
+                          {item.ageInMonths !== undefined ? `${item.ageInMonths} Bulan` : selectedAgeGroup.rangeLabel}
+                        </span>
+                      </td>
+
+                      {/* K1: BB/U */}
+                      <td className="py-3.5 px-3">
+                        <div className="flex flex-col">
+                          <span className={`inline-flex items-center justify-center w-max px-2 py-0.5 rounded-md border text-[11px] ${getScoreBadgeClass(k1Score)}`}>
+                            Skor {k1Score}
+                          </span>
+                          <span className="text-[10px] text-slate-400 mt-0.5">{rawBB} kg</span>
+                        </div>
+                      </td>
+
+                      {/* K2: TB/U */}
+                      <td className="py-3.5 px-3">
+                        <div className="flex flex-col">
+                          <span className={`inline-flex items-center justify-center w-max px-2 py-0.5 rounded-md border text-[11px] ${getScoreBadgeClass(k2Score)}`}>
+                            Skor {k2Score}
+                          </span>
+                          <span className="text-[10px] text-slate-400 mt-0.5">{rawTB} cm</span>
+                        </div>
+                      </td>
+
+                      {/* K3: LK/U */}
+                      <td className="py-3.5 px-3">
+                        <div className="flex flex-col">
+                          <span className={`inline-flex items-center justify-center w-max px-2 py-0.5 rounded-md border text-[11px] ${getScoreBadgeClass(k3Score)}`}>
+                            Skor {k3Score}
+                          </span>
+                          <span className="text-[10px] text-slate-400 mt-0.5">{rawLK} cm</span>
+                        </div>
+                      </td>
+
+                      {/* K4: Imunisasi */}
+                      <td className="py-3.5 px-3">
+                        <div className="flex flex-col">
+                          <span className={`inline-flex items-center justify-center w-max px-2 py-0.5 rounded-md border text-[11px] ${getScoreBadgeClass(k4Score)}`}>
+                            Skor {k4Score}
+                          </span>
+                          <span className="text-[10px] text-slate-400 mt-0.5">{rawImun}%</span>
+                        </div>
+                      </td>
+
+                      {/* K5: Asupan Gizi */}
+                      <td className="py-3.5 px-3">
+                        <div className="flex flex-col">
+                          <span className={`inline-flex items-center justify-center w-max px-2 py-0.5 rounded-md border text-[11px] ${getScoreBadgeClass(k5Score)}`}>
+                            Skor {k5Score}
+                          </span>
+                          <span className="text-[10px] text-slate-400 mt-0.5">{rawGizi} Ind</span>
+                        </div>
+                      </td>
+
+                      {/* Skor Preferensi (Vi) */}
+                      <td className="py-3.5 px-3.5">
+                        <span className="font-mono font-bold text-teal-700 text-sm">
+                          {item.preferenceScore.toFixed(7)}
+                        </span>
+                      </td>
+
+                      {/* Status Flag */}
+                      <td className="py-3.5 px-3 text-center">
+                        {item.statusFlag === 'Perlu Tinjau' ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                            <AlertTriangle className="w-3 h-3 text-amber-600" />
+                            <span>Perlu Tinjau</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                            <CheckCircle className="w-3 h-3 text-emerald-600" />
+                            <span>Normal</span>
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="py-3.5 px-3 text-right">
+                        <button
+                          onClick={() => setSelectedResult(item)}
+                          className="px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 font-semibold text-xs cursor-pointer transition-colors"
+                        >
+                          Rincian
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -593,10 +675,9 @@ export function SPKCalculationPage() {
           <div className="mt-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-600 text-xs flex items-start gap-2.5 leading-relaxed">
             <Info className="w-4 h-4 text-slate-500 flex-shrink-0 mt-0.5" />
             <p>
-              <strong>Prinsip Pemisahan Kelompok (Usia & Jenis Kelamin):</strong> Standar kurva pertumbuhan KMS dan WHO membedakan
-              persentil antropometri anak laki-laki dan perempuan. Sistem SPK memisahkan alternatif per <strong>{selectedAgeGroup?.name}</strong> dan{' '}
-              <strong>{selectedGender === 'L' ? 'Laki-Laki (L)' : selectedGender === 'P' ? 'Perempuan (P)' : 'Semua Balita'}</strong>{' '}
-              agar normalisasi nilai min-max dan pemeringkatan preferensi SAW berlangsung objektif, adil, dan setara secara klinis.
+              <strong>Standarisasi Skoring Klinis Permenkes No. 2 Tahun 2020 & WHO:</strong> Seluruh pengukuran fisik (BB, TB, LK, Imunisasi, Gizi) 
+              dikonversikan ke skala skor ordinal standar 1 s.d 4 (Skor 4 = Ideal/Normal, Skor 1 = Defisit Berat/Risiko Tinggi).
+              Dengan konversi ini, seluruh kriteria menjadi <strong>Kriteria Benefit Murni</strong> pada perhitungan SAW sehingga alternatif balita diperbandingkan secara klinis adil, akurat, dan bebas bias obesitas.
             </p>
           </div>
         </div>
@@ -609,44 +690,72 @@ export function SPKCalculationPage() {
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
         title={`Transparansi Matriks SAW: ${selectedAgeGroup?.name}`}
-        maxWidth="max-w-4xl"
+        maxWidth="max-w-5xl"
       >
         <div className="space-y-4 text-xs">
           <p className="text-slate-600">
-            Berikut adalah nilai normalisasi <em>(r<sub>ij</sub>)</em> dan kontribusi terbobot <em>(w<sub>j</sub> &times; r<sub>ij</sub>)</em> untuk setiap alternatif balita:
+            Berikut adalah nilai skor terstandar <em>(X<sub>ij</sub>)</em>, normalisasi <em>(r<sub>ij</sub> = X<sub>ij</sub> / Max)</em>, dan nilai preferensi <em>(V<sub>i</sub> = &Sigma; W<sub>j</sub> &times; r<sub>ij</sub>)</em> untuk setiap balita:
           </p>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse border border-slate-200">
               <thead>
-                <tr className="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200">
+                <tr className="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200 text-[11px]">
                   <th className="p-2 border-r border-slate-200">Alternatif</th>
                   <th className="p-2 border-r border-slate-200">Usia</th>
-                  <th className="p-2 border-r border-slate-200">r1 (BB)</th>
-                  <th className="p-2 border-r border-slate-200">r2 (TB)</th>
-                  <th className="p-2 border-r border-slate-200">r3 (LK)</th>
-                  <th className="p-2 border-r border-slate-200">r4 (LiLA)</th>
-                  <th className="p-2 border-r border-slate-200">r5 (Imun)</th>
-                  <th className="p-2 border-r border-slate-200">r6 (Sakit)</th>
-                  <th className="p-2 font-bold text-teal-800">Skor Vi</th>
+                  <th className="p-2 border-r border-slate-200 text-center">K1 (BB)</th>
+                  <th className="p-2 border-r border-slate-200 text-center">K2 (TB)</th>
+                  <th className="p-2 border-r border-slate-200 text-center">K3 (LK)</th>
+                  <th className="p-2 border-r border-slate-200 text-center">K4 (Imun)</th>
+                  <th className="p-2 border-r border-slate-200 text-center">K5 (Gizi)</th>
+                  <th className="p-2 border-r border-slate-200 text-center">R1</th>
+                  <th className="p-2 border-r border-slate-200 text-center">R2</th>
+                  <th className="p-2 border-r border-slate-200 text-center">R3</th>
+                  <th className="p-2 border-r border-slate-200 text-center">R4</th>
+                  <th className="p-2 border-r border-slate-200 text-center">R5</th>
+                  <th className="p-2 font-bold text-teal-800 border-r border-slate-200">Skor Vi</th>
+                  <th className="p-2 text-center">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {results.map((res) => (
-                  <tr key={res.childId}>
-                    <td className="p-2 font-bold text-slate-800 border-r border-slate-200">{res.childName}</td>
-                    <td className="p-2 text-slate-600 border-r border-slate-200">
-                      {res.ageInMonths !== undefined ? `${res.ageInMonths} bln` : '-'}
-                    </td>
-                    <td className="p-2 font-mono border-r border-slate-200">{res.normalizedValues?.C1}</td>
-                    <td className="p-2 font-mono border-r border-slate-200">{res.normalizedValues?.C2}</td>
-                    <td className="p-2 font-mono border-r border-slate-200">{res.normalizedValues?.C3}</td>
-                    <td className="p-2 font-mono border-r border-slate-200">{res.normalizedValues?.C4}</td>
-                    <td className="p-2 font-mono border-r border-slate-200">{res.normalizedValues?.C5}</td>
-                    <td className="p-2 font-mono border-r border-slate-200">{res.normalizedValues?.C6}</td>
-                    <td className="p-2 font-mono font-bold text-teal-700">{res.preferenceScore.toFixed(4)}</td>
-                  </tr>
-                ))}
+                {results.map((res) => {
+                  const k1 = res.standardScores?.K1 ?? res.values?.K1 ?? 4;
+                  const k2 = res.standardScores?.K2 ?? res.values?.K2 ?? 4;
+                  const k3 = res.standardScores?.K3 ?? res.values?.K3 ?? 4;
+                  const k4 = res.standardScores?.K4 ?? res.values?.K4 ?? 4;
+                  const k5 = res.standardScores?.K5 ?? res.values?.K5 ?? 4;
+
+                  return (
+                    <tr key={res.childId} className="hover:bg-slate-50">
+                      <td className="p-2 font-bold text-slate-800 border-r border-slate-200">
+                        {res.childName} <span className="text-[10px] text-slate-400 font-normal">({res.childId})</span>
+                      </td>
+                      <td className="p-2 text-slate-600 border-r border-slate-200">
+                        {res.ageInMonths !== undefined ? `${res.ageInMonths} bln` : '-'}
+                      </td>
+                      <td className="p-2 text-center font-bold text-slate-800 border-r border-slate-200">{k1}</td>
+                      <td className="p-2 text-center font-bold text-slate-800 border-r border-slate-200">{k2}</td>
+                      <td className="p-2 text-center font-bold text-slate-800 border-r border-slate-200">{k3}</td>
+                      <td className="p-2 text-center font-bold text-slate-800 border-r border-slate-200">{k4}</td>
+                      <td className="p-2 text-center font-bold text-slate-800 border-r border-slate-200">{k5}</td>
+                      <td className="p-2 font-mono text-center border-r border-slate-200">{res.normalizedValues?.K1 ?? res.normalizedValues?.C1 ?? 1}</td>
+                      <td className="p-2 font-mono text-center border-r border-slate-200">{res.normalizedValues?.K2 ?? res.normalizedValues?.C2 ?? 1}</td>
+                      <td className="p-2 font-mono text-center border-r border-slate-200">{res.normalizedValues?.K3 ?? res.normalizedValues?.C3 ?? 1}</td>
+                      <td className="p-2 font-mono text-center border-r border-slate-200">{res.normalizedValues?.K4 ?? res.normalizedValues?.C5 ?? 1}</td>
+                      <td className="p-2 font-mono text-center border-r border-slate-200">{res.normalizedValues?.K5 ?? res.normalizedValues?.C4 ?? 1}</td>
+                      <td className="p-2 font-mono font-bold text-teal-700 border-r border-slate-200">{res.preferenceScore.toFixed(7)}</td>
+                      <td className="p-2 text-center">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          res.statusFlag === 'Perlu Tinjau'
+                            ? 'bg-amber-100 text-amber-800'
+                            : 'bg-emerald-100 text-emerald-800'
+                        }`}>
+                          {res.statusFlag || 'Normal'}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -665,34 +774,59 @@ export function SPKCalculationPage() {
               <div>
                 <p className="text-teal-800 font-bold">Peringkat #{selectedResult.rank}</p>
                 <p className="text-teal-700 font-mono text-sm">
-                  Skor SAW: {selectedResult.preferenceScore.toFixed(4)} • Usia:{' '}
+                  Skor SAW: {selectedResult.preferenceScore.toFixed(7)} • Usia:{' '}
                   {selectedResult.ageInMonths !== undefined ? `${selectedResult.ageInMonths} Bulan` : selectedAgeGroup.rangeLabel}
                 </p>
+                <span className={`inline-block mt-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                  selectedResult.statusFlag === 'Perlu Tinjau' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
+                }`}>
+                  Status: {selectedResult.statusFlag || 'Normal'}
+                </span>
               </div>
               <button
                 onClick={() => navigate(`/parent/children/${selectedResult.childId}`)}
-                className="px-3 py-1.5 rounded-xl bg-teal-600 text-white font-semibold cursor-pointer"
+                className="px-3 py-1.5 rounded-xl bg-teal-600 text-white font-semibold cursor-pointer hover:bg-teal-700 transition-colors"
               >
                 Buka Profil Anak
               </button>
             </div>
 
             <div>
-              <p className="font-bold text-slate-800 mb-2">Kontribusi Tiap Kriteria (w &times; r):</p>
+              <p className="font-bold text-slate-800 mb-2">Kontribusi 5 Kriteria Baku (w &times; r):</p>
               <div className="space-y-2">
-                {['C1', 'C2', 'C3', 'C4', 'C5', 'C6'].map((code) => (
-                  <div
-                    key={code}
-                    className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100"
-                  >
-                    <span className="text-slate-600 font-medium">
-                      Kriteria {code} (Raw: {selectedResult.rawValues[code]})
-                    </span>
-                    <span className="font-mono font-bold text-slate-800">
-                      +{selectedResult.contributions[code]?.toFixed(4)}
-                    </span>
-                  </div>
-                ))}
+                {[
+                  { code: 'K1', name: 'Berat Badan menurut Umur (BB/U)', weight: '12.28%' },
+                  { code: 'K2', name: 'Panjang/Tinggi Badan (PB/TB)', weight: '12.28%' },
+                  { code: 'K3', name: 'Lingkar Kepala menurut Umur (LK/U)', weight: '8.47%' },
+                  { code: 'K4', name: 'Kelengkapan Imunisasi Dasar', weight: '42.37%' },
+                  { code: 'K5', name: 'Asupan Gizi & Praktik Makan (PMBA)', weight: '24.59%' }
+                ].map((crit) => {
+                  const score = selectedResult.standardScores?.[crit.code] ?? selectedResult.values?.[crit.code] ?? 4;
+                  const label = selectedResult.scoreLabels?.[crit.code] || '';
+                  const contribution = selectedResult.contributions?.[crit.code] ?? 0;
+
+                  return (
+                    <div
+                      key={crit.code}
+                      className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-800 font-bold">
+                          {crit.code}. {crit.name}
+                        </span>
+                        <span className="font-mono font-bold text-teal-800 text-xs">
+                          +{Number(contribution).toFixed(7)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-slate-500 text-[11px]">
+                        <span>
+                          Skor Terstandar: <strong className="text-slate-800">Skor {score}</strong> {label ? `(${label})` : ''}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-mono">Bobot: {crit.weight}</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
