@@ -592,8 +592,175 @@ export function getImunisasiScore(val, groupId = 4) {
 }
 
 /**
- * K5 - Konversi Asupan Gizi & Praktik Makan Balita (PMBA) ke Skor 1 - 4
- * @param {number|string} val - Jumlah indikator terpenuhi (1 - 4) atau skor langsung
+ * K5 - 8 Kelompok Makanan Standar WHO/UNICEF untuk Minimum Dietary Diversity (MDD)
+ * Digunakan untuk balita usia 6–23 bulan.
+ */
+export const MDD_FOOD_GROUPS = [
+  { id: 'asi', name: 'ASI', description: 'Air susu ibu' },
+  { id: 'staples', name: 'Biji-bijian, umbi, dan pangan pokok', description: 'Nasi, jagung, gandum, kentang, ubi' },
+  { id: 'legumes', name: 'Kacang-kacangan dan biji-bijian', description: 'Kacang hijau, kacang merah, kedelai, kacang tanah' },
+  { id: 'dairy', name: 'Produk susu', description: 'Susu, susu formula, yoghurt, keju' },
+  { id: 'flesh', name: 'Daging dan ikan', description: 'Daging sapi, ayam, ikan, hati, dan jeroan' },
+  { id: 'eggs', name: 'Telur', description: 'Telur ayam, telur bebek, dan jenis telur lainnya' },
+  { id: 'vitamin_a', name: 'Buah dan sayuran kaya vitamin A', description: 'Wortel, labu, mangga matang, pepaya, sayuran hijau tertentu' },
+  { id: 'other_fruits_veg', name: 'Buah dan sayuran lainnya', description: 'Pisang, apel, tomat, dan buah atau sayuran lainnya' },
+];
+
+/**
+ * Menghitung indikator Minimum Dietary Diversity (MDD)
+ * MDD = 1 jika jumlah kelompok makanan yang dikonsumsi >= 5.
+ * MDD = 0 jika jumlah kelompok makanan yang dikonsumsi < 5.
+ * 
+ * @param {Array<string>|Record<string, boolean>|number} foodGroups - Array ID kelompok makanan, objek boolean, atau count
+ * @returns {{ count: number, score: number, status: string, label: string }}
+ */
+export function calculateMDD(foodGroups) {
+  let count = 0;
+  if (typeof foodGroups === 'number') {
+    count = Math.max(0, Math.min(8, Math.round(foodGroups)));
+  } else if (Array.isArray(foodGroups)) {
+    const validIds = new Set(MDD_FOOD_GROUPS.map(g => g.id));
+    const selected = new Set(foodGroups.filter(id => validIds.has(id)));
+    count = selected.size;
+  } else if (foodGroups && typeof foodGroups === 'object') {
+    count = MDD_FOOD_GROUPS.filter(g => Boolean(foodGroups[g.id])).length;
+  }
+
+  const score = count >= 5 ? 1 : 0;
+  const status = score === 1 ? 'Memenuhi' : 'Tidak memenuhi';
+  return {
+    count,
+    score, // 0 atau 1
+    status,
+    label: `${status} (${count} dari 8 kelompok)`
+  };
+}
+
+/**
+ * Menghitung indikator Minimum Meal Frequency (MMF) sesuai pedoman WHO/UNICEF
+ * A. Balita yang masih mendapatkan ASI:
+ *    - 6–8 bulan: Minimal 2 kali sehari
+ *    - 9–23 bulan: Minimal 3 kali sehari
+ *    (ASI tidak dihitung sebagai frekuensi makan dalam ketentuan MMF anak menyusu)
+ * B. Balita yang tidak mendapatkan ASI (6–23 bulan):
+ *    - Minimal 4 kali total kesempatan pemberian makan dalam sehari
+ *    - HARUS terdapat minimal 1 kali pemberian makanan padat, semi-padat, atau lunak
+ * 
+ * @param {object} params
+ * @param {number} params.ageInMonths - Umur balita dalam bulan (6 - 23)
+ * @param {boolean|string} params.isBreastfeeding - Status menyusui ('masih_asi' / true / false)
+ * @param {number} params.solidFrequency - Kesempatan pemberian makanan padat/semi-padat/lunak
+ * @param {number} [params.milkFrequency=0] - Kesempatan pemberian susu (untuk balita tidak ASI)
+ * @returns {{ score: number, status: string, label: string, solidFreq: number, milkFreq: number, totalFreq: number, stillBreastfeeding: boolean }}
+ */
+export function calculateMMF({ ageInMonths, isBreastfeeding, solidFrequency = 0, milkFrequency = 0 }) {
+  const age = Number(ageInMonths) || 0;
+  const solid = Math.max(0, Number(solidFrequency) || 0);
+  const milk = Math.max(0, Number(milkFrequency) || 0);
+  const stillBreastfeeding = isBreastfeeding === true || isBreastfeeding === 'masih_asi' || isBreastfeeding === 'yes';
+
+  let score = 0;
+  let label = '';
+
+  if (stillBreastfeeding) {
+    // Usia 6–8 bulan: Minimal 2 kali sehari
+    // Usia 9–23 bulan: Minimal 3 kali sehari
+    const minRequired = (age >= 6 && age <= 8) ? 2 : 3;
+    if (solid >= minRequired) {
+      score = 1;
+      label = `Memenuhi (${solid} kali pemberian makanan)`;
+    } else {
+      score = 0;
+      label = `Tidak memenuhi (${solid} dari minimal ${minRequired} kali)`;
+    }
+  } else {
+    // Usia 6–23 bulan yang tidak mendapatkan ASI:
+    // Total kesempatan makan >= 4 DAN minimal 1 kali makanan padat/semi-padat/lunak
+    const totalFreq = solid + milk;
+    if (totalFreq >= 4 && solid >= 1) {
+      score = 1;
+      label = `Memenuhi (${totalFreq} kali total: ${solid}x makanan, ${milk}x susu)`;
+    } else {
+      score = 0;
+      if (solid < 1) {
+        label = `Tidak memenuhi (${totalFreq} kali total, tanpa makanan padat/lunak)`;
+      } else {
+        label = `Tidak memenuhi (${totalFreq} dari minimal 4 kali)`;
+      }
+    }
+  }
+
+  return {
+    score, // 0 atau 1
+    status: score === 1 ? 'Memenuhi' : 'Tidak memenuhi',
+    label,
+    solidFreq: solid,
+    milkFreq: milk,
+    totalFreq: stillBreastfeeding ? solid : (solid + milk),
+    stillBreastfeeding
+  };
+}
+
+/**
+ * Menghitung nilai komposit K5 = (MDD + MMF) / 2
+ * Hanya menghasilkan 0, 0.5, atau 1.
+ * 
+ * @param {object} params
+ * @returns {{ value: number, mdd: object, mmf: object, label: string }}
+ */
+export function calculateK5Score(params = {}) {
+  const mdd = params.mddScore !== undefined
+    ? { count: params.mddCount ?? (params.mddScore === 1 ? 5 : 0), score: params.mddScore === 1 ? 1 : 0, status: params.mddScore === 1 ? 'Memenuhi' : 'Tidak memenuhi' }
+    : calculateMDD(params.mddFoodGroups ?? params.mddInput);
+
+  const mmf = params.mmfScore !== undefined
+    ? { score: params.mmfScore === 1 ? 1 : 0, status: params.mmfScore === 1 ? 'Memenuhi' : 'Tidak memenuhi', label: '' }
+    : calculateMMF(params.mmfInput || params);
+
+  const value = Number(((mdd.score + mmf.score) / 2).toFixed(1)); // 0, 0.5, atau 1
+
+  let label = '';
+  if (value === 1) {
+    label = 'Kedua indikator terpenuhi';
+  } else if (value === 0.5) {
+    if (mdd.score === 1 && mmf.score === 0) {
+      label = 'Hanya MDD yang terpenuhi';
+    } else {
+      label = 'Hanya MMF yang terpenuhi';
+    }
+  } else {
+    label = 'Kedua indikator belum terpenuhi';
+  }
+
+  return {
+    value, // 0, 0.5, atau 1
+    mdd,
+    mmf,
+    label
+  };
+}
+
+/**
+ * Memeriksa apakah kriteria K5 aktif untuk balita.
+ * K5 HANYA aktif jika umur balita pada tanggal penilaian berada dalam rentang:
+ * 6 bulan sampai sebelum 24 bulan (6 - 23 bulan).
+ * Kelompok R3 (6-8 bln), R4 (9-11 bln), dan R5 (12-23 bln) menggunakan K5.
+ * Kelompok R1 (0-2 bln), R2 (3-5 bln), R6 (24-35 bln), R7 (36-47 bln), R8 (48-59 bln) TIDAK menggunakan K5.
+ * 
+ * @param {number} [ageInMonths] - Umur balita dalam bulan
+ * @param {number|string} [groupId] - ID Kelompok Umur (1 - 8)
+ * @returns {boolean}
+ */
+export function isK5Applicable(ageInMonths, groupId) {
+  if (typeof ageInMonths === 'number' && !isNaN(ageInMonths)) {
+    return ageInMonths >= 6 && ageInMonths < 24;
+  }
+  const grp = Number(groupId) || 0;
+  return grp === 3 || grp === 4 || grp === 5;
+}
+
+/**
+ * K5 Legacy Helper (untuk kompatibilitas)
  */
 export function getAsupanGiziScore(val) {
   const num = Number(val);
@@ -611,16 +778,22 @@ export function getAsupanGiziScore(val) {
 
 /**
  * Mengonversi seluruh data mentah pemeriksaan menjadi skor terstandar Kriteria Baku.
- * Untuk balita usia < 6 bulan (Kelompok 1 & 2), K5 (Asupan Gizi/PMBA) dinonaktifkan
- * karena masih dalam fase ASI Eksklusif dan belum menerima MP-ASI.
+ * K5 (Asupan Makanan: MDD & MMF) hanya aktif untuk usia 6–23 bulan (Kelompok R3, R4, R5).
+ * Untuk usia < 6 bulan dan >= 24 bulan (Kelompok R1, R2, R6, R7, R8), K5 tidak aktif
+ * dan dikeluarkan dari perhitungan SAW (menggunakan Model 4 Kriteria: K1 s/d K4).
  * 
- * @param {object} rawValues - { C1/BB: number, C2/TB: number, C3/LK: number, C5/Imun: number, gizi: number }
+ * @param {object} rawValues - Data nilai pemeriksaan
  * @param {number|string} ageGroupId - 1 s/d 8
  * @param {'L'|'P'} sex - 'L' atau 'P'
+ * @param {number} [ageInMonths] - Usia aktual balita dalam bulan pada tanggal penilaian
  */
-export function convertRawToStandardScores(rawValues = {}, ageGroupId = 4, sex = 'L') {
+export function convertRawToStandardScores(rawValues = {}, ageGroupId = 4, sex = 'L', ageInMonths) {
   const grpId = Number(ageGroupId) || 4;
-  const isUnder6Months = grpId === 1 || grpId === 2;
+  const ageMonths = typeof ageInMonths === 'number' && !isNaN(ageInMonths)
+    ? ageInMonths
+    : (rawValues.ageInMonths ?? rawValues.age_in_months);
+
+  const isK5Active = isK5Applicable(ageMonths, grpId);
 
   const rawBB = rawValues.K1 ?? rawValues.C1 ?? rawValues.beratBadan ?? 0;
   const rawTB = rawValues.K2 ?? rawValues.C2 ?? rawValues.tinggiBadan ?? 0;
@@ -646,35 +819,71 @@ export function convertRawToStandardScores(rawValues = {}, ageGroupId = 4, sex =
     K4: imunRes.label
   };
 
-  let rawGizi = null;
-  if (!isUnder6Months) {
-    rawGizi = rawValues.K5 ?? rawValues.asupanGizi ?? rawValues.gizi ?? 4;
-    const giziRes = getAsupanGiziScore(rawGizi);
-    scores.K5 = giziRes.score;
-    labels.K5 = giziRes.label;
+  let k5Details = null;
+
+  if (isK5Active) {
+    // K5 Aktif untuk usia 6–23 bulan (Kelompok R3, R4, R5)
+    let k5Val = 0;
+    let k5Label = '';
+
+    if (rawValues.mddFoodGroups || rawValues.mddInput || rawValues.solidFrequency !== undefined) {
+      k5Details = calculateK5Score({
+        mddInput: rawValues.mddFoodGroups ?? rawValues.mddInput,
+        mddScore: rawValues.mddScore ?? rawValues.mdd_score,
+        mddCount: rawValues.mddCount ?? rawValues.mdd_count,
+        mmfInput: {
+          ageInMonths: ageMonths ?? (grpId === 3 ? 7 : grpId === 4 ? 10 : 15),
+          isBreastfeeding: rawValues.breastfeeding ?? rawValues.breastfeeding_status,
+          solidFrequency: rawValues.solidFrequency ?? rawValues.solid_frequency,
+          milkFrequency: rawValues.milkFrequency ?? rawValues.milk_frequency
+        },
+        mmfScore: rawValues.mmfScore ?? rawValues.mmf_score
+      });
+      k5Val = k5Details.value;
+      k5Label = k5Details.label;
+    } else if (rawValues.K5 !== undefined && (rawValues.K5 === 0 || rawValues.K5 === 0.5 || rawValues.K5 === 1)) {
+      k5Val = Number(rawValues.K5);
+      k5Label = k5Val === 1 ? 'Kedua indikator terpenuhi' : k5Val === 0.5 ? 'Hanya satu indikator terpenuhi' : 'Kedua indikator belum terpenuhi';
+    } else if (rawValues.raw_k5 !== undefined && (rawValues.raw_k5 === 0 || rawValues.raw_k5 === 0.5 || rawValues.raw_k5 === 1)) {
+      k5Val = Number(rawValues.raw_k5);
+      k5Label = k5Val === 1 ? 'Kedua indikator terpenuhi' : k5Val === 0.5 ? 'Hanya satu indikator terpenuhi' : 'Kedua indikator belum terpenuhi';
+    } else if (rawValues.K5 !== undefined || rawValues.gizi !== undefined) {
+      // Kompatibilitas mundur data legacy skala 1-4:
+      // Skor 4 -> 1, Skor 3 -> 0.5, Skor 1-2 -> 0
+      const leg = Number(rawValues.K5 ?? rawValues.gizi);
+      k5Val = leg >= 4 ? 1 : leg === 3 ? 0.5 : 0;
+      k5Label = k5Val === 1 ? 'Kedua indikator terpenuhi' : k5Val === 0.5 ? 'Hanya satu indikator terpenuhi' : 'Kedua indikator belum terpenuhi';
+    }
+
+    scores.K5 = k5Val; // 0, 0.5, atau 1
+    labels.K5 = k5Label;
   } else {
-    labels.K5 = 'ASI Eksklusif (Nonaktif)';
+    // K5 Tidak Aktif (Kelompok R1, R2: 0–5 bulan, dan R6, R7, R8: 24–59 bulan)
+    labels.K5 = 'Tidak Berlaku untuk Kelompok Umur Ini';
+    // scores.K5 TIDAK didefinisikan agar dikeluarkan dari perhitungan SAW!
   }
 
   // Status Flag:
   // Balita yang K1 (BB) atau K2 (TB) bernilai <= 2 atau memiliki skor 1 di kriteria fisik
-  // dikategorikan sebagai 'Perlu Tinjau'. Balita < 6 bulan tidak memasukkan K5 dalam flag.
-  const isReviewNeeded = isUnder6Months
-    ? (scores.K1 <= 2 || scores.K2 <= 2 || scores.K3 === 1 || scores.K4 === 1)
-    : (scores.K1 <= 2 || scores.K2 <= 2 || scores.K3 === 1 || scores.K4 === 1 || scores.K5 === 1);
+  // dikategorikan sebagai 'Perlu Tinjau'. Jika K5 aktif dan nilainya 0 (kedua indikator tidak terpenuhi), juga dievaluasi.
+  const isReviewNeeded = isK5Active
+    ? (scores.K1 <= 2 || scores.K2 <= 2 || scores.K3 === 1 || scores.K4 === 1 || scores.K5 === 0)
+    : (scores.K1 <= 2 || scores.K2 <= 2 || scores.K3 === 1 || scores.K4 === 1);
   const statusFlag = isReviewNeeded ? 'Perlu Tinjau' : 'Normal';
 
   return {
     scores,
     labels,
     statusFlag,
-    isUnder6Months,
+    isK5Active,
+    isUnder6Months: grpId === 1 || grpId === 2,
+    k5Details,
     rawValues: {
       BB: rawBB,
       TB: rawTB,
       LK: rawLK,
       Imunisasi: rawImun,
-      ...(isUnder6Months ? {} : { Gizi: rawGizi })
+      ...(isK5Active ? { K5: scores.K5 } : {})
     }
   };
 }
@@ -758,13 +967,13 @@ export const OFFICIAL_CRITERIA_5 = [
   },
   {
     code: 'K5',
-    name: 'Asupan Gizi & Praktik Makan Balita (PMBA)',
-    shortName: 'Asupan Gizi',
-    unit: 'Skor 1-4',
-    rawUnit: 'Indikator',
+    name: 'Asupan Makanan Balita (MDD & MMF)',
+    shortName: 'Asupan Makanan',
+    unit: 'Indeks 0, 0.5, 1',
+    rawUnit: 'MDD+MMF',
     direction: 'benefit',
     weight: OFFICIAL_AHP_WEIGHTS.K5,
-    description: 'Skor 4 = 4 Indikator Ideal, Skor 3 = 3 Indikator, Skor 2 = 2 Indikator, Skor 1 = <=1'
+    description: 'Komposit MDD (keragaman pangan) & MMF (frekuensi makan), skala 0 - 1'
   }
 ];
 
@@ -812,21 +1021,25 @@ export const OFFICIAL_CRITERIA_4 = [
 ];
 
 /**
- * Mendapatkan daftar kriteria baku berdasarkan kelompok umur balita
+ * Mendapatkan daftar kriteria baku berdasarkan kelompok umur balita.
+ * K5 hanya aktif untuk Kelompok 3, 4, 5 (usia 6 - 23 bulan).
+ * Kelompok 1, 2 (0 - 5 bulan) dan Kelompok 6, 7, 8 (24 - 59 bulan) menggunakan 4 kriteria.
  * @param {number|string} ageGroupId
  */
 export function getOfficialCriteriaForGroup(ageGroupId) {
-  const grpId = Number(ageGroupId) || 4;
-  return grpId === 1 || grpId === 2 ? OFFICIAL_CRITERIA_4 : OFFICIAL_CRITERIA_5;
+  const grpId = Number(ageGroupId) || 0;
+  const isK5Active = grpId === 3 || grpId === 4 || grpId === 5;
+  return isK5Active ? OFFICIAL_CRITERIA_5 : OFFICIAL_CRITERIA_4;
 }
 
 /**
- * Mendapatkan bobot AHP baku berdasarkan kelompok umur balita
+ * Mendapatkan bobot AHP baku berdasarkan kelompok umur balita.
  * @param {number|string} ageGroupId
  */
 export function getOfficialWeightsForGroup(ageGroupId) {
-  const grpId = Number(ageGroupId) || 4;
-  return grpId === 1 || grpId === 2 ? OFFICIAL_AHP_WEIGHTS_4 : OFFICIAL_AHP_WEIGHTS;
+  const grpId = Number(ageGroupId) || 0;
+  const isK5Active = grpId === 3 || grpId === 4 || grpId === 5;
+  return isK5Active ? OFFICIAL_AHP_WEIGHTS : OFFICIAL_AHP_WEIGHTS_4;
 }
 
 

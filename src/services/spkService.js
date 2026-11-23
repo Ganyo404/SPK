@@ -154,21 +154,23 @@ let spkRunsStore = getLiveSpkRuns();
 
 export const spkService = {
   getAHPConfig(ageGroupId) {
-    const isUnder6 = Number(ageGroupId) === 1 || Number(ageGroupId) === 2;
-    return isUnder6 ? currentAHP4Result : currentAHPResult;
+    const grp = Number(ageGroupId) || 0;
+    const isK5Active = grp === 3 || grp === 4 || grp === 5;
+    return isK5Active ? currentAHPResult : currentAHP4Result;
   },
 
   updateAHPMatrix(newMatrix, ageGroupId) {
-    const isUnder6 = Number(ageGroupId) === 1 || Number(ageGroupId) === 2;
-    const codes = isUnder6 ? DEFAULT_4_CRITERIA_CODES : DEFAULT_5_CRITERIA_CODES;
+    const grp = Number(ageGroupId) || 0;
+    const isK5Active = grp === 3 || grp === 4 || grp === 5;
+    const codes = isK5Active ? DEFAULT_5_CRITERIA_CODES : DEFAULT_4_CRITERIA_CODES;
     const calc = calculateAHP(newMatrix, codes);
     if (calc.valid && calc.isConsistent) {
-      if (isUnder6) {
-        currentAHP4Matrix = newMatrix;
-        currentAHP4Result = calc;
-      } else {
+      if (isK5Active) {
         currentAHPMatrix = newMatrix;
         currentAHPResult = calc;
+      } else {
+        currentAHP4Matrix = newMatrix;
+        currentAHP4Result = calc;
       }
       return { data: calc, error: null };
     }
@@ -292,8 +294,8 @@ export const spkService = {
       const ageInMonths = dob ? calculateAgeInMonths(dob, periodCode) : (c.age_in_months ?? 0);
       const childSex = matchedChild?.sex || c.sex || 'L';
 
-      // Konversi nilai ukur riil menjadi Skor Standar (1 - 4)
-      const conversion = convertRawToStandardScores(c.values || {}, targetGroup.id, childSex);
+      // Konversi nilai ukur riil menjadi Skor Standar (1 - 4 untuk K1-K4, dan 0/0.5/1 untuk K5 jika aktif)
+      const conversion = convertRawToStandardScores(c.values || {}, targetGroup.id, childSex, ageInMonths);
 
       return {
         childId: c.child_id,
@@ -305,7 +307,7 @@ export const spkService = {
         birthYear: matchedChild ? new Date(matchedChild.date_of_birth).getFullYear() : (c.birth_year || 2024),
         examinationId: c.id,
         period: c.period_code,
-        values: conversion.scores, // Skor 1 - 4 yang diproses oleh SAW
+        values: conversion.scores, // Skor yang diproses oleh SAW
         standardScores: conversion.scores,
         scoreLabels: conversion.labels,
         rawValues: conversion.rawValues,
@@ -314,11 +316,11 @@ export const spkService = {
     });
 
     // 3. Jalankan perhitungan SAW
-    // Balita < 6 bulan (Kelompok 1 & 2): Model 4 Kriteria (K1 - K4, K5 nonaktif karena ASI Eksklusif)
-    // Balita >= 6 bulan (Kelompok 3 - 8): Model 5 Kriteria (K1 - K5)
-    const isUnder6Months = Number(targetGroup.id) === 1 || Number(targetGroup.id) === 2;
-    const activeCriteria = isUnder6Months ? OFFICIAL_CRITERIA_4 : OFFICIAL_CRITERIA_5;
-    const activeWeights = isUnder6Months ? currentAHP4Result.weightsMap : currentAHPResult.weightsMap;
+    // K5 (MDD & MMF) hanya aktif pada rentang usia 6–23 bulan (Kelompok R3, R4, R5: 5 Kriteria Baku)
+    // Kelompok R1, R2 (0–5 bln) dan R6, R7, R8 (24–59 bln): Model 4 Kriteria (K1 - K4)
+    const isK5Active = Number(targetGroup.id) === 3 || Number(targetGroup.id) === 4 || Number(targetGroup.id) === 5;
+    const activeCriteria = isK5Active ? OFFICIAL_CRITERIA_5 : OFFICIAL_CRITERIA_4;
+    const activeWeights = isK5Active ? currentAHPResult.weightsMap : currentAHP4Result.weightsMap;
 
     const sawResult = calculateSAW(alternatives, activeCriteria, activeWeights, { gender });
 
@@ -335,9 +337,9 @@ export const spkService = {
       period_code: periodCode,
       gender: gender,
       gender_label: genderLabel,
-      algorithm_version: isUnder6Months ? 'AHP-SAW-4K-v1.0' : 'AHP-SAW-v1.0',
-      criteria_count: isUnder6Months ? 4 : 5,
-      is_under_6_months: isUnder6Months,
+      algorithm_version: isK5Active ? 'AHP-SAW-5K-v2.0' : 'AHP-SAW-4K-v2.0',
+      criteria_count: isK5Active ? 5 : 4,
+      is_k5_active: isK5Active,
       ahp_weights: activeWeights,
       alternative_count: sawResult.results.length,
       status: 'completed',

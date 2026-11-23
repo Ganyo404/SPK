@@ -16,7 +16,7 @@ const CRITERIA_5_NAMES = [
   'K2: Tinggi/Panjang (PB/TB)',
   'K3: Lingkar Kepala (LK/U)',
   'K4: Kelengkapan Imunisasi',
-  'K5: Asupan Gizi & PMBA',
+  'K5: Asupan Makanan Balita (MDD & MMF)',
 ];
 
 const CRITERIA_4_NAMES = [
@@ -98,7 +98,7 @@ export function AHPConfigPage() {
         entityId: isModel4 ? 'AHP-CONFIG-4K' : 'AHP-CONFIG-5K',
         reason: `Pembaruan matriks AHP ${isModel4 ? '4 Kriteria' : '5 Kriteria'} dengan CR ${currentCalc.cr} (Konsisten)`
       });
-      setSaveSuccess(`Konfigurasi AHP (${isModel4 ? '4 Kriteria < 6 Bulan' : '5 Kriteria \u2265 6 Bulan'}) berhasil diperbarui! (CR = ${currentCalc.cr})`);
+      setSaveSuccess(`Konfigurasi AHP (${isModel4 ? 'Model 4 Kriteria (0–5 bln & 24–59 bln)' : 'Model 5 Kriteria (6–23 bln)'}) berhasil diperbarui! (CR = ${currentCalc.cr})`);
     }
   };
 
@@ -144,7 +144,7 @@ export function AHPConfigPage() {
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          Model 5 Kriteria (Usia &ge; 6 Bulan)
+          Model 5 Kriteria (Kelompok 3–5 / Usia 6–23 Bulan)
         </button>
         <button
           onClick={() => { setActiveModel('4'); setSaveSuccess(''); setSaveError(''); }}
@@ -154,7 +154,7 @@ export function AHPConfigPage() {
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          Model 4 Kriteria (Usia &lt; 6 Bulan — ASI Eksklusif)
+          Model 4 Kriteria (Kelompok 1, 2, 6–8 / Usia &lt; 6 &amp; &ge; 24 Bulan)
         </button>
       </div>
 

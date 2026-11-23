@@ -11,6 +11,11 @@ import {
   getLKScore,
   getImunisasiScore,
   getAsupanGiziScore,
+  calculateMDD,
+  calculateMMF,
+  calculateK5Score,
+  isK5Applicable,
+  MDD_FOOD_GROUPS,
   convertRawToStandardScores,
   OFFICIAL_CRITERIA_5,
   OFFICIAL_AHP_WEIGHTS
@@ -107,13 +112,26 @@ export function ExaminationFormPage() {
   // Periode SPK gabungan (YYYY-MM)
   const periodCode = `${(selectedYear || '2026').trim()}-${selectedMonth}`;
 
-  // State Form Kriteria Riil Antropometri & Gizi (5 Kriteria Sesuai Standar Excel & Permenkes)
+  // State Form Kriteria Riil Antropometri & Gizi
   const [values, setValues] = useState({
     bb: '',         // Berat Badan (kg) -> K1
     tb: '',         // Tinggi Badan (cm) -> K2
     lk: '',         // Lingkar Kepala (cm) -> K3
     imunisasi: '17', // Riwayat Imunisasi (Dosis, 0 - 17) -> K4
-    gizi: '4',      // Asupan Gizi & PMBA (1 - 4) -> K5
+    // K5 (MDD & MMF) untuk usia 6–23 bulan
+    breastfeeding: 'masih_asi', // 'masih_asi' | 'tidak_asi'
+    mddFoodGroups: {
+      asi: true,
+      staples: false,
+      legumes: false,
+      dairy: false,
+      flesh: false,
+      eggs: false,
+      vit_a: false,
+      other_fruits_veg: false,
+    },
+    solidFrequency: '3',
+    milkFrequency: '0',
   });
 
   const [error, setError] = useState('');
@@ -172,7 +190,8 @@ export function ExaminationFormPage() {
     ? getChildAgeGroup(selectedChild.date_of_birth, periodCode)
     : { groupId: 4, groupName: 'Kelompok 4 (9 - 11 bulan)', rangeLabel: '9 - 11 bulan' };
   const childSex = selectedChild?.sex || 'L';
-  const isUnder6Months = childAgeGroupInfo.groupId === 1 || childAgeGroupInfo.groupId === 2 || childAgeMonths < 6;
+  const isK5Active = isK5Applicable(childAgeMonths, childAgeGroupInfo.groupId);
+  const isUnder6Months = childAgeMonths < 6;
 
   // Live Conversion Skor 1 - 4 WHO / Permenkes
   const liveBB = values.bb !== '' && !isNaN(Number(values.bb))
@@ -191,17 +210,41 @@ export function ExaminationFormPage() {
     ? getImunisasiScore(values.imunisasi, childAgeGroupInfo.groupId)
     : null;
 
-  const liveGizi = !isUnder6Months && values.gizi !== '' && !isNaN(Number(values.gizi))
-    ? getAsupanGiziScore(values.gizi)
+  // Live MDD & MMF (K5)
+  const liveMDD = isK5Active
+    ? calculateMDD(values.mddFoodGroups)
     : null;
 
-  // Ringkasan standarisasi & status flag (K5 tidak diwajibkan untuk usia < 6 bulan / ASI Eksklusif)
+  const liveMMF = isK5Active
+    ? calculateMMF({
+      ageInMonths: childAgeMonths,
+      isBreastfeeding: values.breastfeeding === 'masih_asi',
+      solidFrequency: values.solidFrequency,
+      milkFrequency: values.milkFrequency
+    })
+    : null;
+
+  const liveK5 = isK5Active && liveMDD && liveMMF
+    ? calculateK5Score({
+      mddScore: liveMDD.score,
+      mddCount: liveMDD.count,
+      mmfScore: liveMMF.score,
+      mmfInput: {
+        ageInMonths: childAgeMonths,
+        isBreastfeeding: values.breastfeeding === 'masih_asi',
+        solidFrequency: values.solidFrequency,
+        milkFrequency: values.milkFrequency
+      }
+    })
+    : null;
+
+  // Ringkasan standarisasi & status flag
   const isAllFilled = Boolean(
     values.bb && !isNaN(Number(values.bb)) &&
     values.tb && !isNaN(Number(values.tb)) &&
     values.lk && !isNaN(Number(values.lk)) &&
     values.imunisasi !== '' &&
-    (isUnder6Months || values.gizi !== '')
+    (!isK5Active || (values.solidFrequency !== '' && (values.breastfeeding === 'masih_asi' || values.milkFrequency !== '')))
   );
 
   const liveStandardization = isAllFilled
@@ -211,10 +254,17 @@ export function ExaminationFormPage() {
         C2: values.tb,
         C3: values.lk,
         C5: values.imunisasi,
-        ...(isUnder6Months ? {} : { gizi: values.gizi })
+        ...(isK5Active && liveK5 ? {
+          K5: liveK5.value,
+          mddFoodGroups: values.mddFoodGroups,
+          breastfeeding: values.breastfeeding,
+          solidFrequency: values.solidFrequency,
+          milkFrequency: values.milkFrequency
+        } : {})
       },
       childAgeGroupInfo.groupId,
-      childSex
+      childSex,
+      childAgeMonths
     )
     : null;
 
@@ -246,6 +296,16 @@ export function ExaminationFormPage() {
     setValues(prev => ({ ...prev, [field]: val }));
   };
 
+  const handleMddGroupToggle = (groupKey) => {
+    setValues(prev => ({
+      ...prev,
+      mddFoodGroups: {
+        ...prev.mddFoodGroups,
+        [groupKey]: !prev.mddFoodGroups?.[groupKey]
+      }
+    }));
+  };
+
   const validateAllCriteria = () => {
     const bb = Number(values.bb);
     if (isNaN(bb) || values.bb === '' || bb < 2.0 || bb > 35.0) {
@@ -267,10 +327,16 @@ export function ExaminationFormPage() {
       return 'Jumlah Dosis Imunisasi wajib diisi antara 0 s/d 17 dosis.';
     }
 
-    if (!isUnder6Months) {
-      const gizi = Number(values.gizi);
-      if (isNaN(gizi) || values.gizi === '' || gizi < 1 || gizi > 4) {
-        return 'Pilih salah satu tingkat Asupan Gizi & PMBA (Skor 1 - 4).';
+    if (isK5Active) {
+      const solid = Number(values.solidFrequency);
+      if (isNaN(solid) || values.solidFrequency === '' || solid < 0 || solid > 20) {
+        return 'Frekuensi makanan padat/semi-padat/lunak wajib diisi angka valid (≥ 0 kali).';
+      }
+      if (values.breastfeeding !== 'masih_asi') {
+        const milk = Number(values.milkFrequency);
+        if (isNaN(milk) || values.milkFrequency === '' || milk < 0 || milk > 20) {
+          return 'Frekuensi pemberian susu/formula wajib diisi angka valid (≥ 0 kali).';
+        }
       }
     }
 
@@ -282,36 +348,60 @@ export function ExaminationFormPage() {
     const tb = Number(values.tb);
     const lk = Number(values.lk);
     const imun = Number(values.imunisasi);
-    const gizi = isUnder6Months ? null : Number(values.gizi);
 
     const std = convertRawToStandardScores(
-      { C1: bb, C2: tb, C3: lk, C5: imun, ...(isUnder6Months ? {} : { gizi }) },
+      {
+        C1: bb,
+        C2: tb,
+        C3: lk,
+        C5: imun,
+        ...(isK5Active && liveK5 ? {
+          K5: liveK5.value,
+          mddFoodGroups: values.mddFoodGroups,
+          breastfeeding: values.breastfeeding,
+          solidFrequency: values.solidFrequency,
+          milkFrequency: values.milkFrequency
+        } : {})
+      },
       childAgeGroupInfo.groupId,
-      childSex
+      childSex,
+      childAgeMonths
     );
+
+    const payloadValues = {
+      // Raw values
+      C1: bb,
+      C2: tb,
+      C3: lk,
+      C5: imun,
+      // Standarisasi Skor Kriteria Baku
+      K1: std.scores.K1,
+      K2: std.scores.K2,
+      K3: std.scores.K3,
+      K4: std.scores.K4,
+      raw_bb: bb,
+      raw_tb: tb,
+      raw_lk: lk,
+      raw_imun: imun,
+    };
+
+    if (isK5Active && liveK5) {
+      payloadValues.K5 = liveK5.value; // Nilai K5 biner/terner: 0, 0.5, atau 1
+      payloadValues.raw_k5 = liveK5.value;
+      payloadValues.mdd_score = liveMDD?.score ?? 0;
+      payloadValues.mdd_count = liveMDD?.count ?? 0;
+      payloadValues.mdd_food_groups = values.mddFoodGroups;
+      payloadValues.mmf_score = liveMMF?.score ?? 0;
+      payloadValues.breastfeeding = values.breastfeeding;
+      payloadValues.solid_frequency = Number(values.solidFrequency);
+      payloadValues.milk_frequency = values.breastfeeding === 'masih_asi' ? 0 : Number(values.milkFrequency);
+    }
 
     return {
       childId: selectedChildId,
       periodCode,
       notes,
-      values: {
-        // Raw values
-        C1: bb,
-        C2: tb,
-        C3: lk,
-        C5: imun,
-        // Standarisasi Skor Kriteria Baku (1 s/d 4) Sesuai Excel
-        K1: std.scores.K1,
-        K2: std.scores.K2,
-        K3: std.scores.K3,
-        K4: std.scores.K4,
-        ...(isUnder6Months ? {} : { K5: std.scores.K5 }),
-        raw_bb: bb,
-        raw_tb: tb,
-        raw_lk: lk,
-        raw_imun: imun,
-        raw_gizi: gizi
-      },
+      values: payloadValues,
       recordedBy: user?.id || 'u-staff-1',
       recordedByName: profile?.full_name || 'dr. Dewi Anggraini, Sp.A'
     };
@@ -876,60 +966,255 @@ export function ExaminationFormPage() {
           </div>
         </div>
 
-        {/* Section 2: K5 - Asupan Gizi & PMBA */}
-        <div className="pt-4 border-t border-slate-100 space-y-3">
-          <div className="flex items-center justify-between">
+        {/* Section 2: K5 - Asupan Makanan Balita (MDD & MMF) */}
+        <div className="pt-4 border-t border-slate-100 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
                 <Utensils className="w-5 h-5 text-teal-600" />
-                <span>2. Asupan Gizi & Pola Makan (PMBA)</span>
+                <span>2. Asupan Makanan Balita (MDD & MMF)</span>
               </h3>
               <p className="text-xs text-slate-500">
-                {isUnder6Months
-                  ? 'Fase menyusui (ASI Eksklusif) untuk bayi di bawah 6 bulan'
-                  : 'Praktik pemberian makan bayi dan anak sesuai pedoman gizi'}
+                {isK5Active
+                  ? 'Penilaian keragaman pangan (MDD) dan frekuensi makan (MMF) sesuai standar WHO/UNICEF'
+                  : 'Kriteria asupan makanan khusus untuk kelompok balita usia 6–23 bulan'}
               </p>
             </div>
-            {isUnder6Months && (
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                K5 Nonaktif (ASI Eksklusif)
+            {isK5Active ? (
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-50 text-teal-800 border border-teal-200 self-start sm:self-auto">
+                K5 Aktif (Usia {childAgeMonths} Bulan)
+              </span>
+            ) : (
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200 self-start sm:self-auto">
+                Tidak Berlaku untuk Kelompok Umur Ini
               </span>
             )}
           </div>
 
-          {isUnder6Months ? (
-            <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 flex items-start gap-3">
-              <div className="p-2 bg-amber-100 rounded-xl text-amber-700 shrink-0 mt-0.5">
+          {!isK5Active ? (
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-3">
+              <div className="p-2 bg-slate-200 rounded-xl text-slate-700 shrink-0 mt-0.5">
                 <Utensils className="w-5 h-5" />
               </div>
-              <div className="text-xs text-amber-900 leading-relaxed">
-                <span className="font-bold text-sm text-amber-950 block mb-0.5">Fase ASI Eksklusif (Usia &lt; 6 Bulan)</span>
-                Kriteria K5 (Asupan Gizi / PMBA) dinonaktifkan karena bayi usia di bawah 6 bulan masih dalam periode ASI eksklusif dan belum menerima MP-ASI. Penilaian SPK otomatis menggunakan model 4 kriteria (BB/U, PB/TB, LK/U, dan Imunisasi).
+              <div className="text-xs text-slate-700 leading-relaxed">
+                <span className="font-bold text-sm text-slate-900 block mb-0.5">
+                  Kriteria K5 Tidak Berlaku untuk Kelompok Umur Ini
+                </span>
+                {childAgeMonths < 6 ? (
+                  <span>
+                    Bayi usia di bawah 6 bulan berada pada masa pemberian ASI eksklusif dan belum menerima MP-ASI. SPK secara otomatis menggunakan <strong>Model 4 Kriteria (BB/U, PB/TB, LK/U, Imunisasi)</strong>.
+                  </span>
+                ) : (
+                  <span>
+                    Balita usia 24 bulan ke atas telah melewati rentang indikator MP-ASI WHO/UNICEF (6–23 bulan). SPK secara otomatis menggunakan <strong>Model 4 Kriteria (BB/U, PB/TB, LK/U, Imunisasi)</strong>.
+                  </span>
+                )}
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {PMBA_OPTIONS.map((opt) => {
-                const isSelected = Number(values.gizi) === opt.score;
-                return (
-                  <div
-                    key={opt.score}
-                    onClick={() => handleInputChange('gizi', String(opt.score))}
-                    className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${isSelected
-                        ? 'bg-teal-50 border-teal-500 ring-2 ring-teal-500/20'
-                        : 'bg-slate-50/60 border-slate-200 hover:bg-slate-100/70'
-                      }`}
+            <div className="space-y-4">
+              {/* A. Status Menyusui */}
+              <div className="p-4 rounded-2xl bg-slate-50/90 border border-slate-200/80 space-y-2">
+                <span className="text-xs font-bold text-slate-800 block">
+                  A. Status Menyusui (Wajib)
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <label
+                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                      values.breastfeeding === 'masih_asi'
+                        ? 'bg-teal-50/80 border-teal-500 ring-2 ring-teal-500/20'
+                        : 'bg-white border-slate-200 hover:bg-slate-100/60'
+                    }`}
                   >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="font-bold text-xs text-slate-900">{opt.title}</span>
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-md border ${opt.badgeClass}`}>
-                        Skor: {opt.score}
+                    <input
+                      type="radio"
+                      name="breastfeeding"
+                      value="masih_asi"
+                      checked={values.breastfeeding === 'masih_asi'}
+                      onChange={() => handleInputChange('breastfeeding', 'masih_asi')}
+                      className="text-teal-600 focus:ring-teal-500"
+                    />
+                    <div>
+                      <span className="text-xs font-bold text-slate-900 block">Masih Mendapatkan ASI</span>
+                      <span className="text-[11px] text-slate-500">
+                        {childAgeMonths <= 8 ? 'Target makan: min. 2x sehari' : 'Target makan: min. 3x sehari'}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-600 leading-relaxed">{opt.desc}</p>
+                  </label>
+
+                  <label
+                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                      values.breastfeeding === 'tidak_asi'
+                        ? 'bg-teal-50/80 border-teal-500 ring-2 ring-teal-500/20'
+                        : 'bg-white border-slate-200 hover:bg-slate-100/60'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="breastfeeding"
+                      value="tidak_asi"
+                      checked={values.breastfeeding === 'tidak_asi'}
+                      onChange={() => handleInputChange('breastfeeding', 'tidak_asi')}
+                      className="text-teal-600 focus:ring-teal-500"
+                    />
+                    <div>
+                      <span className="text-xs font-bold text-slate-900 block">Tidak Mendapatkan ASI</span>
+                      <span className="text-[11px] text-slate-500">
+                        Target: total min. 4x sehari & min. 1x makanan padat/lunak
+                      </span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* B. Minimum Dietary Diversity (MDD) */}
+              <div className="p-4 rounded-2xl bg-slate-50/90 border border-slate-200/80 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <span className="text-xs font-bold text-slate-800 block">
+                      B. Minimum Dietary Diversity (MDD) — Konsumsi 24 Jam Terakhir
+                    </span>
+                    <span className="text-[11px] text-slate-500">
+                      Pilih kelompok makanan yang dikonsumsi balita (syarat minimal: 5 dari 8 kelompok)
+                    </span>
                   </div>
-                );
-              })}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-800">
+                      {liveMDD?.count || 0} / 8 Kelompok
+                    </span>
+                    <span
+                      className={`text-xs font-bold px-2.5 py-1 rounded-lg border ${
+                        liveMDD?.score === 1
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                          : 'bg-amber-50 text-amber-800 border-amber-200'
+                      }`}
+                    >
+                      MDD = {liveMDD?.score ?? 0} ({liveMDD?.status || 'Tidak memenuhi'})
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {MDD_FOOD_GROUPS.map((group) => {
+                    const isChecked = Boolean(values.mddFoodGroups?.[group.key]);
+                    return (
+                      <label
+                        key={group.key}
+                        onClick={() => handleMddGroupToggle(group.key)}
+                        className={`flex items-start gap-2.5 p-2.5 rounded-xl border cursor-pointer select-none transition-all ${
+                          isChecked
+                            ? 'bg-teal-50/80 border-teal-400 ring-1 ring-teal-400/30'
+                            : 'bg-white border-slate-200 hover:bg-slate-100/50'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {}} // handled by label onClick
+                          className="mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                        />
+                        <div className="min-w-0">
+                          <span className="text-xs font-bold text-slate-900 block truncate">
+                            {group.name}
+                          </span>
+                          <span className="text-[10px] text-slate-500 block truncate">
+                            {group.example}
+                          </span>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* C. Minimum Meal Frequency (MMF) */}
+              <div className="p-4 rounded-2xl bg-slate-50/90 border border-slate-200/80 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <span className="text-xs font-bold text-slate-800 block">
+                      C. Minimum Meal Frequency (MMF) — Frekuensi Pemberian Makan
+                    </span>
+                    <span className="text-[11px] text-slate-500">
+                      {values.breastfeeding === 'masih_asi'
+                        ? `Balita menyusu usia ${childAgeMonths} bulan: minimal ${childAgeMonths <= 8 ? '2' : '3'} kali sehari`
+                        : 'Balita non-ASI: minimal 4 kali total kesempatan makan (min. 1x makanan padat/lunak)'}
+                    </span>
+                  </div>
+                  <span
+                    className={`text-xs font-bold px-2.5 py-1 rounded-lg border self-start sm:self-auto ${
+                      liveMMF?.score === 1
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                        : 'bg-amber-50 text-amber-800 border-amber-200'
+                    }`}
+                  >
+                    MMF = {liveMMF?.score ?? 0} ({liveMMF?.status || 'Tidak memenuhi'})
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                      Frekuensi Makanan Padat, Semi-padat, atau Lunak (kali/hari)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0"
+                        max="15"
+                        step="1"
+                        required
+                        value={values.solidFrequency}
+                        onChange={(e) => handleInputChange('solidFrequency', e.target.value)}
+                        placeholder="Contoh: 3"
+                        className="w-full p-2.5 pr-12 rounded-xl border border-slate-300 bg-white text-sm font-bold text-slate-900 focus:border-teal-600 outline-hidden"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">kali</span>
+                    </div>
+                  </div>
+
+                  {values.breastfeeding === 'tidak_asi' && (
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                        Frekuensi Pemberian Susu/Formula (kali/hari)
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          min="0"
+                          max="15"
+                          step="1"
+                          required
+                          value={values.milkFrequency}
+                          onChange={(e) => handleInputChange('milkFrequency', e.target.value)}
+                          placeholder="Contoh: 2"
+                          className="w-full p-2.5 pr-12 rounded-xl border border-slate-300 bg-white text-sm font-bold text-slate-900 focus:border-teal-600 outline-hidden"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">kali</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* D. Komposit K5 Summary Banner */}
+              <div className="p-3.5 rounded-2xl bg-teal-50/70 border border-teal-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <div>
+                  <span className="font-bold text-teal-950 block text-sm">
+                    Hasil Komposit K5 = (MDD + MMF) / 2
+                  </span>
+                  <span className="text-teal-800 text-[11px] mt-0.5 block">
+                    MDD: {liveMDD?.score ?? 0} ({liveMDD?.status}) • MMF: {liveMMF?.score ?? 0} ({liveMMF?.status})
+                  </span>
+                  <span className="text-teal-700 font-medium text-[11px] block">
+                    Keterangan: {liveK5?.label || 'Kedua indikator belum terpenuhi'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 self-start sm:self-auto">
+                  <div className="px-3.5 py-1.5 rounded-xl bg-white border border-teal-300 shadow-2xs font-mono font-bold text-base text-teal-800">
+                    Nilai K5 = {liveK5?.value ?? 0}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -940,10 +1225,11 @@ export function ExaminationFormPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/70 pb-3">
               <div>
                 <span className="font-bold text-sm text-slate-900">
-                  Hasil Standarisasi Kriteria (Skala 1–4)
-                  {isUnder6Months && <span className="ml-2 text-xs font-normal text-amber-700">(Model 4 Kriteria)</span>}
+                  Hasil Standarisasi Kriteria
+                  {!isK5Active && <span className="ml-2 text-xs font-normal text-amber-700">(Model 4 Kriteria)</span>}
+                  {isK5Active && <span className="ml-2 text-xs font-normal text-teal-700">(Model 5 Kriteria)</span>}
                 </span>
-                <p className="text-xs text-slate-500">Konversi nilai riil menjadi skor ordinal untuk kriteria SAW</p>
+                <p className="text-xs text-slate-500">Konversi data mentah menjadi nilai terstandarisasi untuk kriteria SAW</p>
               </div>
               <span className={`text-xs font-bold px-3 py-1 rounded-full border ${liveStandardization.statusFlag === 'Normal'
                   ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
@@ -953,7 +1239,7 @@ export function ExaminationFormPage() {
               </span>
             </div>
 
-            <div className={`grid gap-2.5 text-center text-xs ${isUnder6Months ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-5'}`}>
+            <div className={`grid gap-2.5 text-center text-xs ${!isK5Active ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-5'}`}>
               <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
                 <span className="text-[11px] text-teal-700 block font-semibold">K1: Berat Badan</span>
                 <span className="text-lg font-bold text-slate-900 my-0.5 block">Skor {liveStandardization.scores.K1}</span>
@@ -974,11 +1260,11 @@ export function ExaminationFormPage() {
                 <span className="text-lg font-bold text-slate-900 my-0.5 block">Skor {liveStandardization.scores.K4}</span>
                 <span className="text-[10px] text-slate-500 block truncate">{liveStandardization.labels.K4}</span>
               </div>
-              {!isUnder6Months && (
+              {isK5Active && (
                 <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
-                  <span className="text-[11px] text-amber-700 block font-semibold">K5: Asupan Gizi</span>
-                  <span className="text-lg font-bold text-slate-900 my-0.5 block">Skor {liveStandardization.scores.K5}</span>
-                  <span className="text-[10px] text-slate-500 block truncate">{liveStandardization.labels.K5}</span>
+                  <span className="text-[11px] text-amber-700 block font-semibold">K5: Asupan Makanan</span>
+                  <span className="text-lg font-bold text-slate-900 my-0.5 block font-mono">Nilai {liveK5?.value ?? 0}</span>
+                  <span className="text-[10px] text-slate-500 block truncate">{liveK5?.label}</span>
                 </div>
               )}
             </div>
@@ -987,7 +1273,7 @@ export function ExaminationFormPage() {
               <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
                 <span>
-                  Perhatian: Terdapat skor &le; 2 pada indikator fisik atau asupan, disarankan evaluasi berkala oleh tenaga kesehatan.
+                  Perhatian: Terdapat skor &le; 2 pada indikator fisik atau asupan belum terpenuhi, disarankan evaluasi berkala oleh tenaga kesehatan.
                 </span>
               </div>
             )}

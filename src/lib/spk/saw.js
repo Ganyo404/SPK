@@ -189,7 +189,14 @@ export function calculateSAW(alternatives, criteriaList, ahpWeights, options = {
       const summary = minMaxSummary[code];
       const weight = ahpWeights[code] ?? (1 / criteriaList.length);
 
-      const rij = normalizeCriterionValue(rawVal, summary.max, summary.min, summary.direction);
+      let rij;
+      if (code === 'K5') {
+        // INSTRUKSI: Nilai K5 sudah berada pada skala normalisasi 0–1 (0, 0.5, 1).
+        // Gunakan rK5 = K5 langsung tanpa membagi dengan nilai maksimum sampel.
+        rij = typeof rawVal === 'number' && !isNaN(rawVal) ? Math.max(0, Math.min(1, rawVal)) : 0;
+      } else {
+        rij = normalizeCriterionValue(rawVal, summary.max, summary.min, summary.direction);
+      }
       const contribution = rij * weight;
 
       normalizedValues[code] = Number(rij.toFixed(6));

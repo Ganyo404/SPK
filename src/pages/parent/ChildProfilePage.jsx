@@ -114,8 +114,8 @@ const CRITERIA_CONFIG = [
     key: 'K5',
     code: 'K5',
     dataKey: 'asupanGizi',
-    label: 'Asupan Gizi (PMBA)',
-    unit: 'Skor 1-4',
+    label: 'Asupan Makanan (MDD & MMF)',
+    unit: 'Nilai 0–1',
     color: '#ea580c', // orange-600
     bg: 'bg-orange-50',
     border: 'border-orange-200',
@@ -124,7 +124,7 @@ const CRITERIA_CONFIG = [
     category: 'kesehatan',
     yAxisId: 'health-right',
     type: 'benefit',
-    description: 'Bobot AHP: 24.59% • ASI, MP-ASI 4 bintang & higienitas'
+    description: 'Bobot AHP: 24.59% • Keragaman pangan (MDD) & frekuensi makan (MMF)'
   }
 ];
 
@@ -472,34 +472,40 @@ export function ChildProfilePage() {
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 col-span-2 sm:col-span-2">
                   <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-1">
                     <Utensils className="w-3.5 h-3.5 text-amber-600" />
-                    <span>K5. Asupan Gizi & PMBA</span>
+                    <span>K5. Asupan Makanan Balita (MDD &amp; MMF)</span>
                   </div>
                   {(() => {
-                    const isExamUnder6 = latestVerifiedExam.age_group_id === 1 ||
-                      latestVerifiedExam.age_group_id === 2 ||
-                      (latestVerifiedExam.age_in_months != null && latestVerifiedExam.age_in_months < 6) ||
-                      latestVerifiedExam.values?.K5 == null;
+                    const examAge = latestVerifiedExam.age_in_months != null
+                      ? latestVerifiedExam.age_in_months
+                      : (child.date_of_birth && latestVerifiedExam.period_code
+                        ? calculateAgeInMonths(child.date_of_birth, latestVerifiedExam.period_code)
+                        : null);
 
-                    if (isExamUnder6) {
+                    const isApplicable = examAge != null
+                      ? (examAge >= 6 && examAge < 24)
+                      : (latestVerifiedExam.age_group_id === 3 || latestVerifiedExam.age_group_id === 4 || latestVerifiedExam.age_group_id === 5);
+
+                    if (!isApplicable) {
                       return (
                         <>
                           <p className="text-lg font-bold text-slate-700">
-                            ASI Eksklusif
+                            Tidak Berlaku
                           </p>
                           <span className="text-[10px] text-slate-500 font-semibold">
-                            Fase Menyusui (&lt; 6 Bulan, K5 Nonaktif)
+                            Tidak Berlaku untuk Kelompok Umur Ini (Model 4 Kriteria)
                           </span>
                         </>
                       );
                     }
 
+                    const k5Val = latestVerifiedExam.values?.K5 ?? latestVerifiedExam.standard_scores?.K5 ?? 0;
                     return (
                       <>
-                        <p className="text-lg font-bold text-amber-900">
-                          Skor {latestVerifiedExam.values?.K5 ?? latestVerifiedExam.standard_scores?.K5 ?? 4} <span className="text-xs font-normal text-slate-500">/ 4 Indikator Baku</span>
+                        <p className="text-lg font-bold text-amber-900 font-mono">
+                          Nilai {k5Val} <span className="text-xs font-normal text-slate-500 font-sans">({k5Val === 1 ? 'Memenuhi MDD & MMF' : k5Val === 0.5 ? '1 Indikator Terpenuhi' : 'Belum Memenuhi'})</span>
                         </p>
                         <span className="text-[10px] text-amber-700 font-semibold">
-                          Standar PMBA Kemenkes RI & WHO
+                          Standar MP-ASI WHO/UNICEF (Usia 6–23 Bulan)
                         </span>
                       </>
                     );
