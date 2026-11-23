@@ -456,7 +456,6 @@ export const spkService = {
     }
 
     spkRunsStore = getLiveSpkRuns();
-    const numericGroupId = Number(ageGroupId) || 6;
 
     const run = spkRunsStore.find(
       (r) =>
