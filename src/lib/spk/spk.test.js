@@ -1,8 +1,16 @@
-import { calculateAHP, DEFAULT_AHP_5X5_MATRIX, DEFAULT_5_CRITERIA_CODES } from './ahp.js';
+import {
+  calculateAHP,
+  DEFAULT_AHP_5X5_MATRIX,
+  DEFAULT_5_CRITERIA_CODES,
+  DEFAULT_AHP_4X4_MATRIX,
+  DEFAULT_4_CRITERIA_CODES,
+  OFFICIAL_AHP_WEIGHTS_4
+} from './ahp.js';
 import { calculateSAW } from './saw.js';
 import {
   OFFICIAL_AHP_WEIGHTS,
   OFFICIAL_CRITERIA_5,
+  OFFICIAL_CRITERIA_4,
   convertRawToStandardScores,
   getBBScore,
   getTBScore,
@@ -159,5 +167,71 @@ if (mixedCheck.valid) {
   throw new Error('Isolation check failed: mixed ageGroupId should be rejected!');
 }
 console.log('--> ISOLATION TEST PASSED!\n');
+
+console.log('=== TEST 5: PENGUJIAN MODEL 4 KRITERIA AHP & SAW UNTUK BAYI < 6 BULAN (Fase ASI Eksklusif) ===');
+// 5.1 Konsistensi Matriks AHP 4x4
+const ahp4Result = calculateAHP(DEFAULT_AHP_4X4_MATRIX, DEFAULT_4_CRITERIA_CODES);
+console.log('AHP 4x4 Valid:', ahp4Result.valid);
+console.log('Criteria 4:', DEFAULT_4_CRITERIA_CODES);
+console.log('Weights Map 4:', ahp4Result.weightsMap);
+console.log('Lambda Max 4:', ahp4Result.lambdaMax);
+console.log('CI 4:', ahp4Result.ci);
+console.log('CR 4:', ahp4Result.cr);
+console.log('Is Consistent 4 (CR <= 0.10):', ahp4Result.isConsistent);
+
+if (!ahp4Result.valid || !ahp4Result.isConsistent || ahp4Result.cr > 0.10) {
+  throw new Error('AHP 4x4 Test FAILED: Matriks default 4x4 tidak konsisten!');
+}
+if (Math.abs(ahp4Result.weightsMap.K1 - OFFICIAL_AHP_WEIGHTS_4.K1) > 0.0001 ||
+    Math.abs(ahp4Result.weightsMap.K4 - OFFICIAL_AHP_WEIGHTS_4.K4) > 0.0001) {
+  throw new Error('AHP 4x4 Weights mismatch with OFFICIAL_AHP_WEIGHTS_4!');
+}
+console.log('--> AHP 4x4 TEST PASSED (CR = ' + ahp4Result.cr + ' <= 0.10)!\n');
+
+// 5.2 Standarisasi Balita Usia 1 Bulan (Kelompok 1) & 4 Bulan (Kelompok 2): K5 Dinonaktifkan
+const bayi1Std = convertRawToStandardScores(
+  { C1: 4.8, C2: 56.0, C3: 38.0, C5: 6 },
+  1, // Kelompok 1: 0 - 2 bulan
+  'L'
+);
+console.log('Bayi 1 Bulan Standard Scores:', bayi1Std.scores, 'isUnder6Months:', bayi1Std.isUnder6Months);
+if (!bayi1Std.isUnder6Months) throw new Error('Bayi 1 bulan should have isUnder6Months = true');
+if (bayi1Std.scores.K5 !== undefined) throw new Error('K5 should NOT be present in scores for < 6 months');
+if (!bayi1Std.labels.K5.includes('ASI Eksklusif')) throw new Error('K5 label should indicate ASI Eksklusif');
+if (bayi1Std.statusFlag !== 'Normal') throw new Error('Bayi 1 bulan statusFlag should be Normal');
+
+const bayi2Std = convertRawToStandardScores(
+  { C1: 4.0, C2: 54.0, C3: 36.5, C5: 5 }, // BB kurang (Skor 1), K4 sangat kurang (Skor 1)
+  2, // Kelompok 2: 3 - 5 bulan
+  'L'
+);
+console.log('Bayi 4 Bulan Standard Scores:', bayi2Std.scores, 'Status:', bayi2Std.statusFlag);
+if (!bayi2Std.isUnder6Months) throw new Error('Bayi 4 bulan should have isUnder6Months = true');
+if (bayi2Std.scores.K5 !== undefined) throw new Error('K5 should NOT be present in scores for < 6 months');
+if (bayi2Std.statusFlag !== 'Perlu Tinjau') throw new Error('Bayi 4 bulan should be Perlu Tinjau');
+
+// 5.3 Perhitungan SAW 4 Kriteria untuk Cohort Bayi < 6 Bulan
+const infantAlts = [
+  { childId: 'inf-1', childName: 'Bayi Optimal', ageGroupId: 1, period: '2026-10', values: { K1: 4, K2: 4, K3: 4, K4: 4 }, statusFlag: 'Normal' },
+  { childId: 'inf-2', childName: 'Bayi Imunisasi Hampir Lengkap', ageGroupId: 1, period: '2026-10', values: { K1: 4, K2: 4, K3: 4, K4: 3 }, statusFlag: 'Normal' },
+  { childId: 'inf-3', childName: 'Bayi BB Kurang', ageGroupId: 1, period: '2026-10', values: { K1: 2, K2: 4, K3: 4, K4: 4 }, statusFlag: 'Perlu Tinjau' }
+];
+
+const sawInfantResult = calculateSAW(infantAlts, OFFICIAL_CRITERIA_4, OFFICIAL_AHP_WEIGHTS_4, { strictGrouping: false });
+console.log('SAW 4 Kriteria Valid:', sawInfantResult.valid);
+sawInfantResult.results.forEach(r => {
+  console.log(`Rank ${r.rank} | ${r.childName} | Score Vi: ${r.preferenceScore.toFixed(7)} | Status: ${r.statusFlag}`);
+});
+
+if (sawInfantResult.results[0].childName !== 'Bayi Optimal' || Math.abs(sawInfantResult.results[0].preferenceScore - 1.0) > 0.0001) {
+  throw new Error('Bayi Optimal should have Rank 1 with Vi = 1.0000000');
+}
+if (sawInfantResult.results[1].childName !== 'Bayi BB Kurang' || sawInfantResult.results[1].rank !== 2) {
+  throw new Error('Bayi BB Kurang should have Rank 2 with Vi = 0.9185390');
+}
+if (sawInfantResult.results[2].childName !== 'Bayi Imunisasi Hampir Lengkap' || sawInfantResult.results[2].rank !== 3) {
+  throw new Error('Bayi Imunisasi Hampir Lengkap should have Rank 3 with Vi = 0.8595560');
+}
+console.log('--> MODEL 4 KRITERIA AHP-SAW FOR INFANTS < 6 BULAN (ASI EKSKLUSIF) PASSED!\n');
 
 console.log('ALL SPK CORE MATHEMATICAL & CLINICAL TESTS PASSED SUCCESSFULLY!');

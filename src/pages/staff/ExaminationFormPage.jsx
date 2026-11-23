@@ -172,6 +172,7 @@ export function ExaminationFormPage() {
     ? getChildAgeGroup(selectedChild.date_of_birth, periodCode)
     : { groupId: 4, groupName: 'Kelompok 4 (9 - 11 bulan)', rangeLabel: '9 - 11 bulan' };
   const childSex = selectedChild?.sex || 'L';
+  const isUnder6Months = childAgeGroupInfo.groupId === 1 || childAgeGroupInfo.groupId === 2 || childAgeMonths < 6;
 
   // Live Conversion Skor 1 - 4 WHO / Permenkes
   const liveBB = values.bb !== '' && !isNaN(Number(values.bb))
@@ -190,17 +191,17 @@ export function ExaminationFormPage() {
     ? getImunisasiScore(values.imunisasi, childAgeGroupInfo.groupId)
     : null;
 
-  const liveGizi = values.gizi !== '' && !isNaN(Number(values.gizi))
+  const liveGizi = !isUnder6Months && values.gizi !== '' && !isNaN(Number(values.gizi))
     ? getAsupanGiziScore(values.gizi)
     : null;
 
-  // Ringkasan standarisasi & status flag
+  // Ringkasan standarisasi & status flag (K5 tidak diwajibkan untuk usia < 6 bulan / ASI Eksklusif)
   const isAllFilled = Boolean(
     values.bb && !isNaN(Number(values.bb)) &&
     values.tb && !isNaN(Number(values.tb)) &&
     values.lk && !isNaN(Number(values.lk)) &&
     values.imunisasi !== '' &&
-    values.gizi !== ''
+    (isUnder6Months || values.gizi !== '')
   );
 
   const liveStandardization = isAllFilled
@@ -210,7 +211,7 @@ export function ExaminationFormPage() {
           C2: values.tb,
           C3: values.lk,
           C5: values.imunisasi,
-          gizi: values.gizi
+          ...(isUnder6Months ? {} : { gizi: values.gizi })
         },
         childAgeGroupInfo.groupId,
         childSex
@@ -266,9 +267,11 @@ export function ExaminationFormPage() {
       return 'Jumlah Dosis Imunisasi wajib diisi antara 0 s/d 17 dosis.';
     }
 
-    const gizi = Number(values.gizi);
-    if (isNaN(gizi) || gizi < 1 || gizi > 4) {
-      return 'Pilih salah satu tingkat Asupan Gizi & PMBA (Skor 1 - 4).';
+    if (!isUnder6Months) {
+      const gizi = Number(values.gizi);
+      if (isNaN(gizi) || values.gizi === '' || gizi < 1 || gizi > 4) {
+        return 'Pilih salah satu tingkat Asupan Gizi & PMBA (Skor 1 - 4).';
+      }
     }
 
     return null;
@@ -279,10 +282,10 @@ export function ExaminationFormPage() {
     const tb = Number(values.tb);
     const lk = Number(values.lk);
     const imun = Number(values.imunisasi);
-    const gizi = Number(values.gizi);
+    const gizi = isUnder6Months ? null : Number(values.gizi);
 
     const std = convertRawToStandardScores(
-      { C1: bb, C2: tb, C3: lk, C5: imun, gizi },
+      { C1: bb, C2: tb, C3: lk, C5: imun, ...(isUnder6Months ? {} : { gizi }) },
       childAgeGroupInfo.groupId,
       childSex
     );
@@ -297,12 +300,12 @@ export function ExaminationFormPage() {
         C2: tb,
         C3: lk,
         C5: imun,
-        // Standarisasi Skor 5 Kriteria Baku (1 s/d 4) Sesuai Excel
+        // Standarisasi Skor Kriteria Baku (1 s/d 4) Sesuai Excel
         K1: std.scores.K1,
         K2: std.scores.K2,
         K3: std.scores.K3,
         K4: std.scores.K4,
-        K5: std.scores.K5,
+        ...(isUnder6Months ? {} : { K5: std.scores.K5 }),
         raw_bb: bb,
         raw_tb: tb,
         raw_lk: lk,
@@ -885,35 +888,54 @@ export function ExaminationFormPage() {
                 <span>2. Asupan Gizi & Pola Makan (PMBA)</span>
               </h3>
               <p className="text-xs text-slate-500">
-                Praktik pemberian makan bayi dan anak sesuai pedoman gizi
+                {isUnder6Months
+                  ? 'Fase menyusui (ASI Eksklusif) untuk bayi di bawah 6 bulan'
+                  : 'Praktik pemberian makan bayi dan anak sesuai pedoman gizi'}
               </p>
             </div>
+            {isUnder6Months && (
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                K5 Nonaktif (ASI Eksklusif)
+              </span>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {PMBA_OPTIONS.map((opt) => {
-              const isSelected = Number(values.gizi) === opt.score;
-              return (
-                <div
-                  key={opt.score}
-                  onClick={() => handleInputChange('gizi', String(opt.score))}
-                  className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
-                    isSelected
-                      ? 'bg-teal-50 border-teal-500 ring-2 ring-teal-500/20'
-                      : 'bg-slate-50/60 border-slate-200 hover:bg-slate-100/70'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="font-bold text-xs text-slate-900">{opt.title}</span>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-md border ${opt.badgeClass}`}>
-                      Skor: {opt.score}
-                    </span>
+          {isUnder6Months ? (
+            <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 flex items-start gap-3">
+              <div className="p-2 bg-amber-100 rounded-xl text-amber-700 shrink-0 mt-0.5">
+                <Utensils className="w-5 h-5" />
+              </div>
+              <div className="text-xs text-amber-900 leading-relaxed">
+                <span className="font-bold text-sm text-amber-950 block mb-0.5">Fase ASI Eksklusif (Usia &lt; 6 Bulan)</span>
+                Kriteria K5 (Asupan Gizi / PMBA) dinonaktifkan karena bayi usia di bawah 6 bulan masih dalam periode ASI eksklusif dan belum menerima MP-ASI. Penilaian SPK otomatis menggunakan model 4 kriteria (BB/U, PB/TB, LK/U, dan Imunisasi).
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {PMBA_OPTIONS.map((opt) => {
+                const isSelected = Number(values.gizi) === opt.score;
+                return (
+                  <div
+                    key={opt.score}
+                    onClick={() => handleInputChange('gizi', String(opt.score))}
+                    className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
+                      isSelected
+                        ? 'bg-teal-50 border-teal-500 ring-2 ring-teal-500/20'
+                        : 'bg-slate-50/60 border-slate-200 hover:bg-slate-100/70'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="font-bold text-xs text-slate-900">{opt.title}</span>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-md border ${opt.badgeClass}`}>
+                        Skor: {opt.score}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 leading-relaxed">{opt.desc}</p>
                   </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">{opt.desc}</p>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Section 3: Live Standarisasi Hasil Skoring */}
@@ -921,7 +943,10 @@ export function ExaminationFormPage() {
           <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/70 pb-3">
               <div>
-                <span className="font-bold text-sm text-slate-900">Hasil Standarisasi Kriteria (Skala 1–4)</span>
+                <span className="font-bold text-sm text-slate-900">
+                  Hasil Standarisasi Kriteria (Skala 1–4)
+                  {isUnder6Months && <span className="ml-2 text-xs font-normal text-amber-700">(Model 4 Kriteria)</span>}
+                </span>
                 <p className="text-xs text-slate-500">Konversi nilai riil menjadi skor ordinal untuk kriteria SAW</p>
               </div>
               <span className={`text-xs font-bold px-3 py-1 rounded-full border ${
@@ -933,7 +958,7 @@ export function ExaminationFormPage() {
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-center text-xs">
+            <div className={`grid gap-2.5 text-center text-xs ${isUnder6Months ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-5'}`}>
               <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
                 <span className="text-[11px] text-teal-700 block font-semibold">K1: Berat Badan</span>
                 <span className="text-lg font-bold text-slate-900 my-0.5 block">Skor {liveStandardization.scores.K1}</span>
@@ -954,11 +979,13 @@ export function ExaminationFormPage() {
                 <span className="text-lg font-bold text-slate-900 my-0.5 block">Skor {liveStandardization.scores.K4}</span>
                 <span className="text-[10px] text-slate-500 block truncate">{liveStandardization.labels.K4}</span>
               </div>
-              <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
-                <span className="text-[11px] text-amber-700 block font-semibold">K5: Asupan Gizi</span>
-                <span className="text-lg font-bold text-slate-900 my-0.5 block">Skor {liveStandardization.scores.K5}</span>
-                <span className="text-[10px] text-slate-500 block truncate">{liveStandardization.labels.K5}</span>
-              </div>
+              {!isUnder6Months && (
+                <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                  <span className="text-[11px] text-amber-700 block font-semibold">K5: Asupan Gizi</span>
+                  <span className="text-lg font-bold text-slate-900 my-0.5 block">Skor {liveStandardization.scores.K5}</span>
+                  <span className="text-[10px] text-slate-500 block truncate">{liveStandardization.labels.K5}</span>
+                </div>
+              )}
             </div>
 
             {liveStandardization.statusFlag === 'Perlu Tinjau' && (

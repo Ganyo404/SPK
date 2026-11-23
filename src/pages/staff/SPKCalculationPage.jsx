@@ -82,6 +82,7 @@ export function SPKCalculationPage() {
   const [selectedResult, setSelectedResult] = useState(null);
 
   const selectedAgeGroup = SPK_AGE_GROUPS.find((g) => g.id === Number(ageGroupId)) || SPK_AGE_GROUPS[5];
+  const isUnder6Months = selectedAgeGroup?.id === 1 || selectedAgeGroup?.id === 2;
 
   const handleYearChange = (val) => {
     setYearInput(val);
@@ -104,7 +105,7 @@ export function SPKCalculationPage() {
     setIsUpdating(true);
     setError('');
 
-    const config = spkService.getAHPConfig();
+    const config = spkService.getAHPConfig(targetGroupId);
     setAhpConfig(config);
 
     const res = await spkService.getLatestResultsForCohort(targetGroupId, targetPeriod, targetGender);
@@ -322,6 +323,13 @@ export function SPKCalculationPage() {
                 <CheckCircle className="w-3.5 h-3.5" />
                 <span>Matriks Valid</span>
               </span>
+              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
+                isUnder6Months
+                  ? 'bg-amber-50 text-amber-800 border-amber-200'
+                  : 'bg-teal-50 text-teal-800 border-teal-200'
+              }`}>
+                {isUnder6Months ? 'Model 4 Kriteria (< 6 Bln)' : 'Model 5 Kriteria (≥ 6 Bln)'}
+              </span>
             </div>
           </div>
 
@@ -329,52 +337,60 @@ export function SPKCalculationPage() {
             <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
               <span className="text-slate-500 block text-[11px]">K1. Berat Badan (BB/U)</span>
               <span className="text-base font-bold text-slate-900 font-mono mt-0.5 block">
-                {(((ahpConfig.weightsMap?.K1 ?? ahpConfig.weightsMap?.C1) || 0.122833) * 100).toFixed(1)}%
+                {(((ahpConfig?.weightsMap?.K1 ?? ahpConfig?.weightsMap?.C1) || (isUnder6Months ? 0.162920 : 0.122833)) * 100).toFixed(1)}%
               </span>
               <span className="text-[10px] text-slate-400 block font-mono">
-                w = {(ahpConfig.weightsMap?.K1 ?? ahpConfig.weightsMap?.C1 ?? 0.122833).toFixed(4)}
+                w = {(ahpConfig?.weightsMap?.K1 ?? ahpConfig?.weightsMap?.C1 ?? (isUnder6Months ? 0.162920 : 0.122833)).toFixed(4)}
               </span>
             </div>
 
             <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
               <span className="text-slate-500 block text-[11px]">K2. Tinggi Badan (PB/TB)</span>
               <span className="text-base font-bold text-slate-900 font-mono mt-0.5 block">
-                {(((ahpConfig.weightsMap?.K2 ?? ahpConfig.weightsMap?.C2) || 0.122833) * 100).toFixed(1)}%
+                {(((ahpConfig?.weightsMap?.K2 ?? ahpConfig?.weightsMap?.C2) || (isUnder6Months ? 0.162920 : 0.122833)) * 100).toFixed(1)}%
               </span>
               <span className="text-[10px] text-slate-400 block font-mono">
-                w = {(ahpConfig.weightsMap?.K2 ?? ahpConfig.weightsMap?.C2 ?? 0.122833).toFixed(4)}
+                w = {(ahpConfig?.weightsMap?.K2 ?? ahpConfig?.weightsMap?.C2 ?? (isUnder6Months ? 0.162920 : 0.122833)).toFixed(4)}
               </span>
             </div>
 
             <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
               <span className="text-slate-500 block text-[11px]">K3. Lingkar Kepala (LK/U)</span>
               <span className="text-base font-bold text-slate-900 font-mono mt-0.5 block">
-                {(((ahpConfig.weightsMap?.K3 ?? ahpConfig.weightsMap?.C3) || 0.084737) * 100).toFixed(1)}%
+                {(((ahpConfig?.weightsMap?.K3 ?? ahpConfig?.weightsMap?.C3) || (isUnder6Months ? 0.112387 : 0.084737)) * 100).toFixed(1)}%
               </span>
               <span className="text-[10px] text-slate-400 block font-mono">
-                w = {(ahpConfig.weightsMap?.K3 ?? ahpConfig.weightsMap?.C3 ?? 0.084737).toFixed(4)}
+                w = {(ahpConfig?.weightsMap?.K3 ?? ahpConfig?.weightsMap?.C3 ?? (isUnder6Months ? 0.112387 : 0.084737)).toFixed(4)}
               </span>
             </div>
 
             <div className="p-3 rounded-2xl bg-teal-50/70 border border-teal-200/80">
               <span className="text-teal-700 block text-[11px] font-semibold">K4. Imunisasi (Prioritas)</span>
               <span className="text-base font-bold text-teal-900 font-mono mt-0.5 block">
-                {(((ahpConfig.weightsMap?.K4 ?? ahpConfig.weightsMap?.C5) || 0.423687) * 100).toFixed(1)}%
+                {(((ahpConfig?.weightsMap?.K4 ?? ahpConfig?.weightsMap?.C5) || (isUnder6Months ? 0.561772 : 0.423687)) * 100).toFixed(1)}%
               </span>
               <span className="text-[10px] text-teal-700 block font-mono">
-                w = {(ahpConfig.weightsMap?.K4 ?? ahpConfig.weightsMap?.C5 ?? 0.423687).toFixed(4)}
+                w = {(ahpConfig?.weightsMap?.K4 ?? ahpConfig?.weightsMap?.C5 ?? (isUnder6Months ? 0.561772 : 0.423687)).toFixed(4)}
               </span>
             </div>
 
-            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
-              <span className="text-slate-500 block text-[11px]">K5. Asupan Gizi (PMBA)</span>
-              <span className="text-base font-bold text-slate-900 font-mono mt-0.5 block">
-                {(((ahpConfig.weightsMap?.K5 ?? ahpConfig.weightsMap?.C4) || 0.245910) * 100).toFixed(1)}%
-              </span>
-              <span className="text-[10px] text-slate-400 block font-mono">
-                w = {(ahpConfig.weightsMap?.K5 ?? ahpConfig.weightsMap?.C4 ?? 0.245910).toFixed(4)}
-              </span>
-            </div>
+            {isUnder6Months ? (
+              <div className="p-3 rounded-2xl bg-slate-100/70 border border-dashed border-slate-300">
+                <span className="text-slate-400 block text-[11px]">K5. Asupan Gizi (PMBA)</span>
+                <span className="text-sm font-bold text-slate-500 mt-1 block">Nonaktif</span>
+                <span className="text-[10px] text-slate-400 block">Fase ASI Eksklusif</span>
+              </div>
+            ) : (
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
+                <span className="text-slate-500 block text-[11px]">K5. Asupan Gizi (PMBA)</span>
+                <span className="text-base font-bold text-slate-900 font-mono mt-0.5 block">
+                  {(((ahpConfig?.weightsMap?.K5 ?? ahpConfig?.weightsMap?.C4) || 0.245910) * 100).toFixed(1)}%
+                </span>
+                <span className="text-[10px] text-slate-400 block font-mono">
+                  w = {(ahpConfig?.weightsMap?.K5 ?? ahpConfig?.weightsMap?.C4 ?? 0.245910).toFixed(4)}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -516,7 +532,7 @@ export function SPKCalculationPage() {
                   <th className="py-3 px-3">K2 (TB)</th>
                   <th className="py-3 px-3">K3 (LK)</th>
                   <th className="py-3 px-3">K4 (Imun)</th>
-                  <th className="py-3 px-3">K5 (Gizi)</th>
+                  <th className="py-3 px-3">{isUnder6Months ? 'K5 (ASI)' : 'K5 (Gizi)'}</th>
                   <th className="py-3 px-3.5 font-bold text-teal-800">Skor (Vi)</th>
                   <th className="py-3 px-3 text-center">Status</th>
                   <th className="py-3 px-3 text-right">Aksi</th>
@@ -623,12 +639,21 @@ export function SPKCalculationPage() {
 
                       {/* K5: Asupan Gizi */}
                       <td className="py-3.5 px-3">
-                        <div className="flex flex-col">
-                          <span className={`inline-flex items-center justify-center w-max px-2 py-0.5 rounded-md border text-[11px] ${getScoreBadgeClass(k5Score)}`}>
-                            Skor {k5Score}
-                          </span>
-                          <span className="text-[10px] text-slate-400 mt-0.5">{rawGizi} Ind</span>
-                        </div>
+                        {isUnder6Months ? (
+                          <div className="flex flex-col">
+                            <span className="inline-flex items-center justify-center w-max px-2 py-0.5 rounded-md border text-[11px] bg-slate-100 text-slate-600 border-slate-200">
+                              ASI Eksklusif
+                            </span>
+                            <span className="text-[10px] text-slate-400 mt-0.5">Nonaktif</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col">
+                            <span className={`inline-flex items-center justify-center w-max px-2 py-0.5 rounded-md border text-[11px] ${getScoreBadgeClass(k5Score)}`}>
+                              Skor {k5Score}
+                            </span>
+                            <span className="text-[10px] text-slate-400 mt-0.5">{rawGizi} Ind</span>
+                          </div>
+                        )}
                       </td>
 
                       {/* Skor Preferensi (Vi) */}
@@ -700,12 +725,12 @@ export function SPKCalculationPage() {
                   <th className="p-2 border-r border-slate-200 text-center">K2 (TB)</th>
                   <th className="p-2 border-r border-slate-200 text-center">K3 (LK)</th>
                   <th className="p-2 border-r border-slate-200 text-center">K4 (Imun)</th>
-                  <th className="p-2 border-r border-slate-200 text-center">K5 (Gizi)</th>
+                  <th className="p-2 border-r border-slate-200 text-center">{isUnder6Months ? 'K5 (ASI)' : 'K5 (Gizi)'}</th>
                   <th className="p-2 border-r border-slate-200 text-center">R1</th>
                   <th className="p-2 border-r border-slate-200 text-center">R2</th>
                   <th className="p-2 border-r border-slate-200 text-center">R3</th>
                   <th className="p-2 border-r border-slate-200 text-center">R4</th>
-                  <th className="p-2 border-r border-slate-200 text-center">R5</th>
+                  <th className="p-2 border-r border-slate-200 text-center">{isUnder6Months ? 'R5 (ASI)' : 'R5'}</th>
                   <th className="p-2 font-bold text-teal-800 border-r border-slate-200">Skor Vi</th>
                   <th className="p-2 text-center">Status</th>
                 </tr>
@@ -730,12 +755,12 @@ export function SPKCalculationPage() {
                       <td className="p-2 text-center font-bold text-slate-800 border-r border-slate-200">{k2}</td>
                       <td className="p-2 text-center font-bold text-slate-800 border-r border-slate-200">{k3}</td>
                       <td className="p-2 text-center font-bold text-slate-800 border-r border-slate-200">{k4}</td>
-                      <td className="p-2 text-center font-bold text-slate-800 border-r border-slate-200">{k5}</td>
+                      <td className="p-2 text-center text-slate-500 border-r border-slate-200">{isUnder6Months ? '-' : k5}</td>
                       <td className="p-2 font-mono text-center border-r border-slate-200">{res.normalizedValues?.K1 ?? res.normalizedValues?.C1 ?? 1}</td>
                       <td className="p-2 font-mono text-center border-r border-slate-200">{res.normalizedValues?.K2 ?? res.normalizedValues?.C2 ?? 1}</td>
                       <td className="p-2 font-mono text-center border-r border-slate-200">{res.normalizedValues?.K3 ?? res.normalizedValues?.C3 ?? 1}</td>
                       <td className="p-2 font-mono text-center border-r border-slate-200">{res.normalizedValues?.K4 ?? res.normalizedValues?.C5 ?? 1}</td>
-                      <td className="p-2 font-mono text-center border-r border-slate-200">{res.normalizedValues?.K5 ?? res.normalizedValues?.C4 ?? 1}</td>
+                      <td className="p-2 font-mono text-center border-r border-slate-200">{isUnder6Months ? '-' : (res.normalizedValues?.K5 ?? res.normalizedValues?.C4 ?? 1)}</td>
                       <td className="p-2 font-mono font-bold text-teal-700 border-r border-slate-200">{res.preferenceScore.toFixed(7)}</td>
                       <td className="p-2 text-center">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -785,15 +810,25 @@ export function SPKCalculationPage() {
             </div>
 
             <div>
-              <p className="font-bold text-slate-800 mb-2">Kontribusi 5 Kriteria Baku (w &times; r):</p>
+              <p className="font-bold text-slate-800 mb-2">
+                Kontribusi {isUnder6Months ? '4' : '5'} Kriteria Baku (w &times; r):
+              </p>
               <div className="space-y-2">
-                {[
-                  { code: 'K1', name: 'Berat Badan menurut Umur (BB/U)', weight: '12.28%' },
-                  { code: 'K2', name: 'Panjang/Tinggi Badan (PB/TB)', weight: '12.28%' },
-                  { code: 'K3', name: 'Lingkar Kepala menurut Umur (LK/U)', weight: '8.47%' },
-                  { code: 'K4', name: 'Kelengkapan Imunisasi Dasar', weight: '42.37%' },
-                  { code: 'K5', name: 'Asupan Gizi & Praktik Makan (PMBA)', weight: '24.59%' }
-                ].map((crit) => {
+                {(isUnder6Months
+                  ? [
+                      { code: 'K1', name: 'Berat Badan menurut Umur (BB/U)', weight: '16.29%' },
+                      { code: 'K2', name: 'Panjang/Tinggi Badan (PB/TB)', weight: '16.29%' },
+                      { code: 'K3', name: 'Lingkar Kepala menurut Umur (LK/U)', weight: '11.24%' },
+                      { code: 'K4', name: 'Kelengkapan Imunisasi Dasar', weight: '56.18%' }
+                    ]
+                  : [
+                      { code: 'K1', name: 'Berat Badan menurut Umur (BB/U)', weight: '12.28%' },
+                      { code: 'K2', name: 'Panjang/Tinggi Badan (PB/TB)', weight: '12.28%' },
+                      { code: 'K3', name: 'Lingkar Kepala menurut Umur (LK/U)', weight: '8.47%' },
+                      { code: 'K4', name: 'Kelengkapan Imunisasi Dasar', weight: '42.37%' },
+                      { code: 'K5', name: 'Asupan Gizi & Praktik Makan (PMBA)', weight: '24.59%' }
+                    ]
+                ).map((crit) => {
                   const score = selectedResult.standardScores?.[crit.code] ?? selectedResult.values?.[crit.code] ?? 4;
                   const label = selectedResult.scoreLabels?.[crit.code] || '';
                   const contribution = selectedResult.contributions?.[crit.code] ?? 0;
@@ -820,6 +855,13 @@ export function SPKCalculationPage() {
                     </div>
                   );
                 })}
+
+                {isUnder6Months && (
+                  <div className="p-2.5 rounded-xl bg-slate-100/70 border border-dashed border-slate-300 flex items-center justify-between text-slate-500 text-xs">
+                    <span>K5. Asupan Gizi &amp; PMBA (ASI Eksklusif)</span>
+                    <span className="font-bold text-slate-400">Nonaktif</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

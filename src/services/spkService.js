@@ -1,5 +1,12 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { calculateAHP, DEFAULT_AHP_5X5_MATRIX, DEFAULT_5_CRITERIA_CODES } from '../lib/spk/ahp';
+import {
+  calculateAHP,
+  DEFAULT_AHP_5X5_MATRIX,
+  DEFAULT_5_CRITERIA_CODES,
+  DEFAULT_AHP_4X4_MATRIX,
+  DEFAULT_4_CRITERIA_CODES,
+  OFFICIAL_AHP_WEIGHTS_4
+} from '../lib/spk/ahp';
 import { calculateSAW } from '../lib/spk/saw';
 import {
   SPK_AGE_GROUPS,
@@ -10,11 +17,14 @@ import {
 import { MOCK_EXAMINATIONS, MOCK_CHILDREN, MOCK_CRITERIA } from '../lib/mockData';
 import {
   OFFICIAL_CRITERIA_5,
+  OFFICIAL_CRITERIA_4,
   OFFICIAL_AHP_WEIGHTS,
-  convertRawToStandardScores
+  convertRawToStandardScores,
+  getOfficialCriteriaForGroup,
+  getOfficialWeightsForGroup
 } from '../lib/spk/scoringStandard';
 
-// Initial AHP active weights for 5 standardized criteria
+// Initial AHP active weights for 5 standardized criteria (Usia >= 6 bulan)
 let currentAHPMatrix = DEFAULT_AHP_5X5_MATRIX;
 let currentAHPResult = {
   valid: true,
@@ -26,6 +36,22 @@ let currentAHPResult = {
   ci: 0.000034,
   cr: 0.00003,
   ri: 1.12,
+  crThreshold: 0.10,
+  isConsistent: true
+};
+
+// Initial AHP active weights for 4 standardized criteria (Usia < 6 bulan, ASI Eksklusif)
+let currentAHP4Matrix = DEFAULT_AHP_4X4_MATRIX;
+let currentAHP4Result = {
+  valid: true,
+  n: 4,
+  matrix: DEFAULT_AHP_4X4_MATRIX,
+  weights: [0.162920, 0.162920, 0.112387, 0.561772],
+  weightsMap: OFFICIAL_AHP_WEIGHTS_4,
+  lambdaMax: 4.000210,
+  ci: 0.000070,
+  cr: 0.000078,
+  ri: 0.90,
   crThreshold: 0.10,
   isConsistent: true
 };
@@ -127,15 +153,23 @@ function saveLiveSpkRuns(runs) {
 let spkRunsStore = getLiveSpkRuns();
 
 export const spkService = {
-  getAHPConfig() {
-    return currentAHPResult;
+  getAHPConfig(ageGroupId) {
+    const isUnder6 = Number(ageGroupId) === 1 || Number(ageGroupId) === 2;
+    return isUnder6 ? currentAHP4Result : currentAHPResult;
   },
 
-  updateAHPMatrix(newMatrix) {
-    const calc = calculateAHP(newMatrix, DEFAULT_5_CRITERIA_CODES);
+  updateAHPMatrix(newMatrix, ageGroupId) {
+    const isUnder6 = Number(ageGroupId) === 1 || Number(ageGroupId) === 2;
+    const codes = isUnder6 ? DEFAULT_4_CRITERIA_CODES : DEFAULT_5_CRITERIA_CODES;
+    const calc = calculateAHP(newMatrix, codes);
     if (calc.valid && calc.isConsistent) {
-      currentAHPMatrix = newMatrix;
-      currentAHPResult = calc;
+      if (isUnder6) {
+        currentAHP4Matrix = newMatrix;
+        currentAHP4Result = calc;
+      } else {
+        currentAHPMatrix = newMatrix;
+        currentAHPResult = calc;
+      }
       return { data: calc, error: null };
     }
     return { data: null, error: { message: calc.error || 'Matriks AHP tidak konsisten (CR > 0.10).' } };
@@ -279,8 +313,14 @@ export const spkService = {
       };
     });
 
-    // 3. Jalankan perhitungan SAW dengan 5 Kriteria Baku (semua Benefit, skala 1-4)
-    const sawResult = calculateSAW(alternatives, OFFICIAL_CRITERIA_5, currentAHPResult.weightsMap, { gender });
+    // 3. Jalankan perhitungan SAW
+    // Balita < 6 bulan (Kelompok 1 & 2): Model 4 Kriteria (K1 - K4, K5 nonaktif karena ASI Eksklusif)
+    // Balita >= 6 bulan (Kelompok 3 - 8): Model 5 Kriteria (K1 - K5)
+    const isUnder6Months = Number(targetGroup.id) === 1 || Number(targetGroup.id) === 2;
+    const activeCriteria = isUnder6Months ? OFFICIAL_CRITERIA_4 : OFFICIAL_CRITERIA_5;
+    const activeWeights = isUnder6Months ? currentAHP4Result.weightsMap : currentAHPResult.weightsMap;
+
+    const sawResult = calculateSAW(alternatives, activeCriteria, activeWeights, { gender });
 
     if (!sawResult.valid) {
       return { data: null, error: { message: sawResult.error } };
@@ -295,8 +335,10 @@ export const spkService = {
       period_code: periodCode,
       gender: gender,
       gender_label: genderLabel,
-      algorithm_version: 'AHP-SAW-v1.0',
-      ahp_weights: currentAHPResult.weightsMap,
+      algorithm_version: isUnder6Months ? 'AHP-SAW-4K-v1.0' : 'AHP-SAW-v1.0',
+      criteria_count: isUnder6Months ? 4 : 5,
+      is_under_6_months: isUnder6Months,
+      ahp_weights: activeWeights,
       alternative_count: sawResult.results.length,
       status: 'completed',
       created_by: createdBy || 'dr. Dewi Anggraini, Sp.A',

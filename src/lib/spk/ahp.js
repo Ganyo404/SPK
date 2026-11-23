@@ -175,7 +175,7 @@ export function calculateAHP(matrix, criterionCodes = []) {
 }
 
 /**
- * Matriks Baku 5x5 untuk 5 Kriteria Permenkes No. 2/2020 & Standar WHO:
+ * Matriks Baku 5x5 untuk 5 Kriteria Permenkes No. 2/2020 & Standar WHO (Usia >= 6 bulan):
  * K1: Berat Badan menurut Umur (BB/U)
  * K2: Panjang/Tinggi Badan menurut Umur (PB/TB)
  * K3: Lingkar Kepala menurut Umur (LK/U)
@@ -193,7 +193,21 @@ export const DEFAULT_AHP_5X5_MATRIX = [
   [ 2.000,   2.000,   2.900,   0.580,   1.000 ]  // K5: Asupan Gizi
 ];
 
+/**
+ * Matriks Baku 4x4 untuk 4 Kriteria Balita Usia < 6 Bulan (Fase ASI Eksklusif):
+ * K5 (Asupan Gizi/PMBA) dinonaktifkan karena balita belum menerima MP-ASI.
+ * Telah diuji matematis menghasilkan CR = 0.000078 (Sangat Konsisten, CR <= 0.10)
+ */
+export const DEFAULT_AHP_4X4_MATRIX = [
+  // K1       K2       K3       K4
+  [ 1.000,   1.000,   1.450,   0.290 ], // K1: BB/U
+  [ 1.000,   1.000,   1.450,   0.290 ], // K2: TB/U
+  [ 0.690,   0.690,   1.000,   0.200 ], // K3: LK/U
+  [ 3.448,   3.448,   5.000,   1.000 ]  // K4: Imunisasi
+];
+
 export const DEFAULT_5_CRITERIA_CODES = ['K1', 'K2', 'K3', 'K4', 'K5'];
+export const DEFAULT_4_CRITERIA_CODES = ['K1', 'K2', 'K3', 'K4'];
 
 export const OFFICIAL_AHP_WEIGHTS = {
   K1: 0.122833,
@@ -201,6 +215,13 @@ export const OFFICIAL_AHP_WEIGHTS = {
   K3: 0.084737,
   K4: 0.423687,
   K5: 0.245910
+};
+
+export const OFFICIAL_AHP_WEIGHTS_4 = {
+  K1: 0.162920,
+  K2: 0.162920,
+  K3: 0.112387,
+  K4: 0.561772
 };
 
 export const DEFAULT_CRITERIA_CODES = ['K1', 'K2', 'K3', 'K4', 'K5'];

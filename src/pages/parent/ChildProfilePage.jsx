@@ -474,12 +474,36 @@ export function ChildProfilePage() {
                     <Utensils className="w-3.5 h-3.5 text-amber-600" />
                     <span>K5. Asupan Gizi & PMBA</span>
                   </div>
-                  <p className="text-lg font-bold text-amber-900">
-                    Skor {latestVerifiedExam.values?.K5 ?? latestVerifiedExam.standard_scores?.K5 ?? 4} <span className="text-xs font-normal text-slate-500">/ 4 Indikator Baku</span>
-                  </p>
-                  <span className="text-[10px] text-amber-700 font-semibold">
-                    Standar PMBA Kemenkes RI & WHO
-                  </span>
+                  {(() => {
+                    const isExamUnder6 = latestVerifiedExam.age_group_id === 1 ||
+                      latestVerifiedExam.age_group_id === 2 ||
+                      (latestVerifiedExam.age_in_months != null && latestVerifiedExam.age_in_months < 6) ||
+                      latestVerifiedExam.values?.K5 == null;
+
+                    if (isExamUnder6) {
+                      return (
+                        <>
+                          <p className="text-lg font-bold text-slate-700">
+                            ASI Eksklusif
+                          </p>
+                          <span className="text-[10px] text-slate-500 font-semibold">
+                            Fase Menyusui (&lt; 6 Bulan, K5 Nonaktif)
+                          </span>
+                        </>
+                      );
+                    }
+
+                    return (
+                      <>
+                        <p className="text-lg font-bold text-amber-900">
+                          Skor {latestVerifiedExam.values?.K5 ?? latestVerifiedExam.standard_scores?.K5 ?? 4} <span className="text-xs font-normal text-slate-500">/ 4 Indikator Baku</span>
+                        </p>
+                        <span className="text-[10px] text-amber-700 font-semibold">
+                          Standar PMBA Kemenkes RI & WHO
+                        </span>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -909,7 +933,16 @@ export function ChildProfilePage() {
                         })()}
                       </td>
                       <td className="py-3.5 px-3.5 text-amber-700 font-semibold">
-                        Skor {exam.values?.K5 ?? exam.standard_scores?.K5 ?? 4}
+                        {(() => {
+                          const isExamUnder6 = exam.age_group_id === 1 ||
+                            exam.age_group_id === 2 ||
+                            (exam.age_in_months != null && exam.age_in_months < 6) ||
+                            exam.values?.K5 == null;
+                          if (isExamUnder6) {
+                            return <span className="text-slate-500 font-normal">ASI Eksklusif</span>;
+                          }
+                          return `Skor ${exam.values?.K5 ?? exam.standard_scores?.K5 ?? 4}`;
+                        })()}
                       </td>
                       <td className="py-3.5 px-3.5 font-mono text-teal-700 font-bold">
                         {exam.saw_score != null ? exam.saw_score.toFixed(3) : '-'}
@@ -997,15 +1030,38 @@ export function ChildProfilePage() {
                     Skor: {selectedExamDetail.values?.K4 ?? selectedExamDetail.standard_scores?.K4 ?? 4} (Bobot 42.37%)
                   </span>
                 </div>
-                <div className="p-2.5 rounded-xl border border-slate-200 bg-white col-span-2">
-                  <span className="text-slate-500 block">K5. Asupan Gizi & Praktik Makan Balita (PMBA)</span>
-                  <span className="font-bold text-amber-900 text-sm">
-                    Skor {selectedExamDetail.values?.K5 ?? selectedExamDetail.standard_scores?.K5 ?? 4} dari 4 Indikator
-                  </span>
-                  <span className="text-[10px] text-slate-500 block mt-0.5">
-                    Bobot 24.59% • Standar Kemenkes RI & WHO
-                  </span>
-                </div>
+                {(() => {
+                  const isExamUnder6 = selectedExamDetail.age_group_id === 1 ||
+                    selectedExamDetail.age_group_id === 2 ||
+                    (selectedExamDetail.age_in_months != null && selectedExamDetail.age_in_months < 6) ||
+                    selectedExamDetail.values?.K5 == null;
+
+                  if (isExamUnder6) {
+                    return (
+                      <div className="p-2.5 rounded-xl border border-slate-200 bg-white col-span-2">
+                        <span className="text-slate-500 block">K5. Asupan Gizi & Praktik Makan Balita (PMBA)</span>
+                        <span className="font-bold text-slate-700 text-sm">
+                          ASI Eksklusif (Nonaktif)
+                        </span>
+                        <span className="text-[10px] text-slate-500 block mt-0.5">
+                          Balita &lt; 6 Bulan • Belum menerima MP-ASI (Model 4 Kriteria)
+                        </span>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="p-2.5 rounded-xl border border-slate-200 bg-white col-span-2">
+                      <span className="text-slate-500 block">K5. Asupan Gizi & Praktik Makan Balita (PMBA)</span>
+                      <span className="font-bold text-amber-900 text-sm">
+                        Skor {selectedExamDetail.values?.K5 ?? selectedExamDetail.standard_scores?.K5 ?? 4} dari 4 Indikator
+                      </span>
+                      <span className="text-[10px] text-slate-500 block mt-0.5">
+                        Bobot 24.59% • Standar Kemenkes RI & WHO
+                      </span>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
@@ -1016,7 +1072,11 @@ export function ChildProfilePage() {
                 Peringkat Kelompok Umur: <strong>#{selectedExamDetail.saw_rank || '-'}</strong>
                 {selectedExamDetail.age_group_name ? ` (${selectedExamDetail.age_group_name})` : ''}
               </p>
-              <p className="text-[11px] text-teal-700 mt-1">Konfigurasi: Versi Algoritma AHP-SAW (5 Kriteria Baku)</p>
+              <p className="text-[11px] text-teal-700 mt-1">
+                Konfigurasi: {selectedExamDetail.age_group_id === 1 || selectedExamDetail.age_group_id === 2
+                  ? 'Model 4 Kriteria Baku (< 6 Bulan)'
+                  : 'Model 5 Kriteria Baku (≥ 6 Bulan)'}
+              </p>
             </div>
 
             {selectedExamDetail.notes && (

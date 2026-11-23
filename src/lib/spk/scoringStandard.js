@@ -610,61 +610,76 @@ export function getAsupanGiziScore(val) {
 }
 
 /**
- * Mengonversi seluruh data mentah pemeriksaan menjadi skor terstandar 5 Kriteria Baku
+ * Mengonversi seluruh data mentah pemeriksaan menjadi skor terstandar Kriteria Baku.
+ * Untuk balita usia < 6 bulan (Kelompok 1 & 2), K5 (Asupan Gizi/PMBA) dinonaktifkan
+ * karena masih dalam fase ASI Eksklusif dan belum menerima MP-ASI.
+ * 
  * @param {object} rawValues - { C1/BB: number, C2/TB: number, C3/LK: number, C5/Imun: number, gizi: number }
  * @param {number|string} ageGroupId - 1 s/d 8
  * @param {'L'|'P'} sex - 'L' atau 'P'
  */
 export function convertRawToStandardScores(rawValues = {}, ageGroupId = 4, sex = 'L') {
+  const grpId = Number(ageGroupId) || 4;
+  const isUnder6Months = grpId === 1 || grpId === 2;
+
   const rawBB = rawValues.K1 ?? rawValues.C1 ?? rawValues.beratBadan ?? 0;
   const rawTB = rawValues.K2 ?? rawValues.C2 ?? rawValues.tinggiBadan ?? 0;
   const rawLK = rawValues.K3 ?? rawValues.C3 ?? rawValues.lingkarKepala ?? 0;
   const rawImun = rawValues.K4 ?? rawValues.C5 ?? rawValues.imunisasi ?? rawValues.raw_imun ?? 17;
-  const rawGizi = rawValues.K5 ?? rawValues.asupanGizi ?? rawValues.gizi ?? 4;
 
-  const bbRes = getBBScore(rawBB, ageGroupId, sex);
-  const tbRes = getTBScore(rawTB, ageGroupId, sex);
-  const lkRes = getLKScore(rawLK, ageGroupId, sex);
-  const imunRes = getImunisasiScore(rawImun, ageGroupId);
-  const giziRes = getAsupanGiziScore(rawGizi);
+  const bbRes = getBBScore(rawBB, grpId, sex);
+  const tbRes = getTBScore(rawTB, grpId, sex);
+  const lkRes = getLKScore(rawLK, grpId, sex);
+  const imunRes = getImunisasiScore(rawImun, grpId);
 
   const scores = {
     K1: bbRes.score,
     K2: tbRes.score,
     K3: lkRes.score,
-    K4: imunRes.score,
-    K5: giziRes.score
+    K4: imunRes.score
   };
 
   const labels = {
     K1: bbRes.label,
     K2: tbRes.label,
     K3: lkRes.label,
-    K4: imunRes.label,
-    K5: giziRes.label
+    K4: imunRes.label
   };
 
+  let rawGizi = null;
+  if (!isUnder6Months) {
+    rawGizi = rawValues.K5 ?? rawValues.asupanGizi ?? rawValues.gizi ?? 4;
+    const giziRes = getAsupanGiziScore(rawGizi);
+    scores.K5 = giziRes.score;
+    labels.K5 = giziRes.label;
+  } else {
+    labels.K5 = 'ASI Eksklusif (Nonaktif)';
+  }
+
   // Status Flag:
-  // Sesuai rubrik simulasi, balita yang K1 (BB) atau K2 (TB) bernilai <= 2 atau memiliki skor 1 di kriteria fisik
-  // dikategorikan sebagai 'Perlu Tinjau', sedangkan balita dengan pertumbuhan normal adalah 'Normal'.
-  const isReviewNeeded = scores.K1 <= 2 || scores.K2 <= 2 || scores.K3 === 1 || scores.K4 === 1 || scores.K5 === 1;
+  // Balita yang K1 (BB) atau K2 (TB) bernilai <= 2 atau memiliki skor 1 di kriteria fisik
+  // dikategorikan sebagai 'Perlu Tinjau'. Balita < 6 bulan tidak memasukkan K5 dalam flag.
+  const isReviewNeeded = isUnder6Months
+    ? (scores.K1 <= 2 || scores.K2 <= 2 || scores.K3 === 1 || scores.K4 === 1)
+    : (scores.K1 <= 2 || scores.K2 <= 2 || scores.K3 === 1 || scores.K4 === 1 || scores.K5 === 1);
   const statusFlag = isReviewNeeded ? 'Perlu Tinjau' : 'Normal';
 
   return {
     scores,
     labels,
     statusFlag,
+    isUnder6Months,
     rawValues: {
       BB: rawBB,
       TB: rawTB,
       LK: rawLK,
       Imunisasi: rawImun,
-      Gizi: rawGizi
+      ...(isUnder6Months ? {} : { Gizi: rawGizi })
     }
   };
 }
 
-// Master Bobot AHP Baku Terkalibrasi untuk 5 Kriteria (Jumlah = 1.000000)
+// Master Bobot AHP Baku Terkalibrasi untuk 5 Kriteria (Usia >= 6 bulan, Jumlah = 1.000000)
 export const OFFICIAL_AHP_WEIGHTS = {
   K1: 0.122833, // BB/U
   K2: 0.122833, // PB/TB
@@ -673,7 +688,15 @@ export const OFFICIAL_AHP_WEIGHTS = {
   K5: 0.245910  // Asupan Gizi & PMBA
 };
 
-// Matriks AHP 5x5 Konsisten yang menghasilkan bobot tersebut
+// Master Bobot AHP Baku Terkalibrasi untuk 4 Kriteria (Usia < 6 bulan / ASI Eksklusif, Jumlah = 1.000000)
+export const OFFICIAL_AHP_WEIGHTS_4 = {
+  K1: 0.162920, // BB/U
+  K2: 0.162920, // PB/TB
+  K3: 0.112387, // LK/U
+  K4: 0.561772  // Kelengkapan Imunisasi
+};
+
+// Matriks AHP 5x5 Konsisten yang menghasilkan bobot 5 kriteria (CR = 0.000030)
 export const OFFICIAL_AHP_5X5_MATRIX = [
   // K1       K2       K3       K4       K5
   [ 1.000,   1.000,   1.450,   0.290,   0.500 ], // K1: BB/U
@@ -681,6 +704,15 @@ export const OFFICIAL_AHP_5X5_MATRIX = [
   [ 0.690,   0.690,   1.000,   0.200,   0.345 ], // K3: LK/U
   [ 3.448,   3.448,   5.000,   1.000,   1.723 ], // K4: Imunisasi
   [ 2.000,   2.000,   2.900,   0.580,   1.000 ]  // K5: Asupan Gizi
+];
+
+// Matriks AHP 4x4 Konsisten untuk usia < 6 bulan (CR = 0.000078)
+export const OFFICIAL_AHP_4X4_MATRIX = [
+  // K1       K2       K3       K4
+  [ 1.000,   1.000,   1.450,   0.290 ], // K1: BB/U
+  [ 1.000,   1.000,   1.450,   0.290 ], // K2: TB/U
+  [ 0.690,   0.690,   1.000,   0.200 ], // K3: LK/U
+  [ 3.448,   3.448,   5.000,   1.000 ]  // K4: Imunisasi
 ];
 
 export const OFFICIAL_CRITERIA_5 = [
@@ -735,4 +767,66 @@ export const OFFICIAL_CRITERIA_5 = [
     description: 'Skor 4 = 4 Indikator Ideal, Skor 3 = 3 Indikator, Skor 2 = 2 Indikator, Skor 1 = <=1'
   }
 ];
+
+export const OFFICIAL_CRITERIA_4 = [
+  {
+    code: 'K1',
+    name: 'Berat Badan menurut Umur (BB/U)',
+    shortName: 'BB/U',
+    unit: 'Skor 1-4',
+    rawUnit: 'kg',
+    direction: 'benefit',
+    weight: OFFICIAL_AHP_WEIGHTS_4.K1,
+    description: 'Skor 4 = Ideal/Normal (-2 s.d +1 SD), Skor 1 = Sangat Kurang / Obesitas'
+  },
+  {
+    code: 'K2',
+    name: 'Panjang/Tinggi Badan menurut Umur (PB/TB)',
+    shortName: 'PB/TB',
+    unit: 'Skor 1-4',
+    rawUnit: 'cm',
+    direction: 'benefit',
+    weight: OFFICIAL_AHP_WEIGHTS_4.K2,
+    description: 'Skor 4 = Normal/Ideal (-2 s.d +2 SD), Skor 1 = Sangat Pendek (Severely Stunted)'
+  },
+  {
+    code: 'K3',
+    name: 'Lingkar Kepala menurut Umur (LK/U)',
+    shortName: 'LK/U',
+    unit: 'Skor 1-4',
+    rawUnit: 'cm',
+    direction: 'benefit',
+    weight: OFFICIAL_AHP_WEIGHTS_4.K3,
+    description: 'Skor 4 = Proporsional (-2 s.d +2 SD), Skor 1 = Mikrosefali / Makrosefali'
+  },
+  {
+    code: 'K4',
+    name: 'Riwayat Kelengkapan Imunisasi',
+    shortName: 'Imunisasi',
+    unit: 'Skor 1-4',
+    rawUnit: 'dosis',
+    direction: 'benefit',
+    weight: OFFICIAL_AHP_WEIGHTS_4.K4,
+    description: 'Dosis imunisasi dasar balita (maks. 17 dosis)'
+  }
+];
+
+/**
+ * Mendapatkan daftar kriteria baku berdasarkan kelompok umur balita
+ * @param {number|string} ageGroupId
+ */
+export function getOfficialCriteriaForGroup(ageGroupId) {
+  const grpId = Number(ageGroupId) || 4;
+  return grpId === 1 || grpId === 2 ? OFFICIAL_CRITERIA_4 : OFFICIAL_CRITERIA_5;
+}
+
+/**
+ * Mendapatkan bobot AHP baku berdasarkan kelompok umur balita
+ * @param {number|string} ageGroupId
+ */
+export function getOfficialWeightsForGroup(ageGroupId) {
+  const grpId = Number(ageGroupId) || 4;
+  return grpId === 1 || grpId === 2 ? OFFICIAL_AHP_WEIGHTS_4 : OFFICIAL_AHP_WEIGHTS;
+}
+
 
