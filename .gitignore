@@ -16,6 +16,7 @@ dist-ssr
 !.env.example
 
 # Editor directories and files
+supabase/.temp/
 .vscode/*
 !.vscode/extensions.json
 .idea
