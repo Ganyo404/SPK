@@ -232,21 +232,21 @@ export function StaffChildrenListPage() {
                         <div className="p-2.5 rounded-xl bg-teal-50/60 border border-teal-100">
                           <div className="text-[11px] text-teal-800 font-medium">Berat Badan</div>
                           <div className="text-base font-extrabold text-teal-900 mt-0.5">
-                            {latestExam.values?.C1 || '-'} <span className="text-xs font-normal">kg</span>
+                            {latestExam.values?.C1 ?? latestExam.values?.beratBadan ?? latestExam.values?.BB ?? '-'} <span className="text-xs font-normal">kg</span>
                           </div>
                         </div>
 
                         <div className="p-2.5 rounded-xl bg-blue-50/60 border border-blue-100">
                           <div className="text-[11px] text-blue-800 font-medium">Tinggi Badan</div>
                           <div className="text-base font-extrabold text-blue-900 mt-0.5">
-                            {latestExam.values?.C2 || '-'} <span className="text-xs font-normal">cm</span>
+                            {latestExam.values?.C2 ?? latestExam.values?.tinggiBadan ?? latestExam.values?.TB ?? '-'} <span className="text-xs font-normal">cm</span>
                           </div>
                         </div>
 
                         <div className="p-2.5 rounded-xl bg-purple-50/60 border border-purple-100">
                           <div className="text-[11px] text-purple-800 font-medium">Lingkar Kepala</div>
                           <div className="text-base font-extrabold text-purple-900 mt-0.5">
-                            {latestExam.values?.C3 ?? latestExam.raw_values?.LK ?? '-'} <span className="text-xs font-normal">cm</span>
+                            {latestExam.values?.C3 ?? latestExam.values?.lingkarKepala ?? latestExam.values?.LK ?? '-'} <span className="text-xs font-normal">cm</span>
                           </div>
                         </div>
                       </div>

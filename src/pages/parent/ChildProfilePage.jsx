@@ -246,11 +246,11 @@ export function ChildProfilePage() {
     .sort((a, b) => new Date(a.examined_at) - new Date(b.examined_at))
     .map(e => ({
       date: e.period_code || e.examined_at.split('T')[0],
-      beratBadan: e.values?.C1 ?? e.raw_values?.BB ?? (e.values?.raw_bb != null ? Number(e.values.raw_bb) : null),
-      tinggiBadan: e.values?.C2 ?? e.raw_values?.TB ?? (e.values?.raw_tb != null ? Number(e.values.raw_tb) : null),
-      lingkarKepala: e.values?.C3 ?? e.raw_values?.LK ?? (e.values?.raw_lk != null ? Number(e.values.raw_lk) : null),
+      beratBadan: e.values?.C1 ?? e.values?.beratBadan ?? e.values?.BB ?? e.raw_values?.BB ?? (e.values?.raw_bb != null ? Number(e.values.raw_bb) : null),
+      tinggiBadan: e.values?.C2 ?? e.values?.tinggiBadan ?? e.values?.TB ?? e.raw_values?.TB ?? (e.values?.raw_tb != null ? Number(e.values.raw_tb) : null),
+      lingkarKepala: e.values?.C3 ?? e.values?.lingkarKepala ?? e.values?.LK ?? e.raw_values?.LK ?? (e.values?.raw_lk != null ? Number(e.values.raw_lk) : null),
       imunisasi: (() => {
-        const raw = e.values?.C5 ?? e.raw_values?.Imunisasi ?? (e.values?.raw_imun != null ? Number(e.values.raw_imun) : (e.values?.K4 ? e.values.K4 : 17));
+        const raw = e.values?.C5 ?? e.values?.imunisasi ?? e.values?.Imunisasi ?? e.raw_values?.Imunisasi ?? (e.values?.raw_imun != null ? Number(e.values.raw_imun) : (e.values?.K4 ? e.values.K4 : 17));
         const num = Number(raw);
         if (isNaN(num)) return 17;
         if (num > 17) return Math.min(17, Math.round((num / 100) * 17));
@@ -265,11 +265,11 @@ export function ChildProfilePage() {
     if (!latestVerifiedExam || !previousVerifiedExam) return null;
     const getVal = (exam) => {
       if (!exam?.values) return null;
-      if (critKey === 'K1') return exam.values.C1 ?? exam.raw_values?.BB ?? exam.values.raw_bb;
-      if (critKey === 'K2') return exam.values.C2 ?? exam.raw_values?.TB ?? exam.values.raw_tb;
-      if (critKey === 'K3') return exam.values.C3 ?? exam.raw_values?.LK ?? exam.values.raw_lk;
+      if (critKey === 'K1') return exam.values.C1 ?? exam.values.beratBadan ?? exam.raw_values?.BB ?? exam.values.raw_bb;
+      if (critKey === 'K2') return exam.values.C2 ?? exam.values.tinggiBadan ?? exam.raw_values?.TB ?? exam.values.raw_tb;
+      if (critKey === 'K3') return exam.values.C3 ?? exam.values.lingkarKepala ?? exam.raw_values?.LK ?? exam.values.raw_lk;
       if (critKey === 'K4') {
-        const raw = exam.values.C5 ?? exam.raw_values?.Imunisasi ?? exam.values.raw_imun ?? 17;
+        const raw = exam.values.C5 ?? exam.values.imunisasi ?? exam.raw_values?.Imunisasi ?? exam.values.raw_imun ?? 17;
         const num = Number(raw);
         return !isNaN(num) && num > 17 ? Math.min(17, Math.round((num / 100) * 17)) : (num || 17);
       }
@@ -423,7 +423,7 @@ export function ChildProfilePage() {
                     <span>K1. Berat Badan (BB/U)</span>
                   </div>
                   <p className="text-lg font-bold text-slate-900">
-                    {latestVerifiedExam.values?.C1 ?? latestVerifiedExam.raw_values?.BB ?? '-'} <span className="text-xs font-normal text-slate-500">kg</span>
+                    {latestVerifiedExam.values?.C1 ?? latestVerifiedExam.values?.beratBadan ?? latestVerifiedExam.raw_values?.BB ?? '-'} <span className="text-xs font-normal text-slate-500">kg</span>
                   </p>
                   <span className="text-[10px] text-teal-700 font-semibold">
                     Skor: {latestVerifiedExam.values?.K1 ?? latestVerifiedExam.standard_scores?.K1 ?? 4}
@@ -436,7 +436,7 @@ export function ChildProfilePage() {
                     <span>K2. Tinggi Badan (PB/TB)</span>
                   </div>
                   <p className="text-lg font-bold text-slate-900">
-                    {latestVerifiedExam.values?.C2 ?? latestVerifiedExam.raw_values?.TB ?? '-'} <span className="text-xs font-normal text-slate-500">cm</span>
+                    {latestVerifiedExam.values?.C2 ?? latestVerifiedExam.values?.tinggiBadan ?? latestVerifiedExam.raw_values?.TB ?? '-'} <span className="text-xs font-normal text-slate-500">cm</span>
                   </p>
                   <span className="text-[10px] text-blue-700 font-semibold">
                     Skor: {latestVerifiedExam.values?.K2 ?? latestVerifiedExam.standard_scores?.K2 ?? 4}
@@ -449,7 +449,7 @@ export function ChildProfilePage() {
                     <span>K3. Lingkar Kepala (LK/U)</span>
                   </div>
                   <p className="text-lg font-bold text-slate-900">
-                    {latestVerifiedExam.values?.C3 ?? latestVerifiedExam.raw_values?.LK ?? '-'} <span className="text-xs font-normal text-slate-500">cm</span>
+                    {latestVerifiedExam.values?.C3 ?? latestVerifiedExam.values?.lingkarKepala ?? latestVerifiedExam.raw_values?.LK ?? '-'} <span className="text-xs font-normal text-slate-500">cm</span>
                   </p>
                   <span className="text-[10px] text-purple-700 font-semibold">
                     Skor: {latestVerifiedExam.values?.K3 ?? latestVerifiedExam.standard_scores?.K3 ?? 4}
@@ -462,7 +462,11 @@ export function ChildProfilePage() {
                     <span>K4. Kelengkapan Imunisasi</span>
                   </div>
                   <p className="text-lg font-bold text-slate-900">
-                    {latestVerifiedExam.values?.C5 ?? latestVerifiedExam.raw_values?.Imunisasi ?? 100} <span className="text-xs font-normal text-slate-500">%</span>
+                    {(() => {
+                      const raw = latestVerifiedExam.values?.C5 ?? latestVerifiedExam.values?.imunisasi ?? latestVerifiedExam.raw_values?.Imunisasi ?? 17;
+                      const num = Number(raw);
+                      return !isNaN(num) && num > 17 ? Math.min(17, Math.round((num / 100) * 17)) : (num || 17);
+                    })()} <span className="text-xs font-normal text-slate-500">dosis</span>
                   </p>
                   <span className="text-[10px] text-cyan-700 font-semibold">
                     Skor: {latestVerifiedExam.values?.K4 ?? latestVerifiedExam.standard_scores?.K4 ?? 4}
@@ -922,17 +926,17 @@ export function ChildProfilePage() {
                         {exam.period_code}
                       </td>
                       <td className="py-3.5 px-3.5 font-semibold text-slate-800">
-                        {exam.values?.C1 ?? exam.raw_values?.BB ?? '-'}
+                        {exam.values?.C1 ?? exam.values?.beratBadan ?? exam.raw_values?.BB ?? '-'}
                       </td>
                       <td className="py-3.5 px-3.5 font-semibold text-slate-800">
-                        {exam.values?.C2 ?? exam.raw_values?.TB ?? '-'}
+                        {exam.values?.C2 ?? exam.values?.tinggiBadan ?? exam.raw_values?.TB ?? '-'}
                       </td>
                       <td className="py-3.5 px-3.5 font-semibold text-slate-800">
-                        {exam.values?.C3 ?? exam.raw_values?.LK ?? '-'}
+                        {exam.values?.C3 ?? exam.values?.lingkarKepala ?? exam.raw_values?.LK ?? '-'}
                       </td>
                       <td className="py-3.5 px-3.5 text-teal-700 font-semibold">
                         {(() => {
-                          const raw = exam.values?.C5 ?? exam.raw_values?.Imunisasi ?? (exam.values?.raw_imun != null ? Number(exam.values.raw_imun) : 17);
+                          const raw = exam.values?.C5 ?? exam.values?.imunisasi ?? exam.values?.Imunisasi ?? exam.raw_values?.Imunisasi ?? (exam.values?.raw_imun != null ? Number(exam.values.raw_imun) : 17);
                           const num = Number(raw);
                           const doses = !isNaN(num) && num > 17 ? Math.min(17, Math.round((num / 100) * 17)) : (num || 17);
                           return `${doses} dosis`;
@@ -1003,21 +1007,21 @@ export function ChildProfilePage() {
               <div className="grid grid-cols-2 gap-2">
                 <div className="p-2.5 rounded-xl border border-slate-200 bg-white">
                   <span className="text-slate-500 block">K1. Berat Badan (BB/U)</span>
-                  <span className="font-bold text-slate-900 text-sm">{selectedExamDetail.values?.C1 ?? selectedExamDetail.raw_values?.BB ?? '-'} kg</span>
+                  <span className="font-bold text-slate-900 text-sm">{selectedExamDetail.values?.C1 ?? selectedExamDetail.values?.beratBadan ?? selectedExamDetail.raw_values?.BB ?? '-'} kg</span>
                   <span className="text-[10px] text-teal-700 block font-semibold mt-0.5">
                     Skor: {selectedExamDetail.values?.K1 ?? selectedExamDetail.standard_scores?.K1 ?? 4} (Bobot 12.28%)
                   </span>
                 </div>
                 <div className="p-2.5 rounded-xl border border-slate-200 bg-white">
                   <span className="text-slate-500 block">K2. Panjang/Tinggi (PB/TB)</span>
-                  <span className="font-bold text-slate-900 text-sm">{selectedExamDetail.values?.C2 ?? selectedExamDetail.raw_values?.TB ?? '-'} cm</span>
+                  <span className="font-bold text-slate-900 text-sm">{selectedExamDetail.values?.C2 ?? selectedExamDetail.values?.tinggiBadan ?? selectedExamDetail.raw_values?.TB ?? '-'} cm</span>
                   <span className="text-[10px] text-blue-700 block font-semibold mt-0.5">
                     Skor: {selectedExamDetail.values?.K2 ?? selectedExamDetail.standard_scores?.K2 ?? 4} (Bobot 12.28%)
                   </span>
                 </div>
                 <div className="p-2.5 rounded-xl border border-slate-200 bg-white">
                   <span className="text-slate-500 block">K3. Lingkar Kepala (LK/U)</span>
-                  <span className="font-bold text-slate-900 text-sm">{selectedExamDetail.values?.C3 ?? selectedExamDetail.raw_values?.LK ?? '-'} cm</span>
+                  <span className="font-bold text-slate-900 text-sm">{selectedExamDetail.values?.C3 ?? selectedExamDetail.values?.lingkarKepala ?? selectedExamDetail.raw_values?.LK ?? '-'} cm</span>
                   <span className="text-[10px] text-purple-700 block font-semibold mt-0.5">
                     Skor: {selectedExamDetail.values?.K3 ?? selectedExamDetail.standard_scores?.K3 ?? 4} (Bobot 8.47%)
                   </span>

@@ -55,6 +55,41 @@ function getStoredChild(childId) {
 
 let examStore = loadStoredExaminations();
 
+export function formatExam(e) {
+  if (!e) return e;
+  const m = e.measurements || e.values || {};
+  const values = {
+    ...m,
+    C1: m.C1 ?? m.BB ?? m.beratBadan,
+    C2: m.C2 ?? m.TB ?? m.tinggiBadan,
+    C3: m.C3 ?? m.LK ?? m.lingkarKepala,
+    C5: m.C5 ?? m.Imunisasi ?? m.imunisasi,
+    BB: m.BB ?? m.C1 ?? m.beratBadan,
+    TB: m.TB ?? m.C2 ?? m.tinggiBadan,
+    LK: m.LK ?? m.C3 ?? m.lingkarKepala,
+    Imunisasi: m.Imunisasi ?? m.C5 ?? m.imunisasi,
+    beratBadan: m.beratBadan ?? m.C1 ?? m.BB,
+    tinggiBadan: m.tinggiBadan ?? m.C2 ?? m.TB,
+    lingkarKepala: m.lingkarKepala ?? m.C3 ?? m.LK,
+    imunisasi: m.imunisasi ?? m.C5 ?? m.Imunisasi,
+    raw_bb: m.raw_bb ?? m.C1 ?? m.BB ?? m.beratBadan,
+    raw_tb: m.raw_tb ?? m.C2 ?? m.TB ?? m.tinggiBadan,
+    raw_lk: m.raw_lk ?? m.C3 ?? m.LK ?? m.lingkarKepala,
+    raw_imun: m.raw_imun ?? m.C5 ?? m.Imunisasi ?? m.imunisasi,
+    K1: m.K1,
+    K2: m.K2,
+    K3: m.K3,
+    K4: m.K4,
+    K5: m.K5 ?? m.k5Value,
+  };
+  return {
+    ...e,
+    values,
+    raw_values: values,
+    measurements: values,
+  };
+}
+
 export const examinationService = {
   // Sinkronisasi data terkini dari localStorage
   syncFromStorage() {
@@ -80,7 +115,7 @@ export const examinationService = {
           .order('examined_at', { ascending: false });
 
         if (!error && data && data.length > 0) {
-          return { data, error: null };
+          return { data: data.map(formatExam), error: null };
         }
       } catch (err) {
         console.warn('Supabase getExaminationsByChild warning:', err);
@@ -89,7 +124,8 @@ export const examinationService = {
 
     const data = examStore
       .filter(e => e.child_id === childId)
-      .sort((a, b) => new Date(b.examined_at) - new Date(a.examined_at));
+      .sort((a, b) => new Date(b.examined_at) - new Date(a.examined_at))
+      .map(formatExam);
 
     return { data, error: null };
   },
@@ -115,7 +151,7 @@ export const examinationService = {
           .maybeSingle();
 
         if (!error && data) {
-          return { data, error: null };
+          return { data: formatExam(data), error: null };
         }
       } catch (err) {
         console.warn('Supabase getLatestVerifiedExamination warning:', err);
@@ -126,7 +162,7 @@ export const examinationService = {
       .filter(e => e.child_id === childId && e.status === 'verified')
       .sort((a, b) => new Date(b.examined_at) - new Date(a.examined_at))[0];
 
-    return { data: found || null, error: null };
+    return { data: found ? formatExam(found) : null, error: null };
   },
 
   async getAllExaminations() {
@@ -140,14 +176,14 @@ export const examinationService = {
           .order('examined_at', { ascending: false });
 
         if (!error && data && data.length > 0) {
-          return { data, error: null };
+          return { data: data.map(formatExam), error: null };
         }
       } catch (err) {
         console.warn('Supabase getAllExaminations warning:', err);
       }
     }
 
-    return { data: [...examStore], error: null };
+    return { data: examStore.map(formatExam), error: null };
   },
 
   async getPendingExaminations() {
@@ -162,14 +198,17 @@ export const examinationService = {
           .order('examined_at', { ascending: false });
 
         if (!error && data) {
-          return { data, error: null };
+          return { data: data.map(formatExam), error: null };
         }
       } catch (err) {
         console.warn('Supabase getPendingExaminations warning:', err);
       }
     }
 
-    const data = examStore.filter(e => e.status === 'draft' || e.status === 'pending_verification');
+    const data = examStore
+      .filter(e => e.status === 'draft' || e.status === 'pending_verification')
+      .map(formatExam);
+    return { data, error: null };
     return { data, error: null };
   },
 

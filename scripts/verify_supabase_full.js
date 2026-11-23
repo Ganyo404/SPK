@@ -24,13 +24,21 @@ async function run() {
   }
 
   // 2. Examinations
-  const { count: eCount, error: eErr } = await supabase
+  const { data: exams, count: eCount, error: eErr } = await supabase
     .from('examinations')
+    .select('id, child_id, period_code, measurements, child:child_id(code, name)');
+
+  const { count: detCount } = await supabase
+    .from('examination_details')
     .select('*', { count: 'exact', head: true });
 
   if (eErr) console.error('Error fetching examinations:', eErr);
   else {
-    console.log(`\n📋 TOTAL REKAM MEDIS PEMERIKSAAN: ${eCount} PEMERIKSAAN`);
+    console.log(`\n📋 TOTAL REKAM MEDIS PEMERIKSAAN: ${eCount} PEMERIKSAAN (${detCount} RINCIAN KRITERIA)`);
+    exams.forEach((e, idx) => {
+      const m = e.measurements || {};
+      console.log(`   ${(idx + 1).toString().padStart(2, ' ')}. [${e.child?.code}] ${e.child?.name?.padEnd(8, ' ')} | BB: ${m.BB || m.beratBadan || '-'} kg | TB: ${m.TB || m.tinggiBadan || '-'} cm | LK: ${m.LK || m.lingkarKepala || '-'} cm | Imun: ${m.Imunisasi || m.imunisasi || '-'} dosis | K5: ${m.k5Value ?? '-'}`);
+    });
   }
 
   // 3. Criteria
