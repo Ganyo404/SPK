@@ -19,8 +19,10 @@
 7. [Klasifikasi Status Klinis (Normal vs Perlu Tinjau)](#7-klasifikasi-status-klinis-normal-vs-perlu-tinjau)
 8. [Arsitektur Peran Pengguna & Alur Kerja Sistem](#8-arsitektur-peran-pengguna--alur-kerja-sistem)
 9. [Fitur Antarmuka & UX Terbaru](#9-fitur-antarmuka--ux-terbaru)
-10. [Dokumentasi Tangkapan Layar Resmi (Laporan/Skripsi)](#10-dokumentasi-tangkapan-layar-resmi-laporanskripsi)
-11. [Topik Diskusi & Rekomendasi Brainstorming Lanjutan](#11-topik-diskusi--rekomendasi-brainstorming-lanjutan)
+10. [Integrasi Basis Data Cloud Supabase & Sinkronisasi Sistem](#10-integrasi-basis-data-cloud-supabase--sinkronisasi-sistem)
+11. [Dokumentasi Tangkapan Layar Resmi (Laporan/Skripsi)](#11-dokumentasi-tangkapan-layar-resmi-laporanskripsi)
+12. [Panduan Kredensial Pengguna & Uji Coba](#12-panduan-kredensial-pengguna--uji-coba)
+13. [Topik Diskusi & Rekomendasi Brainstorming Lanjutan](#13-topik-diskusi--rekomendasi-brainstorming-lanjutan)
 
 ---
 
@@ -319,7 +321,38 @@ Sistem memisahkan evaluasi administratif peringkat SPK dari evaluasi medis kesel
 
 ---
 
-## 10. Dokumentasi Tangkapan Layar Resmi (Laporan/Skripsi)
+## 10. Integrasi Basis Data Cloud Supabase & Sinkronisasi Sistem
+
+Aplikasi telah sepenuhnya terintegrasi secara *live* dengan basis data cloud **Supabase PostgreSQL** (`VITE_USE_SUPABASE=true`). Seluruh data operasional, pendaftaran anak baru, input rekam medis balita, hingga hasil perankingan SPK langsung tersimpan dan tersinkronisasi secara persisten di cloud.
+
+### A. Struktur 13 Tabel PostgreSQL Supabase:
+1. `profiles`: Data akun pengguna (Orang Tua, Petugas/Dokter, Admin), NIK 16 digit, nomor telepon, dan role.
+2. `children`: Data identitas balita (nama, NIK, tanggal lahir, jenis kelamin, relasi orang tua, posyandu).
+3. `examinations`: Sesi kunjungan dan pencatatan antropometri (BB, TB, LK, Dosis Imunisasi, status draft/verified).
+4. `examination_details`: Rincian per kriteria ($K1-K5$) per sesi kunjungan, termasuk payload MDD & MMF JSONB.
+5. `criteria`: Definisi 5 kriteria utama ($K1-K5$), kode, tipe (benefit), skala skor, dan status aktif.
+6. `ahp_configurations`: Riwayat dan konfigurasi aktif matriks perbandingan berpasangan serta bobot kriteria.
+7. `spk_runs`: Catatan eksekusi kalkulasi SPK per kohor umur, periode kunjungan, dan jenis kelamin.
+8. `spk_results`: Hasil pemeringkatan alternatif balita (skor preferensi $V_i$, status review klinis, peringkat SAW).
+9. `posyandu`: Data master fasilitas Posyandu binaan.
+10. `staff_assignments`: Penugasan nakes/kader ke posyandu binaan.
+11. `consultations`: Ruang konsultasi daring antara orang tua dan tenaga medis.
+12. `consultation_messages`: Rincian pesan percakapan dalam ruang konsultasi.
+13. `audit_logs`: Rekam jejak audit keamanan dan perubahan data sensitif oleh pengguna.
+
+### B. Pembersihan & Integritas Data Acuan (14 Balita Benchmark):
+- **14 Balita Acuan Kelompok 4 (A01 - A14)**: Data anak yang tidak termasuk dalam benchmark 14 balita serta data orang tua yang tidak memiliki anak aktif telah dibersihkan secara tuntas dari basis data Supabase maupun store lokal.
+- **Relasi Bersih**: Setiap anak dalam basis data terhubung dengan akun orang tua resmi (`u-parent-1` / Siti Rahmawati, `u-parent-2` / Hendra, `u-parent-3` / Nurul, `u-parent-4` / Bambang).
+- **Skrip Migrasi Resmi**: Berkas migrasi komprehensif tersimpan di [`supabase/MIGRASI_LENGKAP_SUPABASE.sql`](file:///c:/SPK/supabase/MIGRASI_LENGKAP_SUPABASE.sql).
+- **Skrip Verifikasi Cloud**: Dapat dijalankan kapan saja dengan perintah:
+  ```powershell
+  node scripts/verify_supabase_full.js
+  ```
+  *(Memverifikasi 14 balita, 14 pemeriksaan verified, 5 kriteria, 14 hasil SPK terurut, dan 6 akun profil aktif).*
+
+---
+
+## 11. Dokumentasi Tangkapan Layar Resmi (Laporan/Skripsi)
 
 Seluruh tangkapan layar antarmuka sistem beresolusi tinggi (*Retina Scale 1.5*) tersimpan rapi pada direktori:
 `c:\SPK\screenshoot\`
@@ -334,7 +367,24 @@ Seluruh tangkapan layar antarmuka sistem beresolusi tinggi (*Retina Scale 1.5*) 
 
 ---
 
-## 11. Topik Diskusi & Rekomendasi Brainstorming Lanjutan
+## 12. Panduan Kredensial Pengguna & Uji Coba
+
+Sistem menyediakan akun uji coba aktif yang terdaftar di basis data Supabase maupun mode demo luring (*offline*):
+
+| Peran (Role) | Nama Pengguna | Email Login | Password Login | Hak Akses Utama |
+| :--- | :--- | :--- | :--- | :--- |
+| **Petugas / Dokter** | Dr. Budi Santoso, Sp.A | `dokter@gmail.com` *(atau `petugas@spkbalita.id`)* | `123` *(atau `demo123456`)* | Input pemeriksaan balita, verifikasi data fisik, jalankan kalkulasi SPK (AHP+SAW), lihat rincian matriks normalisasi, balas konsultasi orang tua. |
+| **Administrator** | Administrator Sistem | `admin@gmail.com` *(atau `admin@spkbalita.id`)* | `123` *(atau `demo123456`)* | Manajemen akun pengguna & peran, konfigurasi matriks AHP 5x5/4x4, kelola posyandu, audit log aktivitas sistem. |
+| **Orang Tua** | Siti Rahmawati | `user@gmail.com` *(atau `orangtua@spkbalita.id`)* | `123` *(atau `demo123456`)* | Pendaftaran balita baru, pemantauan kurva BB/TB (KMS digital), riwayat pemeriksaan & imunisasi, ruang tanya jawab konsultasi nakes. |
+| **Orang Tua (Lainnya)** | Hendra Wijaya | `hendra@gmail.com` | `123` | Memantau profil balita Arka, Nara, Elio. |
+| **Orang Tua (Lainnya)** | Nurul Hidayah | `nurul@gmail.com` | `123` | Memantau profil balita Aluna, Zayn, Kai, Ayla. |
+| **Orang Tua (Lainnya)** | Bambang Prasetyo | `bambang@gmail.com` | `123` | Memantau profil balita Kira, Raka, Zara, Ezra, Livia, Nino, Naia. |
+
+*(Catatan: Pada antarmuka login tersedia juga tombol cepat "Uji Coba 1-Klik" untuk masuk instan ke akun percontohan tanpa perlu mengetik manual).*
+
+---
+
+## 13. Topik Diskusi & Rekomendasi Brainstorming Lanjutan
 
 1. **Uji Validitas Eksternal**: Membandingkan hasil perankingan SPK dengan penilaian manual dokter spesialis anak di Puskesmas setempat.
 2. **Fleksibilitas Ambang Usia Transisi**: Evaluasi balita pada usia tepat 6 bulan (hari-hari awal pengenalan MP-ASI).

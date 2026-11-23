@@ -151,10 +151,14 @@ Sistem memvalidasi dan memisahkan eksekusi SAW secara ketat:
 
 ---
 
-## 4. Arsitektur Basis Data & Keamanan (PostgreSQL + RLS)
+## 4. Arsitektur Basis Data & Keamanan (PostgreSQL + RLS + Supabase Cloud)
 
-File skema dan migrasi lengkap:
-[`supabase/migrations/20261019000000_create_spk_balita_sehat_schema.sql`](file:///c:/SPK/supabase/migrations/20261019000000_create_spk_balita_sehat_schema.sql)
+Aplikasi telah terhubung secara penuh ke database cloud **Supabase PostgreSQL** (`VITE_USE_SUPABASE=true`) dengan 13 tabel relasional, fungsi stored procedure RPC (`verify_examination`), dan kebijakan keamanan ketat Row Level Security (RLS).
+
+Berkas migrasi SQL lengkap yang memuat skema, fungsi, dan data benih teruji:
+- Skrip migrasi terpusat: [`supabase/MIGRASI_LENGKAP_SUPABASE.sql`](file:///c:/SPK/supabase/MIGRASI_LENGKAP_SUPABASE.sql)
+- Skrip validasi integritas cloud: [`scripts/verify_supabase_full.js`](file:///c:/SPK/scripts/verify_supabase_full.js)
+- Skema migrasi bertahap: [`supabase/migrations/20261019000000_create_spk_balita_sehat_schema.sql`](file:///c:/SPK/supabase/migrations/20261019000000_create_spk_balita_sehat_schema.sql)
 
 ### A. Relasi Entitas & Skema Tabel
 
@@ -267,7 +271,12 @@ c:/SPK/
 │   │   └── spkService.js               # Layanan orkestrator kalkulasi AHP + SAW kohor
 │   ├── index.css                       # Impor Tailwind CSS & custom styling
 │   └── main.jsx                        # Entry point React DOM
+├── scripts/                            # Skrip utilitas verifikasi & automasi
+│   ├── verify_supabase_full.js         # Pengujian integritas live database Supabase
+│   ├── test_14_balita.js               # Pengujian validasi matematis 14 balita benchmark
+│   └── capture.js                      # Pengambilan tangkapan layar otomatis
 ├── supabase/
+│   ├── MIGRASI_LENGKAP_SUPABASE.sql    # Skrip SQL lengkap (13 tabel, RLS, RPC, data acuan)
 │   ├── migrations/
 │   │   └── 20261019000000_create_spk_balita_sehat_schema.sql # Skema PostgreSQL & RLS
 │   └── seed.sql                        # Data benih Posyandu, kriteria, & AHP V1
@@ -363,22 +372,39 @@ npm run dev
 ```
 Akses di browser pada: `http://localhost:5173/`
 
-### 2. Akun Uji Coba Cepat (Mode Offline / Demo)
-- **Orang Tua**: `orangtua@spkbalita.id` (Password: `demo123456`)
-- **Petugas Posyandu**: `petugas@spkbalita.id` (Password: `demo123456`)
-- **Administrator**: `admin@spkbalita.id` (Password: `demo123456`)
+### 2. Akun Uji Coba Cepat (Aktif di Supabase & Mode Offline)
+- **Petugas Posyandu / Dokter Spesialis Anak**:
+  - Email: `dokter@gmail.com` *(atau `petugas@spkbalita.id`)*
+  - Password: `123` *(atau `demo123456`)*
+- **Administrator Sistem**:
+  - Email: `admin@gmail.com` *(atau `admin@spkbalita.id`)*
+  - Password: `123` *(atau `demo123456`)*
+- **Orang Tua Balita**:
+  - Email: `user@gmail.com` *(atau `orangtua@spkbalita.id`)*
+  - Password: `123` *(atau `demo123456`)*
+  - *(Tersedia juga akun orang tua lainnya: `hendra@gmail.com`, `nurul@gmail.com`, `bambang@gmail.com` dengan password `123`)*
 
-### 3. Pengujian Unit Algoritma SPK (10 Skenario K5)
+### 3. Verifikasi Konektivitas Cloud Supabase
+```powershell
+node scripts/verify_supabase_full.js
+```
+
+### 4. Pengujian Unit Algoritma SPK (10 Skenario K5)
 ```powershell
 node src/lib/spk/spk.test.js
 ```
 
-### 4. Pengambilan Screenshot Otomatis
+### 5. Pengujian Benchmark 14 Balita Acuan
+```powershell
+node scripts/test_14_balita.js
+```
+
+### 6. Pengambilan Screenshot Otomatis
 ```powershell
 node scripts/capture.js
 ```
 
-### 5. Build Bundler Produksi
+### 7. Build Bundler Produksi
 ```powershell
 npm run build
 ```
