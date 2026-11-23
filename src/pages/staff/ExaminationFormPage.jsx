@@ -206,16 +206,16 @@ export function ExaminationFormPage() {
 
   const liveStandardization = isAllFilled
     ? convertRawToStandardScores(
-        {
-          C1: values.bb,
-          C2: values.tb,
-          C3: values.lk,
-          C5: values.imunisasi,
-          ...(isUnder6Months ? {} : { gizi: values.gizi })
-        },
-        childAgeGroupInfo.groupId,
-        childSex
-      )
+      {
+        C1: values.bb,
+        C2: values.tb,
+        C3: values.lk,
+        C5: values.imunisasi,
+        ...(isUnder6Months ? {} : { gizi: values.gizi })
+      },
+      childAgeGroupInfo.groupId,
+      childSex
+    )
     : null;
 
   // Filter balita untuk autocomplete search
@@ -401,7 +401,7 @@ export function ExaminationFormPage() {
 
       // 3. Jalankan kalkulasi AHP + SAW untuk cohort balita ini (Gender balita & All)
       const ageGroupInfo = getChildAgeGroup(selectedChild?.date_of_birth, periodCode);
-      
+
       await spkService.runCalculationForCohort({
         ageGroupId: ageGroupInfo.groupId,
         periodCode,
@@ -543,15 +543,13 @@ export function ExaminationFormPage() {
                     <div
                       key={c.id}
                       onClick={() => handleSelectChild(c)}
-                      className={`p-3 hover:bg-teal-50/80 cursor-pointer transition-colors flex items-center justify-between gap-3 ${
-                        c.id === selectedChildId ? 'bg-teal-50/60' : ''
-                      }`}
+                      className={`p-3 hover:bg-teal-50/80 cursor-pointer transition-colors flex items-center justify-between gap-3 ${c.id === selectedChildId ? 'bg-teal-50/60' : ''
+                        }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                            c.sex === 'P' ? 'bg-pink-100 text-pink-700' : 'bg-blue-100 text-blue-700'
-                          }`}
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 ${c.sex === 'P' ? 'bg-pink-100 text-pink-700' : 'bg-blue-100 text-blue-700'
+                            }`}
                         >
                           {c.sex}
                         </div>
@@ -703,9 +701,8 @@ export function ExaminationFormPage() {
                   {previousExam.values?.C1 ?? previousExam.raw_values?.BB ?? '-'} <span className="text-xs font-normal text-slate-500">kg</span>
                 </span>
                 {values.bb && previousExam.values?.C1 && (
-                  <span className={`block text-[10px] font-bold mt-0.5 ${
-                    Number(values.bb) >= Number(previousExam.values.C1) ? 'text-emerald-600' : 'text-amber-600'
-                  }`}>
+                  <span className={`block text-[10px] font-bold mt-0.5 ${Number(values.bb) >= Number(previousExam.values.C1) ? 'text-emerald-600' : 'text-amber-600'
+                    }`}>
                     {Number(values.bb) >= Number(previousExam.values.C1)
                       ? `▲ +${(Number(values.bb) - Number(previousExam.values.C1)).toFixed(2)} kg`
                       : `▼ ${(Number(values.bb) - Number(previousExam.values.C1)).toFixed(2)} kg`}
@@ -918,11 +915,10 @@ export function ExaminationFormPage() {
                   <div
                     key={opt.score}
                     onClick={() => handleInputChange('gizi', String(opt.score))}
-                    className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
-                      isSelected
+                    className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${isSelected
                         ? 'bg-teal-50 border-teal-500 ring-2 ring-teal-500/20'
                         : 'bg-slate-50/60 border-slate-200 hover:bg-slate-100/70'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="font-bold text-xs text-slate-900">{opt.title}</span>
@@ -949,11 +945,10 @@ export function ExaminationFormPage() {
                 </span>
                 <p className="text-xs text-slate-500">Konversi nilai riil menjadi skor ordinal untuk kriteria SAW</p>
               </div>
-              <span className={`text-xs font-bold px-3 py-1 rounded-full border ${
-                liveStandardization.statusFlag === 'Normal'
+              <span className={`text-xs font-bold px-3 py-1 rounded-full border ${liveStandardization.statusFlag === 'Normal'
                   ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                   : 'bg-amber-50 text-amber-800 border-amber-200'
-              }`}>
+                }`}>
                 Status: {liveStandardization.statusFlag}
               </span>
             </div>
