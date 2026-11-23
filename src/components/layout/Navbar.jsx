@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { LogOut, HeartPulse, ShieldCheck, UserCheck, Stethoscope } from 'lucide-react';
+import { LogOut, ShieldCheck, UserCheck, Stethoscope } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function Navbar({ onToggleSidebar }) {
@@ -48,8 +48,8 @@ export function Navbar({ onToggleSidebar }) {
           </button>
 
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-teal-600 flex items-center justify-center text-white shadow-sm shadow-teal-600/30 group-hover:scale-105 transition-transform">
-              <HeartPulse className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-white border border-teal-100 p-1 flex items-center justify-center shadow-xs shadow-teal-600/20 group-hover:scale-105 transition-transform overflow-hidden flex-shrink-0">
+              <img src="/logo.jpg" alt="Logo SPK Balita Sehat" className="w-full h-full object-contain" />
             </div>
             <div>
               <span className="font-bold text-slate-900 text-base lg:text-lg tracking-tight block leading-tight">

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { HeartPulse, Lock, Mail, User, Phone, MapPin, CreditCard, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
+import { Lock, Mail, User, Phone, MapPin, CreditCard, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -69,8 +69,8 @@ export function RegisterPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/30 to-slate-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-teal-600 text-white shadow-lg shadow-teal-600/30 mb-4">
-          <HeartPulse className="w-8 h-8" />
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white p-2.5 shadow-lg shadow-teal-900/10 border border-teal-100 mb-4 group hover:scale-105 transition-transform">
+          <img src="/logo.jpg" alt="Logo SPK Balita Sehat" className="w-full h-full object-contain" />
         </div>
         <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
           Pendaftaran Akun Orang Tua

@@ -73,7 +73,10 @@ export function Sidebar({ isOpen, onClose }) {
         }`}
       >
         <div className="p-4 border-b border-slate-100 flex items-center justify-between lg:hidden flex-shrink-0">
-          <span className="font-bold text-slate-800">Menu Navigasi</span>
+          <div className="flex items-center gap-2">
+            <img src="/logo.jpg" alt="Logo SPK Balita Sehat" className="w-7 h-7 rounded-lg object-contain border border-teal-100 p-0.5 bg-white" />
+            <span className="font-bold text-slate-800 text-sm">SPK Balita Sehat</span>
+          </div>
           <button onClick={onClose} className="p-1 rounded-md text-slate-500 hover:bg-slate-100">
             ✕
           </button>
