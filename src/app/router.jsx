@@ -9,7 +9,6 @@ import { RegisterPage } from '../pages/auth/RegisterPage';
 import { ParentDashboard } from '../pages/parent/ParentDashboard';
 import { ChildrenListPage } from '../pages/parent/ChildrenListPage';
 import { ChildProfilePage } from '../pages/parent/ChildProfilePage';
-import { ParentConsultationPage } from '../pages/parent/ParentConsultationPage';
 import { ParentProfilePage } from '../pages/parent/ParentProfilePage';
 
 // Staff Pages
@@ -20,7 +19,6 @@ import { ExaminationFormPage } from '../pages/staff/ExaminationFormPage';
 import { PendingExaminationsPage } from '../pages/staff/PendingExaminationsPage';
 import { BirthYearGroupsPage } from '../pages/staff/BirthYearGroupsPage';
 import { SPKCalculationPage } from '../pages/staff/SPKCalculationPage';
-import { StaffConsultationPage } from '../pages/staff/StaffConsultationPage';
 
 // Admin Pages
 import { AdminDashboard } from '../pages/admin/AdminDashboard';
@@ -100,14 +98,6 @@ export function AppRouter() {
           }
         />
         <Route
-          path="parent/consultations"
-          element={
-            <ProtectedRoute allowedRoles={['parent', 'staff', 'admin']}>
-              <ParentConsultationPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="parent/profile"
           element={
             <ProtectedRoute allowedRoles={['parent', 'staff', 'admin']}>
@@ -178,14 +168,6 @@ export function AppRouter() {
           element={
             <ProtectedRoute allowedRoles={['staff', 'admin']}>
               <SPKCalculationPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="staff/consultations"
-          element={
-            <ProtectedRoute allowedRoles={['staff', 'admin']}>
-              <StaffConsultationPage />
             </ProtectedRoute>
           }
         />

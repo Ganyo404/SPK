@@ -251,7 +251,6 @@ c:/SPK/
 │   │   │   ├── AddChildModal.jsx       # Modal tambah anak balita
 │   │   │   ├── ChildProfilePage.jsx    # Profil balita, kriteria, kurva Recharts, riwayat
 │   │   │   ├── ChildrenListPage.jsx    # Direktori pencarian anak terdaftar
-│   │   │   ├── ParentConsultationPage.jsx # Chat tanya jawab konsultasi Bidan
 │   │   │   ├── ParentDashboard.jsx     # Dashboard kartu anak orang tua
 │   │   │   └── ParentProfilePage.jsx   # Informasi profil akun orang tua
 │   │   └── staff/                      # Halaman Petugas Posyandu / Nakes
@@ -260,13 +259,11 @@ c:/SPK/
 │   │       ├── ExaminationFormPage.jsx # Form pencatatan K1–K4 (2x2) dan K5 (MDD/MMF)
 │   │       ├── PendingExaminationsPage.jsx # Draf pemeriksaan menunggu verifikasi
 │   │       ├── SPKCalculationPage.jsx  # Eksekusi AHP+SAW, transparansi matriks, & ranking
-│   │       ├── StaffConsultationPage.jsx # Balasan konsultasi oleh nakes
 │   │       └── StaffDashboard.jsx      # Metrik operasional balita & kartu filter interaktif
 │   ├── services/                       # Lapisan abstraksi data (Service Layer)
 │   │   ├── adminService.js             # Layanan pengguna, posyandu, dan audit
 │   │   ├── authService.js              # Layanan autentikasi, registrasi, & session
 │   │   ├── childService.js             # Layanan CRUD anak & status pendaftaran
-│   │   ├── consultationService.js      # Layanan percakapan pesan konsultasi
 │   │   ├── examinationService.js       # Layanan pencatatan, draf, & verifikasi kunjungan
 │   │   └── spkService.js               # Layanan orkestrator kalkulasi AHP + SAW kohor
 │   ├── index.css                       # Impor Tailwind CSS & custom styling

@@ -304,7 +304,7 @@ Sistem memisahkan evaluasi administratif peringkat SPK dari evaluasi medis kesel
 │• Pantau kurva antropometri│• Verifikasi fisik balita    │• Konfigurasi matriks AHP     │
 │• Riwayat rekam medis     │• Jalankan kalkulasi SPK      │• Manajemen Posyandu wilayah  │
 │• Riwayat imunisasi       │• Monitor balita perlu tinjau │• Audit trail & log aktivitas │
-│• Konsultasi nakes        │• Analisis kohor per kelompok │• Backup & reset sistem data  │
+│• Profil akun & anak      │• Analisis kohor per kelompok │• Backup & reset sistem data  │
 └──────────────────────────┴──────────────────────────────┴──────────────────────────────┘
 ```
 
@@ -373,9 +373,9 @@ Sistem menyediakan akun uji coba aktif yang terdaftar di basis data Supabase mau
 
 | Peran (Role) | Nama Pengguna | Email Login | Password Login | Hak Akses Utama |
 | :--- | :--- | :--- | :--- | :--- |
-| **Petugas / Dokter** | Dr. Budi Santoso, Sp.A | `dokter@gmail.com` *(atau `petugas@spkbalita.id`)* | `123` *(atau `demo123456`)* | Input pemeriksaan balita, verifikasi data fisik, jalankan kalkulasi SPK (AHP+SAW), lihat rincian matriks normalisasi, balas konsultasi orang tua. |
+| **Petugas / Dokter** | Dr. Budi Santoso, Sp.A | `dokter@gmail.com` *(atau `petugas@spkbalita.id`)* | `123` *(atau `demo123456`)* | Input pemeriksaan balita, verifikasi data fisik, jalankan kalkulasi SPK (AHP+SAW), lihat rincian matriks normalisasi, monitor balita perlu tinjau. |
 | **Administrator** | Administrator Sistem | `admin@gmail.com` *(atau `admin@spkbalita.id`)* | `123` *(atau `demo123456`)* | Manajemen akun pengguna & peran, konfigurasi matriks AHP 5x5/4x4, kelola posyandu, audit log aktivitas sistem. |
-| **Orang Tua** | Siti Rahmawati | `user@gmail.com` *(atau `orangtua@spkbalita.id`)* | `123` *(atau `demo123456`)* | Pendaftaran balita baru, pemantauan kurva BB/TB (KMS digital), riwayat pemeriksaan & imunisasi, ruang tanya jawab konsultasi nakes. |
+| **Orang Tua** | Siti Rahmawati | `user@gmail.com` *(atau `orangtua@spkbalita.id`)* | `123` *(atau `demo123456`)* | Pendaftaran balita baru, pemantauan kurva BB/TB (KMS digital), riwayat pemeriksaan & kelengkapan imunisasi. |
 | **Orang Tua (Lainnya)** | Hendra Wijaya | `hendra@gmail.com` | `123` | Memantau profil balita Arka, Nara, Elio. |
 | **Orang Tua (Lainnya)** | Nurul Hidayah | `nurul@gmail.com` | `123` | Memantau profil balita Aluna, Zayn, Kai, Ayla. |
 | **Orang Tua (Lainnya)** | Bambang Prasetyo | `bambang@gmail.com` | `123` | Memantau profil balita Kira, Raka, Zara, Ezra, Livia, Nino, Naia. |

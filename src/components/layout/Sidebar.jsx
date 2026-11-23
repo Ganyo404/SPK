@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   Users,
   Calculator,
-  MessageSquare,
   Shield,
   Building2,
   Sliders,
@@ -41,7 +40,6 @@ export function Sidebar({ isOpen, onClose }) {
         { label: 'Draf & Verifikasi', to: '/staff/examinations/pending', icon: CheckCircle2 },
         { label: 'Kelompok Umur SPK', to: '/staff/cohorts', icon: Users },
         { label: 'Perhitungan & Ranking SPK', to: '/staff/spk-calculation', icon: Calculator },
-        { label: 'Konsultasi Balita', to: '/staff/consultations', icon: MessageSquare },
       ];
     }
 
@@ -49,7 +47,6 @@ export function Sidebar({ isOpen, onClose }) {
     return [
       { label: 'Dashboard Saya', to: '/parent', icon: LayoutDashboard },
       { label: 'Daftar Anak Saya', to: '/parent/children', icon: Baby },
-      { label: 'Konsultasi Nakes', to: '/parent/consultations', icon: MessageSquare },
       { label: 'Profil Akun', to: '/parent/profile', icon: User },
     ];
   };

@@ -56,14 +56,14 @@ Mewujudkan generasi balita Indonesia yang sehat, bebas stunting, dan terpantau t
 1. **Mencegah dan Menekan Angka Stunting**: Mendeteksi sedini mungkin penurunan laju pertumbuhan (*growth faltering*) sebelum balita jatuh pada kondisi gizi kronis atau stunting permanen.
 2. **Memberikan Skrining Multidimensi**: Menggabungkan 5 indikator esensial: Berat Badan (K1), Panjang/Tinggi Badan (K2), Lingkar Kepala (K3), Kelengkapan Imunisasi (K4), dan Kualitas Asupan Makanan MDD & MMF (K5).
 3. **Membantu Pengambilan Keputusan Klinis Nakes**: Memberikan rekomendasi urutan prioritas balita yang membutuhkan kunjungan rumah (*home visit*), konseling gizi, pemberian makanan tambahan (PMT), atau rujukan ke Puskesmas.
-4. **Memberdayakan Orang Tua**: Memberikan kemudahan bagi orang tua untuk memantau grafik tumbuh kembang anak dari ponsel mereka kapan saja dan berkonsultasi langsung dengan petugas.
+4. **Memberdayakan Orang Tua**: Memberikan kemudahan bagi orang tua untuk memantau grafik tumbuh kembang anak dari ponsel mereka kapan saja secara transparan.
 
 ---
 
 ## 4. Fitur-Fitur Unggulan Sistem
 
 ### 1. Tiga Antarmuka Peran Terintegrasi (*Multi-Role Portal*)
-- **Portal Orang Tua (`parent`)**: Akses kartu anak, KMS digital interaktif, riwayat penimbangan bulanan, status imunisasi, dan ruang tanya-jawab konsultasi medis.
+- **Portal Orang Tua (`parent`)**: Akses kartu anak, KMS digital interaktif, riwayat penimbangan bulanan, status imunisasi, dan profil akun.
 - **Portal Petugas / Kader / Dokter (`staff`)**: Antarmuka cepat pencatatan fisik (layout grid 2×2), verifikasi kehadiran, kalkulasi SPK per kohor umur, modal transparansi matriks normalisasi, dan tindak lanjut balita dengan status *"Perlu Tinjau"*.
 - **Portal Administrator (`admin`)**: Pengelolaan akun dan hak akses pengguna, penyesuaian bobot matriks perbandingan AHP 5×5 dan 4×4 dengan uji konsistensi Saaty, manajemen wilayah Posyandu, serta audit log keamanan.
 
@@ -100,7 +100,7 @@ Seluruh pendaftaran anak baru, data antropometri, dan hasil peringkat SPK tersim
 - **KMS Selalu di Tangan**: Tidak perlu khawatir buku hilang atau lupa dibawa saat ke Posyandu; data tersimpan aman di akun digital.
 - **Paham Status Anak Lebih Awal**: Mendapatkan penjelasan transparan apakah anak berstatus *"Normal"* atau *"Perlu Tinjau"*.
 - **Edukasi Gizi & Imunisasi**: Mengetahui dengan jelas kelompok makanan apa saja yang masih kurang dalam menu harian balita serta sisa target dosis imunisasi yang belum lengkap.
-- **Konsultasi Tanpa Ragu**: Dapat mengirimkan pertanyaan langsung ke tenaga medis Posyandu melalui fitur konsultasi daring.
+- **Transparansi Riwayat Kesehatan**: Memiliki rekam jejak digital lengkap yang siap ditunjukkan saat kontrol ke Posyandu atau dokter spesialis anak.
 
 ### B. Bagi Kader & Petugas Posyandu
 - **Penginputan Data Super Cepat**: Formulir 2×2 yang responsif memangkas waktu pencatatan di meja pelayanan Posyandu.
@@ -175,11 +175,11 @@ Orang Tua Mendaftar            Petugas Posyandu               Petugas Memeriksa
                                                                        ▼
   [LANGKAH 5]                    [LANGKAH 4]                     [LANGKAH 4B]
 Tindak Lanjut Medis &        Sistem Menghitung SPK         Petugas Memverifikasi
- Konsultasi Online           (Normalisasi & Nilai Vi)       Pemeriksaan Kunjungan
+ Intervensi Balita           (Normalisasi & Nilai Vi)       Pemeriksaan Kunjungan
          ▲                              ▲                              │
          │                              │                              ▼
-(Nakes beri saran PMT,         (Tampil peringkat & status    (Data terkunci aman di
- orang tua konsultasi)         "Normal" / "Perlu Tinjau")     basis data Supabase)
+(Nakes jadwalkan PMT         (Tampil peringkat & status    (Data terkunci aman di
+ / rujukan Puskesmas)         "Normal" / "Perlu Tinjau")     basis data Supabase)
 ```
 
 1. **Langkah 1 (Pendaftaran)**: Orang tua membuat akun dengan NIK 16 digit, lalu menambahkan identitas balita (nama, tanggal lahir, jenis kelamin).
@@ -187,7 +187,7 @@ Tindak Lanjut Medis &        Sistem Menghitung SPK         Petugas Memverifikasi
 3. **Langkah 3 (Pemeriksaan & Pengukuran)**: Petugas menimbang BB, mengukur PB/TB, mengukur lingkar kepala, mencatat jumlah dosis imunisasi, dan menanyakan 8 kelompok makanan serta frekuensi makan kemarin.
 4. **Langkah 4 (Standarisasi & Verifikasi)**: Sistem mengonversi nilai riil ke skor 1–4 secara langsung. Petugas memverifikasi kunjungan agar tercatat permanen di cloud.
 5. **Langkah 5 (Kalkulasi SPK Kohor)**: Petugas membuka halaman *Kalkulasi SPK*, memilih kelompok umur (misal Kelompok 4: 9–11 bulan), lalu menekan tombol kalkulasi. Sistem menampilkan urutan peringkat, rincian matriks, dan flag klinis.
-6. **Langkah 6 (Tindak Lanjut & Konsultasi)**: Balita berstatus *"Perlu Tinjau"* segera dijadwalkan intervensi gizi oleh dokter. Orang tua dapat membuka profil anak di rumah dan mengirimkan pertanyaan konsultasi melalui aplikasi.
+6. **Langkah 6 (Tindak Lanjut Klinis)**: Balita berstatus *"Perlu Tinjau"* segera dijadwalkan intervensi gizi atau rujukan oleh dokter/kader Posyandu.
 
 ---
 
@@ -197,9 +197,9 @@ Untuk keperluan simulasi, demonstrasi penguji, atau uji coba operasional, sistem
 
 | Peran Pengguna | Email Login | Password | Fungsi & Tujuan Akses |
 | :--- | :--- | :---: | :--- |
-| **Dokter / Tenaga Medis** | `dokter@gmail.com` | `123` | Mencatat rekam medis balita, memverifikasi hasil antropometri, menjalankan kalkulasi SPK, meninjau transparansi matriks SAW, dan membalas konsultasi orang tua. |
+| **Dokter / Tenaga Medis** | `dokter@gmail.com` | `123` | Mencatat rekam medis balita, memverifikasi hasil antropometri, menjalankan kalkulasi SPK, meninjau transparansi matriks SAW, dan menentukan prioritas evaluasi klinis. |
 | **Administrator Sistem** | `admin@gmail.com` | `123` | Mengelola data pengguna, mengatur matriks perbandingan berpasangan AHP, mengelola data Posyandu, dan memantau audit aktivitas sistem. |
-| **Orang Tua Balita** | `user@gmail.com` | `123` | Mendaftarkan balita baru, memantau grafik tumbuh kembang (KMS online), melihat riwayat pemeriksaan, dan mengajukan konsultasi kesehatan. |
+| **Orang Tua Balita** | `user@gmail.com` | `123` | Mendaftarkan balita baru, memantau grafik tumbuh kembang (KMS online), dan melihat riwayat pemeriksaan. |
 
 *(Tersedia juga fitur **"Uji Coba 1-Klik"** pada halaman login untuk masuk langsung tanpa mengetik email dan kata sandi).*
 
