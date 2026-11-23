@@ -4,20 +4,21 @@ import { getChildAgeGroup } from '../lib/spk/ageGroups';
 import { convertRawToStandardScores } from '../lib/spk/scoringStandard';
 
 const EXAMINATIONS_STORAGE_KEY = 'spk_examinations_store';
+const MOCK_DATA_VERSION = 'v2026.11.23-14balita';
 
 function loadStoredExaminations() {
   try {
+    const storedVersion = localStorage.getItem('spk_mock_version_exams');
+    if (storedVersion !== MOCK_DATA_VERSION) {
+      localStorage.setItem('spk_mock_version_exams', MOCK_DATA_VERSION);
+      localStorage.setItem(EXAMINATIONS_STORAGE_KEY, JSON.stringify(MOCK_EXAMINATIONS));
+      return [...MOCK_EXAMINATIONS];
+    }
+
     const raw = localStorage.getItem(EXAMINATIONS_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        const existingIds = new Set(parsed.map(e => e.id));
-        const missingMocks = MOCK_EXAMINATIONS.filter(e => !existingIds.has(e.id));
-        if (missingMocks.length > 0) {
-          const merged = [...parsed, ...missingMocks];
-          localStorage.setItem(EXAMINATIONS_STORAGE_KEY, JSON.stringify(merged));
-          return merged;
-        }
         return parsed;
       }
     }

@@ -3,20 +3,21 @@ import { MOCK_CHILDREN, MOCK_POSYANDU, MOCK_EXAMINATIONS } from '../lib/mockData
 import { getChildAgeGroup } from '../lib/spk/ageGroups';
 
 const CHILDREN_STORAGE_KEY = 'spk_children_store';
+const MOCK_DATA_VERSION = 'v2026.11.23-14balita';
 
 function loadStoredChildren() {
   try {
+    const storedVersion = localStorage.getItem('spk_mock_version_children');
+    if (storedVersion !== MOCK_DATA_VERSION) {
+      localStorage.setItem('spk_mock_version_children', MOCK_DATA_VERSION);
+      localStorage.setItem(CHILDREN_STORAGE_KEY, JSON.stringify(MOCK_CHILDREN));
+      return [...MOCK_CHILDREN];
+    }
+
     const raw = localStorage.getItem(CHILDREN_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        const existingIds = new Set(parsed.map(c => c.id));
-        const missingMocks = MOCK_CHILDREN.filter(c => !existingIds.has(c.id));
-        if (missingMocks.length > 0) {
-          const merged = [...parsed, ...missingMocks];
-          localStorage.setItem(CHILDREN_STORAGE_KEY, JSON.stringify(merged));
-          return merged;
-        }
         return parsed;
       }
     }

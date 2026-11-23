@@ -554,14 +554,15 @@ export const MOCK_CHILDREN = [
     registration_status: 'active',
     created_at: '2022-04-20T10:30:00Z'
   },
-  // 12 Balita Acuan Simulasi Standarisasi SPK (Kelompok 4: Usia 9 - 11 Bulan pada Periode 2026-10)
+  // 14 Balita Acuan Simulasi Standarisasi SPK (Kelompok 4: Usia 9 - 11 Bulan pada Periode 2026-10)
   {
     id: 'child-a1',
+    code: 'A01',
     parent_id: 'u-parent-1',
     parent_name: 'Siti Rahmawati',
     posyandu_id: 'posyandu-1',
     posyandu_name: 'Posyandu Mawar Indah',
-    name: 'Rehan',
+    name: 'Arka',
     date_of_birth: '2026-01-15', // 9 bulan pada 2026-10
     sex: 'L',
     birth_weight_kg: 3.3,
@@ -571,25 +572,147 @@ export const MOCK_CHILDREN = [
   },
   {
     id: 'child-a2',
+    code: 'A02',
     parent_id: 'u-parent-2',
     parent_name: 'Hendra Gunawan',
     posyandu_id: 'posyandu-1',
     posyandu_name: 'Posyandu Mawar Indah',
-    name: 'Suci',
+    name: 'Nara',
+    date_of_birth: '2026-01-15', // 9 bulan pada 2026-10
+    sex: 'P',
+    birth_weight_kg: 3.1,
+    birth_height_cm: 49.0,
+    registration_status: 'active',
+    created_at: '2026-01-20T08:00:00Z'
+  },
+  {
+    id: 'child-a3',
+    code: 'A03',
+    parent_id: 'u-parent-3',
+    parent_name: 'Nurul Hidayah',
+    posyandu_id: 'posyandu-1',
+    posyandu_name: 'Posyandu Mawar Indah',
+    name: 'Elio',
+    date_of_birth: '2026-01-15', // 9 bulan pada 2026-10
+    sex: 'L',
+    birth_weight_kg: 3.0,
+    birth_height_cm: 48.0,
+    registration_status: 'active',
+    created_at: '2026-01-20T08:00:00Z'
+  },
+  {
+    id: 'child-a4',
+    code: 'A04',
+    parent_id: 'u-parent-4',
+    parent_name: 'Bambang Irawan',
+    posyandu_id: 'posyandu-2',
+    posyandu_name: 'Posyandu Melati Sejahtera',
+    name: 'Aluna',
+    date_of_birth: '2026-01-15', // 9 bulan pada 2026-10
+    sex: 'P',
+    birth_weight_kg: 2.8,
+    birth_height_cm: 47.0,
+    registration_status: 'active',
+    created_at: '2026-01-20T08:00:00Z'
+  },
+  {
+    id: 'child-a5',
+    code: 'A05',
+    parent_id: 'u-parent-1',
+    parent_name: 'Siti Rahmawati',
+    posyandu_id: 'posyandu-1',
+    posyandu_name: 'Posyandu Mawar Indah',
+    name: 'Zayn',
+    date_of_birth: '2026-01-15', // 9 bulan pada 2026-10
+    sex: 'L',
+    birth_weight_kg: 3.5,
+    birth_height_cm: 51.0,
+    registration_status: 'active',
+    created_at: '2026-01-20T08:00:00Z'
+  },
+  {
+    id: 'child-a6',
+    code: 'A06',
+    parent_id: 'u-parent-2',
+    parent_name: 'Hendra Gunawan',
+    posyandu_id: 'posyandu-1',
+    posyandu_name: 'Posyandu Mawar Indah',
+    name: 'Kai',
+    date_of_birth: '2025-12-15', // 10 bulan pada 2026-10
+    sex: 'L',
+    birth_weight_kg: 3.4,
+    birth_height_cm: 50.0,
+    registration_status: 'active',
+    created_at: '2025-12-20T08:00:00Z'
+  },
+  {
+    id: 'child-a7',
+    code: 'A07',
+    parent_id: 'u-parent-3',
+    parent_name: 'Nurul Hidayah',
+    posyandu_id: 'posyandu-1',
+    posyandu_name: 'Posyandu Mawar Indah',
+    name: 'Ayla',
     date_of_birth: '2025-12-15', // 10 bulan pada 2026-10
     sex: 'P',
+    birth_weight_kg: 3.2,
+    birth_height_cm: 49.5,
+    registration_status: 'active',
+    created_at: '2025-12-20T08:00:00Z'
+  },
+  {
+    id: 'child-a8',
+    code: 'A08',
+    parent_id: 'u-parent-4',
+    parent_name: 'Bambang Irawan',
+    posyandu_id: 'posyandu-2',
+    posyandu_name: 'Posyandu Melati Sejahtera',
+    name: 'Kira',
+    date_of_birth: '2025-12-15', // 10 bulan pada 2026-10
+    sex: 'P',
+    birth_weight_kg: 2.9,
+    birth_height_cm: 48.0,
+    registration_status: 'active',
+    created_at: '2025-12-20T08:00:00Z'
+  },
+  {
+    id: 'child-a9',
+    code: 'A09',
+    parent_id: 'u-parent-1',
+    parent_name: 'Siti Rahmawati',
+    posyandu_id: 'posyandu-1',
+    posyandu_name: 'Posyandu Mawar Indah',
+    name: 'Raka',
+    date_of_birth: '2025-12-15', // 10 bulan pada 2026-10
+    sex: 'L',
     birth_weight_kg: 3.1,
     birth_height_cm: 49.0,
     registration_status: 'active',
     created_at: '2025-12-20T08:00:00Z'
   },
   {
-    id: 'child-a3',
+    id: 'child-a10',
+    code: 'A10',
+    parent_id: 'u-parent-2',
+    parent_name: 'Hendra Gunawan',
+    posyandu_id: 'posyandu-1',
+    posyandu_name: 'Posyandu Mawar Indah',
+    name: 'Zara',
+    date_of_birth: '2025-12-15', // 10 bulan pada 2026-10
+    sex: 'P',
+    birth_weight_kg: 3.6,
+    birth_height_cm: 51.5,
+    registration_status: 'active',
+    created_at: '2025-12-20T08:00:00Z'
+  },
+  {
+    id: 'child-a11',
+    code: 'A11',
     parent_id: 'u-parent-3',
     parent_name: 'Nurul Hidayah',
     posyandu_id: 'posyandu-1',
     posyandu_name: 'Posyandu Mawar Indah',
-    name: 'Kevin',
+    name: 'Ezra',
     date_of_birth: '2025-11-15', // 11 bulan pada 2026-10
     sex: 'L',
     birth_weight_kg: 3.5,
@@ -598,40 +721,13 @@ export const MOCK_CHILDREN = [
     created_at: '2025-11-20T08:00:00Z'
   },
   {
-    id: 'child-a4',
+    id: 'child-a12',
+    code: 'A12',
     parent_id: 'u-parent-4',
     parent_name: 'Bambang Irawan',
     posyandu_id: 'posyandu-2',
     posyandu_name: 'Posyandu Melati Sejahtera',
-    name: 'Tiara',
-    date_of_birth: '2026-01-15', // 9 bulan pada 2026-10
-    sex: 'P',
-    birth_weight_kg: 3.0,
-    birth_height_cm: 48.5,
-    registration_status: 'active',
-    created_at: '2026-01-20T08:00:00Z'
-  },
-  {
-    id: 'child-a5',
-    parent_id: 'u-parent-1',
-    parent_name: 'Siti Rahmawati',
-    posyandu_id: 'posyandu-1',
-    posyandu_name: 'Posyandu Mawar Indah',
-    name: 'Layla',
-    date_of_birth: '2025-12-15', // 10 bulan pada 2026-10
-    sex: 'P',
-    birth_weight_kg: 3.2,
-    birth_height_cm: 49.5,
-    registration_status: 'active',
-    created_at: '2025-12-20T08:00:00Z'
-  },
-  {
-    id: 'child-a6',
-    parent_id: 'u-parent-2',
-    parent_name: 'Hendra Gunawan',
-    posyandu_id: 'posyandu-1',
-    posyandu_name: 'Posyandu Mawar Indah',
-    name: 'Revi',
+    name: 'Livia',
     date_of_birth: '2025-11-15', // 11 bulan pada 2026-10
     sex: 'P',
     birth_weight_kg: 3.3,
@@ -640,86 +736,32 @@ export const MOCK_CHILDREN = [
     created_at: '2025-11-20T08:00:00Z'
   },
   {
-    id: 'child-a7',
-    parent_id: 'u-parent-3',
-    parent_name: 'Nurul Hidayah',
-    posyandu_id: 'posyandu-1',
-    posyandu_name: 'Posyandu Mawar Indah',
-    name: 'Haris',
-    date_of_birth: '2026-01-15', // 9 bulan pada 2026-10
-    sex: 'L',
-    birth_weight_kg: 2.8,
-    birth_height_cm: 47.0,
-    registration_status: 'active',
-    created_at: '2026-01-20T08:00:00Z'
-  },
-  {
-    id: 'child-a8',
-    parent_id: 'u-parent-4',
-    parent_name: 'Bambang Irawan',
-    posyandu_id: 'posyandu-2',
-    posyandu_name: 'Posyandu Melati Sejahtera',
-    name: 'Rafael',
-    date_of_birth: '2025-12-15', // 10 bulan pada 2026-10
-    sex: 'L',
-    birth_weight_kg: 3.4,
-    birth_height_cm: 50.5,
-    registration_status: 'active',
-    created_at: '2025-12-20T08:00:00Z'
-  },
-  {
-    id: 'child-a9',
+    id: 'child-a13',
+    code: 'A13',
     parent_id: 'u-parent-1',
     parent_name: 'Siti Rahmawati',
     posyandu_id: 'posyandu-1',
     posyandu_name: 'Posyandu Mawar Indah',
-    name: 'Hafizah',
+    name: 'Nino',
     date_of_birth: '2025-11-15', // 11 bulan pada 2026-10
-    sex: 'P',
-    birth_weight_kg: 3.4,
-    birth_height_cm: 50.0,
+    sex: 'L',
+    birth_weight_kg: 2.9,
+    birth_height_cm: 47.5,
     registration_status: 'active',
     created_at: '2025-11-20T08:00:00Z'
   },
   {
-    id: 'child-a10',
+    id: 'child-a14',
+    code: 'A14',
     parent_id: 'u-parent-2',
     parent_name: 'Hendra Gunawan',
     posyandu_id: 'posyandu-1',
     posyandu_name: 'Posyandu Mawar Indah',
-    name: 'Hakim',
-    date_of_birth: '2026-01-15', // 9 bulan pada 2026-10
-    sex: 'L',
-    birth_weight_kg: 3.2,
-    birth_height_cm: 49.5,
-    registration_status: 'active',
-    created_at: '2026-01-20T08:00:00Z'
-  },
-  {
-    id: 'child-a11',
-    parent_id: 'u-parent-3',
-    parent_name: 'Nurul Hidayah',
-    posyandu_id: 'posyandu-1',
-    posyandu_name: 'Posyandu Mawar Indah',
-    name: 'Ega',
-    date_of_birth: '2025-12-15', // 10 bulan pada 2026-10
-    sex: 'L',
-    birth_weight_kg: 2.9,
-    birth_height_cm: 48.0,
-    registration_status: 'active',
-    created_at: '2025-12-20T08:00:00Z'
-  },
-  {
-    id: 'child-a12',
-    parent_id: 'u-parent-4',
-    parent_name: 'Bambang Irawan',
-    posyandu_id: 'posyandu-2',
-    posyandu_name: 'Posyandu Melati Sejahtera',
-    name: 'Bily',
+    name: 'Naia',
     date_of_birth: '2025-11-15', // 11 bulan pada 2026-10
-    sex: 'L',
-    birth_weight_kg: 3.6,
-    birth_height_cm: 51.5,
+    sex: 'P',
+    birth_weight_kg: 3.2,
+    birth_height_cm: 49.0,
     registration_status: 'active',
     created_at: '2025-11-20T08:00:00Z'
   }
@@ -1520,11 +1562,12 @@ export const MOCK_EXAMINATIONS = [
     saw_score: null,
     saw_rank: null
   },
-  // Data Pemeriksaan Acuan 12 Balita Simulasi Kelompok 4 (9 - 11 Bulan) Periode 2026-10
+  // Data Pemeriksaan Acuan 14 Balita Simulasi Kelompok 4 (9 - 11 Bulan) Periode 2026-10
   {
     id: 'exam-sim-a1',
     child_id: 'child-a1',
-    child_name: 'Rehan',
+    code: 'A01',
+    child_name: 'Arka',
     sex: 'L',
     birth_year: 2026,
     posyandu_id: 'posyandu-1',
@@ -1536,15 +1579,22 @@ export const MOCK_EXAMINATIONS = [
     verified_by: 'u-staff-1',
     verified_at: '2026-10-10T09:00:00Z',
     status: 'verified',
-    notes: 'Kondisi gizi dan pertumbuhan motorik normal.',
-    values: { K1: 4, K2: 4, K3: 4, K4: 4, K5: 3, C1: 9.0, C2: 74.0, C3: 45.0, C4: 14.5, C5: 100, gizi: 3 }
+    notes: 'Kondisi kesehatan balita ideal sempurna di seluruh 5 kriteria.',
+    values: {
+      K1: 4, K2: 4, K3: 4, K4: 4, K5: 1.0,
+      beratBadan: 8.7, tinggiBadan: 71.5, lingkarKepala: 44.5, imunisasi: 17,
+      mddFoodGroups: ['asi', 'staples', 'legumes', 'dairy', 'flesh', 'vitamin_a'],
+      mddScore: 1, mddCount: 6, mmfScore: 1, breastfeeding: true, breastfeeding_status: 'still_breastfed',
+      solidFrequency: 3, milkFrequency: 0, k5Value: 1.0
+    }
   },
   {
     id: 'exam-sim-a2',
     child_id: 'child-a2',
-    child_name: 'Suci',
+    code: 'A02',
+    child_name: 'Nara',
     sex: 'P',
-    birth_year: 2025,
+    birth_year: 2026,
     posyandu_id: 'posyandu-1',
     posyandu_name: 'Posyandu Mawar Indah',
     examined_at: '2026-10-10T08:45:00Z',
@@ -1554,15 +1604,22 @@ export const MOCK_EXAMINATIONS = [
     verified_by: 'u-staff-1',
     verified_at: '2026-10-10T09:15:00Z',
     status: 'verified',
-    notes: 'Imunisasi tertunda 1 jenis vaksin, asupan gizi 4 indikator terpenuhi.',
-    values: { K1: 4, K2: 4, K3: 4, K4: 3, K5: 4, C1: 8.5, C2: 73.0, C3: 44.0, C4: 14.2, C5: 85, gizi: 4 }
+    notes: 'Pertumbuhan normal, asupan makanan MDD dan MMF terpenuhi.',
+    values: {
+      K1: 4, K2: 4, K3: 4, K4: 3, K5: 1.0,
+      beratBadan: 8.1, tinggiBadan: 70.4, lingkarKepala: 43.7, imunisasi: 15,
+      mddFoodGroups: ['asi', 'staples', 'dairy', 'flesh', 'other_fruits_veg'],
+      mddScore: 1, mddCount: 5, mmfScore: 1, breastfeeding: true, breastfeeding_status: 'still_breastfed',
+      solidFrequency: 3, milkFrequency: 0, k5Value: 1.0
+    }
   },
   {
     id: 'exam-sim-a3',
     child_id: 'child-a3',
-    child_name: 'Kevin',
+    code: 'A03',
+    child_name: 'Elio',
     sex: 'L',
-    birth_year: 2025,
+    birth_year: 2026,
     posyandu_id: 'posyandu-1',
     posyandu_name: 'Posyandu Mawar Indah',
     examined_at: '2026-10-10T09:00:00Z',
@@ -1572,13 +1629,20 @@ export const MOCK_EXAMINATIONS = [
     verified_by: 'u-staff-1',
     verified_at: '2026-10-10T09:30:00Z',
     status: 'verified',
-    notes: 'Kondisi kesehatan balita ideal sempurna di seluruh 5 kriteria.',
-    values: { K1: 4, K2: 4, K3: 4, K4: 4, K5: 4, C1: 9.8, C2: 75.5, C3: 46.0, C4: 15.0, C5: 100, gizi: 4 }
+    notes: 'Perhatian: BB dan TB berada pada garis batas kurang (skor 2). Status: Perlu Tinjau.',
+    values: {
+      K1: 2, K2: 2, K3: 4, K4: 3, K5: 0.5,
+      beratBadan: 7.5, tinggiBadan: 68.3, lingkarKepala: 43.6, imunisasi: 14,
+      mddFoodGroups: ['asi', 'staples', 'flesh', 'other_fruits_veg'],
+      mddScore: 0, mddCount: 4, mmfScore: 1, breastfeeding: true, breastfeeding_status: 'still_breastfed',
+      solidFrequency: 3, milkFrequency: 0, k5Value: 0.5
+    }
   },
   {
     id: 'exam-sim-a4',
     child_id: 'child-a4',
-    child_name: 'Tiara',
+    code: 'A04',
+    child_name: 'Aluna',
     sex: 'P',
     birth_year: 2026,
     posyandu_id: 'posyandu-2',
@@ -1590,15 +1654,22 @@ export const MOCK_EXAMINATIONS = [
     verified_by: 'u-staff-1',
     verified_at: '2026-10-10T09:45:00Z',
     status: 'verified',
-    notes: 'Pertumbuhan normal, asupan PMBA baik.',
-    values: { K1: 4, K2: 4, K3: 4, K4: 4, K5: 3, C1: 8.2, C2: 72.5, C3: 43.8, C4: 14.0, C5: 100, gizi: 3 }
+    notes: 'Perhatian: Indikator fisik kurang dan asupan makanan belum memenuhi target (MDD & MMF defisit).',
+    values: {
+      K1: 2, K2: 2, K3: 2, K4: 2, K5: 0.0,
+      beratBadan: 6.2, tinggiBadan: 64.8, lingkarKepala: 41.0, imunisasi: 10,
+      mddFoodGroups: ['asi', 'staples', 'dairy'],
+      mddScore: 0, mddCount: 3, mmfScore: 0, breastfeeding: true, breastfeeding_status: 'still_breastfed',
+      solidFrequency: 2, milkFrequency: 0, k5Value: 0.0
+    }
   },
   {
     id: 'exam-sim-a5',
     child_id: 'child-a5',
-    child_name: 'Layla',
-    sex: 'P',
-    birth_year: 2025,
+    code: 'A05',
+    child_name: 'Zayn',
+    sex: 'L',
+    birth_year: 2026,
     posyandu_id: 'posyandu-1',
     posyandu_name: 'Posyandu Mawar Indah',
     examined_at: '2026-10-10T09:30:00Z',
@@ -1608,14 +1679,21 @@ export const MOCK_EXAMINATIONS = [
     verified_by: 'u-staff-1',
     verified_at: '2026-10-10T10:00:00Z',
     status: 'verified',
-    notes: 'Kondisi fisik proporsional, asupan gizi 4 indikator terpenuhi.',
-    values: { K1: 4, K2: 4, K3: 4, K4: 3, K5: 4, C1: 8.6, C2: 73.5, C3: 44.2, C4: 14.3, C5: 80, gizi: 4 }
+    notes: 'Pertumbuhan fisik normal, frekuensi makan cukup namun variasi menu perlu ditingkatkan.',
+    values: {
+      K1: 4, K2: 4, K3: 4, K4: 4, K5: 0.5,
+      beratBadan: 9.7, tinggiBadan: 74.6, lingkarKepala: 46.2, imunisasi: 17,
+      mddFoodGroups: ['asi', 'staples', 'legumes', 'flesh'],
+      mddScore: 0, mddCount: 4, mmfScore: 1, breastfeeding: true, breastfeeding_status: 'still_breastfed',
+      solidFrequency: 4, milkFrequency: 0, k5Value: 0.5
+    }
   },
   {
     id: 'exam-sim-a6',
     child_id: 'child-a6',
-    child_name: 'Revi',
-    sex: 'P',
+    code: 'A06',
+    child_name: 'Kai',
+    sex: 'L',
     birth_year: 2025,
     posyandu_id: 'posyandu-1',
     posyandu_name: 'Posyandu Mawar Indah',
@@ -1626,15 +1704,22 @@ export const MOCK_EXAMINATIONS = [
     verified_by: 'u-staff-1',
     verified_at: '2026-10-10T10:15:00Z',
     status: 'verified',
-    notes: 'Imunisasi dasar lengkap, pertumbuhan fisik normal.',
-    values: { K1: 4, K2: 4, K3: 4, K4: 4, K5: 3, C1: 9.0, C2: 74.5, C3: 44.8, C4: 14.6, C5: 100, gizi: 3 }
+    notes: 'Kondisi fisik proporsional, asupan gizi 6 kelompok pangan dan frekuensi makan memenuhi.',
+    values: {
+      K1: 4, K2: 4, K3: 4, K4: 3, K5: 1.0,
+      beratBadan: 9.2, tinggiBadan: 72.0, lingkarKepala: 44.8, imunisasi: 16,
+      mddFoodGroups: ['asi', 'staples', 'legumes', 'dairy', 'eggs', 'vitamin_a'],
+      mddScore: 1, mddCount: 6, mmfScore: 1, breastfeeding: true, breastfeeding_status: 'still_breastfed',
+      solidFrequency: 3, milkFrequency: 0, k5Value: 1.0
+    }
   },
   {
     id: 'exam-sim-a7',
     child_id: 'child-a7',
-    child_name: 'Haris',
-    sex: 'L',
-    birth_year: 2026,
+    code: 'A07',
+    child_name: 'Ayla',
+    sex: 'P',
+    birth_year: 2025,
     posyandu_id: 'posyandu-1',
     posyandu_name: 'Posyandu Mawar Indah',
     examined_at: '2026-10-10T10:00:00Z',
@@ -1644,14 +1729,21 @@ export const MOCK_EXAMINATIONS = [
     verified_by: 'u-staff-1',
     verified_at: '2026-10-10T10:30:00Z',
     status: 'verified',
-    notes: 'Perhatian: BB dan TB berada pada garis batas kurang (skor 2). Perlu intervensi gizi.',
-    values: { K1: 2, K2: 2, K3: 2, K4: 2, K5: 4, C1: 7.0, C2: 68.0, C3: 42.5, C4: 12.0, C5: 60, gizi: 4 }
+    notes: 'Keragaman pangan baik (6 kelompok), frekuensi makan padat perlu ditingkatkan menjadi minimal 3x sehari.',
+    values: {
+      K1: 4, K2: 4, K3: 4, K4: 3, K5: 0.5,
+      beratBadan: 8.2, tinggiBadan: 70.5, lingkarKepala: 44.0, imunisasi: 13,
+      mddFoodGroups: ['asi', 'staples', 'legumes', 'flesh', 'vitamin_a', 'other_fruits_veg'],
+      mddScore: 1, mddCount: 6, mmfScore: 0, breastfeeding: true, breastfeeding_status: 'still_breastfed',
+      solidFrequency: 2, milkFrequency: 0, k5Value: 0.5
+    }
   },
   {
     id: 'exam-sim-a8',
     child_id: 'child-a8',
-    child_name: 'Rafael',
-    sex: 'L',
+    code: 'A08',
+    child_name: 'Kira',
+    sex: 'P',
     birth_year: 2025,
     posyandu_id: 'posyandu-2',
     posyandu_name: 'Posyandu Melati Sejahtera',
@@ -1662,14 +1754,21 @@ export const MOCK_EXAMINATIONS = [
     verified_by: 'u-staff-1',
     verified_at: '2026-10-10T10:45:00Z',
     status: 'verified',
-    notes: 'Fisik baik, imunisasi hampir lengkap.',
-    values: { K1: 4, K2: 4, K3: 4, K4: 3, K5: 3, C1: 9.4, C2: 75.0, C3: 45.5, C4: 14.8, C5: 85, gizi: 3 }
+    notes: 'Perhatian: TB dan LK berada pada batas bawah (skor 2), frekuensi makan perlu ditambah.',
+    values: {
+      K1: 4, K2: 2, K3: 2, K4: 2, K5: 0.5,
+      beratBadan: 7.1, tinggiBadan: 66.2, lingkarKepala: 42.2, imunisasi: 12,
+      mddFoodGroups: ['asi', 'staples', 'dairy', 'eggs', 'other_fruits_veg'],
+      mddScore: 1, mddCount: 5, mmfScore: 0, breastfeeding: true, breastfeeding_status: 'still_breastfed',
+      solidFrequency: 2, milkFrequency: 0, k5Value: 0.5
+    }
   },
   {
     id: 'exam-sim-a9',
     child_id: 'child-a9',
-    child_name: 'Hafizah',
-    sex: 'P',
+    code: 'A09',
+    child_name: 'Raka',
+    sex: 'L',
     birth_year: 2025,
     posyandu_id: 'posyandu-1',
     posyandu_name: 'Posyandu Mawar Indah',
@@ -1680,15 +1779,22 @@ export const MOCK_EXAMINATIONS = [
     verified_by: 'u-staff-1',
     verified_at: '2026-10-10T11:00:00Z',
     status: 'verified',
-    notes: 'Kondisi kesehatan balita ideal sempurna di seluruh 5 kriteria.',
-    values: { K1: 4, K2: 4, K3: 4, K4: 4, K5: 4, C1: 8.9, C2: 74.0, C3: 45.0, C4: 14.7, C5: 100, gizi: 4 }
+    notes: 'Perhatian: TB pendek (skor 2) dan asupan makanan belum memenuhi indikator MDD maupun MMF.',
+    values: {
+      K1: 4, K2: 2, K3: 4, K4: 3, K5: 0.0,
+      beratBadan: 8.1, tinggiBadan: 68.5, lingkarKepala: 43.8, imunisasi: 15,
+      mddFoodGroups: ['asi', 'staples', 'flesh', 'vitamin_a'],
+      mddScore: 0, mddCount: 4, mmfScore: 0, breastfeeding: true, breastfeeding_status: 'still_breastfed',
+      solidFrequency: 2, milkFrequency: 0, k5Value: 0.0
+    }
   },
   {
     id: 'exam-sim-a10',
     child_id: 'child-a10',
-    child_name: 'Hakim',
-    sex: 'L',
-    birth_year: 2026,
+    code: 'A10',
+    child_name: 'Zara',
+    sex: 'P',
+    birth_year: 2025,
     posyandu_id: 'posyandu-1',
     posyandu_name: 'Posyandu Mawar Indah',
     examined_at: '2026-10-10T10:45:00Z',
@@ -1698,13 +1804,20 @@ export const MOCK_EXAMINATIONS = [
     verified_by: 'u-staff-1',
     verified_at: '2026-10-10T11:15:00Z',
     status: 'verified',
-    notes: 'Fisik baik, variasi asupan makan perlu ditingkatkan (skor 2).',
-    values: { K1: 4, K2: 4, K3: 4, K4: 3, K5: 2, C1: 9.1, C2: 74.2, C3: 45.1, C4: 14.6, C5: 85, gizi: 2 }
+    notes: 'Pertumbuhan fisik baik, asupan gizi 6 kelompok pangan dan frekuensi makan memenuhi.',
+    values: {
+      K1: 4, K2: 4, K3: 2, K4: 3, K5: 1.0,
+      beratBadan: 9.7, tinggiBadan: 75.0, lingkarKepala: 47.2, imunisasi: 16,
+      mddFoodGroups: ['asi', 'staples', 'legumes', 'dairy', 'flesh', 'other_fruits_veg'],
+      mddScore: 1, mddCount: 6, mmfScore: 1, breastfeeding: true, breastfeeding_status: 'still_breastfed',
+      solidFrequency: 3, milkFrequency: 0, k5Value: 1.0
+    }
   },
   {
     id: 'exam-sim-a11',
     child_id: 'child-a11',
-    child_name: 'Ega',
+    code: 'A11',
+    child_name: 'Ezra',
     sex: 'L',
     birth_year: 2025,
     posyandu_id: 'posyandu-1',
@@ -1716,14 +1829,21 @@ export const MOCK_EXAMINATIONS = [
     verified_by: 'u-staff-1',
     verified_at: '2026-10-10T11:30:00Z',
     status: 'verified',
-    notes: 'Perhatian: BB berada pada batas kurang (skor 2). Status: Perlu Tinjau.',
-    values: { K1: 2, K2: 4, K3: 4, K4: 4, K5: 3, C1: 7.2, C2: 74.8, C3: 45.6, C4: 12.8, C5: 100, gizi: 3 }
+    notes: 'Kondisi kesehatan balita ideal sempurna di seluruh 5 kriteria.',
+    values: {
+      K1: 4, K2: 4, K3: 4, K4: 4, K5: 1.0,
+      beratBadan: 9.4, tinggiBadan: 74.8, lingkarKepala: 45.8, imunisasi: 17,
+      mddFoodGroups: ['asi', 'staples', 'legumes', 'dairy', 'flesh', 'eggs', 'vitamin_a'],
+      mddScore: 1, mddCount: 7, mmfScore: 1, breastfeeding: true, breastfeeding_status: 'still_breastfed',
+      solidFrequency: 4, milkFrequency: 0, k5Value: 1.0
+    }
   },
   {
     id: 'exam-sim-a12',
     child_id: 'child-a12',
-    child_name: 'Bily',
-    sex: 'L',
+    code: 'A12',
+    child_name: 'Livia',
+    sex: 'P',
     birth_year: 2025,
     posyandu_id: 'posyandu-2',
     posyandu_name: 'Posyandu Melati Sejahtera',
@@ -1734,8 +1854,64 @@ export const MOCK_EXAMINATIONS = [
     verified_by: 'u-staff-1',
     verified_at: '2026-10-10T11:45:00Z',
     status: 'verified',
-    notes: 'Pertumbuhan fisik normal, asupan gizi 4 indikator terpenuhi.',
-    values: { K1: 4, K2: 4, K3: 4, K4: 3, K5: 4, C1: 9.7, C2: 76.0, C3: 46.2, C4: 15.1, C5: 90, gizi: 4 }
+    notes: 'Pertumbuhan fisik normal, asupan gizi 5 kelompok pangan terpenuhi.',
+    values: {
+      K1: 4, K2: 4, K3: 4, K4: 3, K5: 1.0,
+      beratBadan: 8.6, tinggiBadan: 72.7, lingkarKepala: 44.7, imunisasi: 14,
+      mddFoodGroups: ['asi', 'staples', 'dairy', 'eggs', 'vitamin_a'],
+      mddScore: 1, mddCount: 5, mmfScore: 1, breastfeeding: true, breastfeeding_status: 'still_breastfed',
+      solidFrequency: 3, milkFrequency: 0, k5Value: 1.0
+    }
+  },
+  {
+    id: 'exam-sim-a13',
+    child_id: 'child-a13',
+    code: 'A13',
+    child_name: 'Nino',
+    sex: 'L',
+    birth_year: 2025,
+    posyandu_id: 'posyandu-1',
+    posyandu_name: 'Posyandu Mawar Indah',
+    examined_at: '2026-10-10T11:30:00Z',
+    period_code: '2026-10',
+    recorded_by: 'u-staff-1',
+    recorded_by_name: 'dr. Dewi Anggraini, Sp.A',
+    verified_by: 'u-staff-1',
+    verified_at: '2026-10-10T12:00:00Z',
+    status: 'verified',
+    notes: 'Perhatian: Berat badan dan panjang badan kurang (skor 2), asupan makan belum mencukupi.',
+    values: {
+      K1: 2, K2: 2, K3: 2, K4: 2, K5: 0.0,
+      beratBadan: 7.2, tinggiBadan: 69.3, lingkarKepala: 42.7, imunisasi: 9,
+      mddFoodGroups: ['asi', 'staples', 'legumes', 'flesh'],
+      mddScore: 0, mddCount: 4, mmfScore: 0, breastfeeding: true, breastfeeding_status: 'still_breastfed',
+      solidFrequency: 2, milkFrequency: 0, k5Value: 0.0
+    }
+  },
+  {
+    id: 'exam-sim-a14',
+    child_id: 'child-a14',
+    code: 'A14',
+    child_name: 'Naia',
+    sex: 'P',
+    birth_year: 2025,
+    posyandu_id: 'posyandu-1',
+    posyandu_name: 'Posyandu Mawar Indah',
+    examined_at: '2026-10-10T11:45:00Z',
+    period_code: '2026-10',
+    recorded_by: 'u-staff-1',
+    recorded_by_name: 'dr. Dewi Anggraini, Sp.A',
+    verified_by: 'u-staff-1',
+    verified_at: '2026-10-10T12:15:00Z',
+    status: 'verified',
+    notes: 'Pertumbuhan fisik normal, keragaman pangan mencukupi, frekuensi makan perlu ditingkatkan.',
+    values: {
+      K1: 4, K2: 4, K3: 4, K4: 3, K5: 0.5,
+      beratBadan: 8.1, tinggiBadan: 70.6, lingkarKepala: 43.5, imunisasi: 15,
+      mddFoodGroups: ['asi', 'staples', 'flesh', 'vitamin_a', 'other_fruits_veg'],
+      mddScore: 1, mddCount: 5, mmfScore: 0, breastfeeding: true, breastfeeding_status: 'still_breastfed',
+      solidFrequency: 2, milkFrequency: 0, k5Value: 0.5
+    }
   }
 ];
 

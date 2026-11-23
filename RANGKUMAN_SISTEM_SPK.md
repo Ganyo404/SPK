@@ -15,7 +15,7 @@
    - [A. Analytic Hierarchy Process (AHP) — Pembobotan Kriteria](#a-analytic-hierarchy-process-ahp--pembobotan-kriteria)
    - [B. Simple Additive Weighting (SAW) — Perankingan Alternatif](#b-simple-additive-weighting-saw--perankingan-alternatif)
 5. [Cohort Alternatif Balita & Aturan Isolasi Klinis](#5-cohort-alternatif-balita--aturan-isolasi-klinis)
-6. [Validasi Benchmark Simulasi Excel (12 Balita Acuan)](#6-validasi-benchmark-simulasi-excel-12-balita-acuan)
+6. [Validasi Benchmark Simulasi (14 Balita Acuan Cohort G4)](#6-validasi-benchmark-simulasi-14-balita-acuan-cohort-g4)
 7. [Klasifikasi Status Klinis (Normal vs Perlu Tinjau)](#7-klasifikasi-status-klinis-normal-vs-perlu-tinjau)
 8. [Arsitektur Peran Pengguna & Alur Kerja Sistem](#8-arsitektur-peran-pengguna--alur-kerja-sistem)
 9. [Fitur Antarmuka & UX Terbaru](#9-fitur-antarmuka--ux-terbaru)
@@ -241,24 +241,26 @@ Sistem menerapkan **Isolasi Kohor, Periode, dan Gender**:
 
 ---
 
-## 6. Validasi Benchmark Simulasi Excel (12 Balita Acuan)
+## 6. Validasi Benchmark Simulasi (14 Balita Acuan Cohort G4)
 
-Hasil perhitungan algoritma pada [`src/lib/spk/saw.js`](file:///c:/SPK/src/lib/spk/saw.js) telah teruji **100% konsisten** dengan dataset benchmark Kelompok 4 (9–11 bulan) Periode 2026-10:
+Hasil perhitungan algoritma pada [`src/lib/spk/saw.js`](file:///c:/SPK/src/lib/spk/saw.js) telah teruji **100% konsisten** dengan dataset benchmark 14 balita Kelompok 4 (9–11 bulan) Periode 2026-10:
 
-| No | Alternatif | K1 (BB) | K2 (TB) | K3 (LK) | K4 (Imun) | Nilai K5 | Skor SAW ($V_i$) | Status Klinis | Peringkat SAW |
-| :-: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :-: |
-| 1 | **Kevin** | 4 | 4 | 4 | 4 | **1.0** | **$1.0000000$** | Normal | **#1** |
-| 2 | **Hafizah** | 4 | 4 | 4 | 4 | **1.0** | **$1.0000000$** | Normal | **#1** |
-| 3 | **Rehan** | 4 | 4 | 4 | 4 | **0.5** | **$0.8771130$** | Normal | **#3** |
-| 4 | **Revi** | 4 | 4 | 4 | 4 | **0.5** | **$0.8771130$** | Normal | **#3** |
-| 5 | **Tiara** | 4 | 4 | 4 | 4 | **0.5** | **$0.8771130$** | Normal | **#3** |
-| 6 | **Bily** | 4 | 4 | 4 | 3 | **1.0** | **$0.8940805$** | Normal | **#6** |
-| 7 | **Layla** | 4 | 4 | 4 | 3 | **1.0** | **$0.8940805$** | Normal | **#6** |
-| 8 | **Suci** | 4 | 4 | 4 | 3 | **1.0** | **$0.8940805$** | Normal | **#6** |
-| 9 | **Rafael** | 4 | 4 | 4 | 3 | **0.5** | **$0.7711935$** | Normal | **#9** |
-| 10 | **Ega** | 2 | 4 | 4 | 4 | **0.5** | **$0.8156696$** | **Perlu Tinjau** | **#10** |
-| 11 | **Hakim** | 4 | 4 | 4 | 3 | **0.0** | **$0.6483067$** | **Perlu Tinjau** | **#11** |
-| 12 | **Haris** | 2 | 2 | 2 | 2 | **1.0** | **$0.6229550$** | **Perlu Tinjau** | **#12** |
+| No | Kode | Alternatif | Usia & JK | K1 (BB) | K2 (TB) | K3 (LK) | K4 (Imun) | Nilai K5 | Skor SAW ($V_i$) | Status Klinis | Peringkat SAW |
+| :-: | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :-: |
+| 1 | **A01** | **Arka** | 9 bln (L) | 4 | 4 | 4 | 4 | **1.0** | **$1.0000000$** | Normal | **#1** |
+| 2 | **A11** | **Ezra** | 11 bln (L) | 4 | 4 | 4 | 4 | **1.0** | **$1.0000000$** | Normal | **#1** |
+| 3 | **A06** | **Kai** | 10 bln (L) | 4 | 4 | 4 | 3 | **1.0** | **$0.8940805$** | Normal | **#3** |
+| 4 | **A12** | **Livia** | 11 bln (P) | 4 | 4 | 4 | 3 | **1.0** | **$0.8940805$** | Normal | **#3** |
+| 5 | **A02** | **Nara** | 9 bln (P) | 4 | 4 | 4 | 3 | **1.0** | **$0.8940805$** | Normal | **#3** |
+| 6 | **A05** | **Zayn** | 9 bln (L) | 4 | 4 | 4 | 4 | **0.5** | **$0.8771132$** | Normal | **#6** |
+| 7 | **A10** | **Zara** | 10 bln (P) | 4 | 4 | 2 | 3 | **1.0** | **$0.8516930$** | Normal | **#7** |
+| 8 | **A07** | **Ayla** | 10 bln (P) | 4 | 4 | 4 | 3 | **0.5** | **$0.7711937$** | Normal | **#8** |
+| 9 | **A14** | **Naia** | 11 bln (P) | 4 | 4 | 4 | 3 | **0.5** | **$0.7711937$** | Normal | **#8** |
+| 10 | **A03** | **Elio** | 9 bln (L) | 2 | 2 | 4 | 3 | **0.5** | **$0.6483070$** | **Perlu Tinjau** | **#10** |
+| 11 | **A09** | **Raka** | 10 bln (L) | 4 | 2 | 4 | 3 | **0.0** | **$0.5868636$** | **Perlu Tinjau** | **#11** |
+| 12 | **A08** | **Kira** | 10 bln (P) | 4 | 2 | 2 | 2 | **0.5** | **$0.5614434$** | **Perlu Tinjau** | **#12** |
+| 13 | **A04** | **Aluna** | 9 bln (P) | 2 | 2 | 2 | 2 | **0.0** | **$0.3771132$** | **Perlu Tinjau** | **#13** |
+| 14 | **A13** | **Nino** | 11 bln (L) | 2 | 2 | 2 | 2 | **0.0** | **$0.3771132$** | **Perlu Tinjau** | **#13** |
 
 ---
 
