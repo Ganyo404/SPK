@@ -216,10 +216,10 @@ export const authService = {
     // 6. Set user aktif di sesi localStorage
     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(newUser));
 
-    // Optional background Supabase signup jika terkonfigurasi, tapi tidak memblokir flow jika gagal
+    // Background Supabase signup & profile upsert
     if (isSupabaseConfigured() && supabase) {
       try {
-        await supabase.auth.signUp({
+        const { data: authData } = await supabase.auth.signUp({
           email: cleanEmail,
           password: cleanPassword,
           options: {
@@ -232,8 +232,20 @@ export const authService = {
             }
           }
         });
+
+        const profileId = authData?.user?.id || newUser.id;
+        await supabase.from('profiles').upsert({
+          id: profileId,
+          email: cleanEmail,
+          full_name: (fullName || '').trim(),
+          nik: cleanNik,
+          address: (address || '').trim(),
+          phone: (phone || '').trim(),
+          role: 'parent',
+          updated_at: new Date().toISOString()
+        });
       } catch (err) {
-        console.warn('Supabase optional background signUp notice:', err);
+        console.warn('Supabase background register notice:', err);
       }
     }
 

@@ -156,6 +156,8 @@ export const childService = {
           .single();
 
         if (!error && data) {
+          childrenStore.unshift(data);
+          saveStoredChildren(childrenStore);
           return { data, error: null };
         }
       } catch (err) {
@@ -258,6 +260,8 @@ export const childService = {
           .single();
 
         if (!error && data) {
+          childrenStore.unshift(data);
+          saveStoredChildren(childrenStore);
           return { data, error: null };
         }
       } catch (err) {

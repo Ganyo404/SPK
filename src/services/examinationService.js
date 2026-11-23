@@ -226,6 +226,7 @@ export const examinationService = {
             examined_at: examinedAt || new Date().toISOString(),
             period_code: periodCode,
             status: 'pending_verification',
+            measurements: values || {},
             notes: notes || '',
             recorded_by: recordedBy,
           })

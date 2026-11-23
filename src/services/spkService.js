@@ -373,10 +373,88 @@ export const spkService = {
     });
     saveLiveExaminations(exams);
 
+    // Simpan juga ke Supabase jika terkonfigurasi
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        await supabase.from('spk_runs').upsert({
+          id: newRun.id,
+          age_group_id: targetGroup.id,
+          period_code: periodCode,
+          gender_filter: gender,
+          algorithm_version: newRun.algorithm_version,
+          alternative_count: newRun.alternative_count,
+          status: 'completed',
+          created_by: createdBy || 'Petugas Medis'
+        });
+
+        const resultsPayload = sawResult.results.map(r => ({
+          id: `res-${r.childId}-${periodCode}`,
+          spk_run_id: newRun.id,
+          child_id: r.childId,
+          examination_id: r.examinationId,
+          raw_values_snapshot: r.rawValues || {},
+          normalized_values: r.normalizedValues || {},
+          weights_snapshot: activeWeights,
+          contributions: r.contributions || {},
+          preference_score: r.preferenceScore,
+          rank: r.rank,
+          clinical_status: r.statusFlag || 'Normal'
+        }));
+        await supabase.from('spk_results').upsert(resultsPayload);
+      } catch (err) {
+        console.warn('Supabase save SPK run warning:', err);
+      }
+    }
+
     return { data: newRun, error: null };
   },
 
   async getLatestResultsForCohort(ageGroupId = 6, periodCode = '2026-10', gender = 'all') {
+    const numericGroupId = Number(ageGroupId) || 6;
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data: runs } = await supabase
+          .from('spk_runs')
+          .select('*')
+          .eq('age_group_id', numericGroupId)
+          .eq('period_code', periodCode)
+          .eq('gender_filter', gender)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (runs && runs.length > 0) {
+          const run = runs[0];
+          const { data: results } = await supabase
+            .from('spk_results')
+            .select('*, child:child_id(name, sex, date_of_birth)')
+            .eq('spk_run_id', run.id)
+            .order('rank', { ascending: true });
+
+          if (results && results.length > 0) {
+            run.saw_output = {
+              valid: true,
+              results: results.map((r) => ({
+                childId: r.child_id,
+                childName: r.child?.name || 'Balita',
+                sex: r.child?.sex,
+                rank: r.rank,
+                preferenceScore: Number(r.preference_score),
+                statusFlag: r.clinical_status,
+                rawValues: r.raw_values_snapshot,
+                normalizedValues: r.normalized_values,
+                contributions: r.contributions,
+                examinationId: r.examination_id
+              }))
+            };
+            return { data: run, error: null };
+          }
+        }
+      } catch (e) {
+        console.warn('Supabase getLatestResults fallback to local:', e);
+      }
+    }
+
     spkRunsStore = getLiveSpkRuns();
     const numericGroupId = Number(ageGroupId) || 6;
 
