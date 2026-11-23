@@ -285,19 +285,19 @@ ON CONFLICT (id) DO NOTHING;
 
 -- 3. SEED KRITERIA (K1 - K5)
 INSERT INTO public.criteria (id, code, name, description, unit, direction, validation_rules, is_active, display_order)
-VALUES ('crit-1', 'K1', 'Berat Badan menurut Umur (BB/U)', '', 'Skor 1-4', 'benefit', '{"min":1,"max":4,"step":1}'::jsonb, undefined, undefined)
+VALUES ('crit-1', 'K1', 'Berat Badan menurut Umur (BB/U)', 'Standar deviasi Z-score BB/U Permenkes No. 2/2020', 'Skor 1-4', 'benefit', '{"min":1,"max":4,"step":1}'::jsonb, true, 1)
 ON CONFLICT (code) DO NOTHING;
 INSERT INTO public.criteria (id, code, name, description, unit, direction, validation_rules, is_active, display_order)
-VALUES ('crit-2', 'K2', 'Panjang/Tinggi Badan menurut Umur (PB/TB)', '', 'Skor 1-4', 'benefit', '{"min":1,"max":4,"step":1}'::jsonb, undefined, undefined)
+VALUES ('crit-2', 'K2', 'Panjang/Tinggi Badan menurut Umur (PB/TB)', 'Standar deviasi Z-score PB/TB Permenkes No. 2/2020', 'Skor 1-4', 'benefit', '{"min":1,"max":4,"step":1}'::jsonb, true, 2)
 ON CONFLICT (code) DO NOTHING;
 INSERT INTO public.criteria (id, code, name, description, unit, direction, validation_rules, is_active, display_order)
-VALUES ('crit-3', 'K3', 'Lingkar Kepala menurut Umur (LK/U)', '', 'Skor 1-4', 'benefit', '{"min":1,"max":4,"step":1}'::jsonb, undefined, undefined)
+VALUES ('crit-3', 'K3', 'Lingkar Kepala menurut Umur (LK/U)', 'Standar deviasi Z-score LK/U WHO Growth Charts', 'Skor 1-4', 'benefit', '{"min":1,"max":4,"step":1}'::jsonb, true, 3)
 ON CONFLICT (code) DO NOTHING;
 INSERT INTO public.criteria (id, code, name, description, unit, direction, validation_rules, is_active, display_order)
-VALUES ('crit-4', 'K4', 'Riwayat Kelengkapan Imunisasi', '', 'Skor 1-4', 'benefit', '{"min":1,"max":4,"step":1}'::jsonb, undefined, undefined)
+VALUES ('crit-4', 'K4', 'Riwayat Kelengkapan Imunisasi', 'Target kumulatif dosis imunisasi dasar nasional', 'Skor 1-4', 'benefit', '{"min":1,"max":4,"step":1}'::jsonb, true, 4)
 ON CONFLICT (code) DO NOTHING;
 INSERT INTO public.criteria (id, code, name, description, unit, direction, validation_rules, is_active, display_order)
-VALUES ('crit-5', 'K5', 'Asupan Gizi & Praktik Makan Balita (PMBA)', '', 'Skor 1-4', 'benefit', '{"min":1,"max":4,"step":1}'::jsonb, undefined, undefined)
+VALUES ('crit-5', 'K5', 'Asupan Gizi & Praktik Makan Balita (PMBA)', 'Komposit MDD (Minimum Dietary Diversity) & MMF (Minimum Meal Frequency) WHO/UNICEF', 'Skor 1-4', 'benefit', '{"min":0,"max":1,"step":0.5}'::jsonb, true, 5)
 ON CONFLICT (code) DO NOTHING;
 
 -- 4. SEED KONFIGURASI AHP BAKU
