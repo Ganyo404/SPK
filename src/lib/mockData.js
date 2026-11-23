@@ -64,37 +64,6 @@ export const MOCK_USERS = [
     address: 'Komplek Puskesmas Cilodong Blok A1',
     phone: '081311223344',
     role: 'admin'
-  },
-  // Akun pendukung tambahan untuk kompatibilitas login cepat
-  {
-    id: 'u-parent-legacy',
-    email: 'orangtua@spkbalita.id',
-    password: '123',
-    full_name: 'Siti Rahmawati',
-    nik: '3201015504950001',
-    address: 'Jl. Melati Raya No. 14, RT 03/RW 02, Cilodong',
-    phone: '081234567890',
-    role: 'parent'
-  },
-  {
-    id: 'u-staff-legacy',
-    email: 'petugas@spkbalita.id',
-    password: '123',
-    full_name: 'Bdn. Dewi Anggraini, S.Tr.Keb',
-    nik: '3201016608900002',
-    address: 'Jl. Kesehatan No. 5, Sukamaju',
-    phone: '081298765432',
-    role: 'staff'
-  },
-  {
-    id: 'u-admin-legacy',
-    email: 'admin@spkbalita.id',
-    password: '123',
-    full_name: 'Ahmad Fauzi, S.Kom',
-    nik: '3201011203880003',
-    address: 'Komplek Puskesmas Cilodong Blok A1',
-    phone: '081311223344',
-    role: 'admin'
   }
 ];
 

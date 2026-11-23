@@ -271,15 +271,6 @@ ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, role = EXCLUDED.r
 INSERT INTO public.profiles (id, email, full_name, nik, address, phone, role)
 VALUES ('u-admin-1', 'admin@gmail.com', 'Ahmad Fauzi, S.Kom (Administrator)', '3201011203880003', 'Komplek Puskesmas Cilodong Blok A1', '081311223344', 'admin')
 ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, role = EXCLUDED.role;
-INSERT INTO public.profiles (id, email, full_name, nik, address, phone, role)
-VALUES ('u-parent-legacy', 'orangtua@spkbalita.id', 'Siti Rahmawati', '3201015504950001', 'Jl. Melati Raya No. 14, RT 03/RW 02, Cilodong', '081234567890', 'parent')
-ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, role = EXCLUDED.role;
-INSERT INTO public.profiles (id, email, full_name, nik, address, phone, role)
-VALUES ('u-staff-legacy', 'petugas@spkbalita.id', 'Bdn. Dewi Anggraini, S.Tr.Keb', '3201016608900002', 'Jl. Kesehatan No. 5, Sukamaju', '081298765432', 'staff')
-ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, role = EXCLUDED.role;
-INSERT INTO public.profiles (id, email, full_name, nik, address, phone, role)
-VALUES ('u-admin-legacy', 'admin@spkbalita.id', 'Ahmad Fauzi, S.Kom', '3201011203880003', 'Komplek Puskesmas Cilodong Blok A1', '081311223344', 'admin')
-ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, role = EXCLUDED.role;
 
 -- 2. SEED POSYANDU
 INSERT INTO public.posyandu (id, name, address, rw_rt, village, district, is_active)
