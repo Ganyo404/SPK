@@ -15,7 +15,9 @@ import {
   Calendar,
   Users,
   PlusCircle,
-  BookOpen
+  BookOpen,
+  ExternalLink,
+  ChevronRight
 } from 'lucide-react';
 
 const MONTH_OPTIONS = [
@@ -544,13 +546,12 @@ export function SPKCalculationPage() {
                   const k2Score = item.standardScores?.K2 ?? item.values?.K2 ?? 4;
                   const k3Score = item.standardScores?.K3 ?? item.values?.K3 ?? 4;
                   const k4Score = item.standardScores?.K4 ?? item.values?.K4 ?? 4;
-                  const k5Score = item.standardScores?.K5 ?? item.values?.K5 ?? 4;
+                  const k5Score = item.standardScores?.K5 ?? item.values?.K5 ?? (isK5Active ? 1 : 0);
 
-                  const rawBB = item.rawValues?.BB ?? item.rawValues?.C1 ?? '-';
-                  const rawTB = item.rawValues?.TB ?? item.rawValues?.C2 ?? '-';
-                  const rawLK = item.rawValues?.LK ?? item.rawValues?.C3 ?? '-';
-                  const rawImun = item.rawValues?.Imunisasi ?? item.rawValues?.C5 ?? '-';
-                  const rawGizi = item.rawValues?.Gizi ?? item.rawValues?.gizi ?? '-';
+                  const rawBB = item.rawValues?.BB ?? item.rawValues?.beratBadan ?? item.rawValues?.C1 ?? item.raw_values?.BB ?? '-';
+                  const rawTB = item.rawValues?.TB ?? item.rawValues?.tinggiBadan ?? item.rawValues?.C2 ?? item.raw_values?.TB ?? '-';
+                  const rawLK = item.rawValues?.LK ?? item.rawValues?.lingkarKepala ?? item.rawValues?.C3 ?? item.raw_values?.LK ?? '-';
+                  const rawImun = item.rawValues?.Imunisasi ?? item.rawValues?.imunisasi ?? item.rawValues?.C5 ?? item.raw_values?.Imunisasi ?? '-';
 
                   return (
                     <tr key={item.childId} className="hover:bg-slate-50/80 transition-colors">
@@ -570,8 +571,18 @@ export function SPKCalculationPage() {
                         </span>
                       </td>
                       <td className="py-3.5 px-3.5">
-                        <div className="font-bold text-slate-900 text-sm">{item.childName}</div>
-                        <div className="text-[11px] text-slate-400 font-mono">ID: {item.childId}</div>
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/staff/children/${item.childId}`)}
+                          className="text-left group cursor-pointer focus:outline-hidden"
+                          title="Buka Data & Riwayat Balita Lengkap"
+                        >
+                          <div className="font-bold text-slate-900 text-sm group-hover:text-teal-600 group-hover:underline flex items-center gap-1.5 transition-colors">
+                            <span>{item.childName}</span>
+                            <ExternalLink className="w-3.5 h-3.5 text-teal-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                          <div className="text-[11px] text-slate-400 font-mono group-hover:text-slate-600">ID: {item.childId}</div>
+                        </button>
                       </td>
                       <td className="py-3.5 px-3 text-center">
                         <span
@@ -596,7 +607,9 @@ export function SPKCalculationPage() {
                           <span className={`inline-flex items-center justify-center w-max px-2 py-0.5 rounded-md border text-[11px] ${getScoreBadgeClass(k1Score)}`}>
                             Skor {k1Score}
                           </span>
-                          <span className="text-[10px] text-slate-400 mt-0.5">{rawBB} kg</span>
+                          <span className="text-[10px] text-slate-500 font-medium mt-0.5">
+                            {rawBB !== '-' && rawBB !== null && rawBB !== undefined ? `${rawBB} kg` : '-'}
+                          </span>
                         </div>
                       </td>
 
@@ -606,7 +619,9 @@ export function SPKCalculationPage() {
                           <span className={`inline-flex items-center justify-center w-max px-2 py-0.5 rounded-md border text-[11px] ${getScoreBadgeClass(k2Score)}`}>
                             Skor {k2Score}
                           </span>
-                          <span className="text-[10px] text-slate-400 mt-0.5">{rawTB} cm</span>
+                          <span className="text-[10px] text-slate-500 font-medium mt-0.5">
+                            {rawTB !== '-' && rawTB !== null && rawTB !== undefined ? `${rawTB} cm` : '-'}
+                          </span>
                         </div>
                       </td>
 
@@ -616,7 +631,9 @@ export function SPKCalculationPage() {
                           <span className={`inline-flex items-center justify-center w-max px-2 py-0.5 rounded-md border text-[11px] ${getScoreBadgeClass(k3Score)}`}>
                             Skor {k3Score}
                           </span>
-                          <span className="text-[10px] text-slate-400 mt-0.5">{rawLK} cm</span>
+                          <span className="text-[10px] text-slate-500 font-medium mt-0.5">
+                            {rawLK !== '-' && rawLK !== null && rawLK !== undefined ? `${rawLK} cm` : '-'}
+                          </span>
                         </div>
                       </td>
 
@@ -626,8 +643,9 @@ export function SPKCalculationPage() {
                           <span className={`inline-flex items-center justify-center w-max px-2 py-0.5 rounded-md border text-[11px] ${getScoreBadgeClass(k4Score)}`}>
                             Skor {k4Score}
                           </span>
-                          <span className="text-[10px] text-slate-400 mt-0.5">
+                          <span className="text-[10px] text-slate-500 font-medium mt-0.5">
                             {(() => {
+                              if (rawImun === '-' || rawImun === null || rawImun === undefined) return '-';
                               const num = Number(rawImun);
                               if (isNaN(num)) return '-';
                               const doses = num > 17 ? Math.min(17, Math.round((num / 100) * 17)) : num;
@@ -657,7 +675,7 @@ export function SPKCalculationPage() {
                             }`}>
                               Nilai {k5Score ?? 0}
                             </span>
-                            <span className="text-[10px] text-slate-400 mt-0.5">
+                            <span className="text-[10px] text-slate-500 font-medium mt-0.5">
                               {Number(k5Score) === 1
                                 ? 'MDD & MMF'
                                 : Number(k5Score) === 0.5
@@ -691,12 +709,22 @@ export function SPKCalculationPage() {
                       </td>
 
                       <td className="py-3.5 px-3 text-right">
-                        <button
-                          onClick={() => setSelectedResult(item)}
-                          className="px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 font-semibold text-xs cursor-pointer transition-colors"
-                        >
-                          Rincian
-                        </button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => navigate(`/staff/children/${item.childId}`)}
+                            className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs cursor-pointer transition-colors"
+                            title="Buka Data & Riwayat Balita"
+                          >
+                            Riwayat
+                          </button>
+                          <button
+                            onClick={() => setSelectedResult(item)}
+                            className="px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 font-semibold text-xs cursor-pointer transition-colors"
+                            title="Rincian Perhitungan SAW"
+                          >
+                            Rincian
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -814,10 +842,10 @@ export function SPKCalculationPage() {
                 </span>
               </div>
               <button
-                onClick={() => navigate(`/parent/children/${selectedResult.childId}`)}
+                onClick={() => navigate(`/staff/children/${selectedResult.childId}`)}
                 className="px-3 py-1.5 rounded-xl bg-teal-600 text-white font-semibold cursor-pointer hover:bg-teal-700 transition-colors"
               >
-                Buka Profil Anak
+                Buka Riwayat Anak
               </button>
             </div>
 

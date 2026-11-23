@@ -797,15 +797,53 @@ export function convertRawToStandardScores(rawValues = {}, ageGroupId = 4, sex =
 
   const isK5Active = isK5Applicable(ageMonths, grpId);
 
-  const rawBB = rawValues.K1 ?? rawValues.C1 ?? rawValues.beratBadan ?? 0;
-  const rawTB = rawValues.K2 ?? rawValues.C2 ?? rawValues.tinggiBadan ?? 0;
-  const rawLK = rawValues.K3 ?? rawValues.C3 ?? rawValues.lingkarKepala ?? 0;
-  const rawImun = rawValues.K4 ?? rawValues.C5 ?? rawValues.imunisasi ?? rawValues.raw_imun ?? 17;
+  // Ekstraksi nilai fisik aktual (beratBadan, tinggiBadan, lingkarKepala, imunisasi)
+  // JANGAN jadikan skor ordinal K1-K4 sebagai nilai ukur fisik riil (kg/cm)
+  const physicalBB = rawValues.beratBadan ?? rawValues.BB ?? rawValues.raw_bb ?? rawValues.C1;
+  const rawBB = physicalBB !== undefined && physicalBB !== null && !isNaN(Number(physicalBB)) && Number(physicalBB) > 0
+    ? Number(physicalBB)
+    : (rawValues.K1 !== undefined && Number(rawValues.K1) > 4 ? Number(rawValues.K1) : 0);
 
-  const bbRes = getBBScore(rawBB, grpId, sex);
-  const tbRes = getTBScore(rawTB, grpId, sex);
-  const lkRes = getLKScore(rawLK, grpId, sex);
-  const imunRes = getImunisasiScore(rawImun, grpId);
+  const physicalTB = rawValues.tinggiBadan ?? rawValues.TB ?? rawValues.raw_tb ?? rawValues.C2;
+  const rawTB = physicalTB !== undefined && physicalTB !== null && !isNaN(Number(physicalTB)) && Number(physicalTB) > 0
+    ? Number(physicalTB)
+    : (rawValues.K2 !== undefined && Number(rawValues.K2) > 4 ? Number(rawValues.K2) : 0);
+
+  const physicalLK = rawValues.lingkarKepala ?? rawValues.LK ?? rawValues.raw_lk ?? rawValues.C3;
+  const rawLK = physicalLK !== undefined && physicalLK !== null && !isNaN(Number(physicalLK)) && Number(physicalLK) > 0
+    ? Number(physicalLK)
+    : (rawValues.K3 !== undefined && Number(rawValues.K3) > 4 ? Number(rawValues.K3) : 0);
+
+  const physicalImun = rawValues.imunisasi ?? rawValues.Imunisasi ?? rawValues.raw_imun ?? rawValues.C5;
+  const rawImun = physicalImun !== undefined && physicalImun !== null && !isNaN(Number(physicalImun)) && Number(physicalImun) >= 0
+    ? Number(physicalImun)
+    : (rawValues.K4 !== undefined && Number(rawValues.K4) > 4 ? Number(rawValues.K4) : 17);
+
+  // Jika nilai fisik riil tersedia (> 0), hitung skor berdasarkan standar Permenkes / WHO
+  // Jika tidak ada nilai fisik tetapi skor ordinal K1-K4 sudah tersedia (1-4), pertahankan skor ordinal tersebut
+  const bbRes = rawBB > 0
+    ? getBBScore(rawBB, grpId, sex)
+    : (rawValues.K1 !== undefined && Number(rawValues.K1) >= 1 && Number(rawValues.K1) <= 4
+        ? { score: Number(rawValues.K1), label: `Skor ${rawValues.K1}` }
+        : getBBScore(0, grpId, sex));
+
+  const tbRes = rawTB > 0
+    ? getTBScore(rawTB, grpId, sex)
+    : (rawValues.K2 !== undefined && Number(rawValues.K2) >= 1 && Number(rawValues.K2) <= 4
+        ? { score: Number(rawValues.K2), label: `Skor ${rawValues.K2}` }
+        : getTBScore(0, grpId, sex));
+
+  const lkRes = rawLK > 0
+    ? getLKScore(rawLK, grpId, sex)
+    : (rawValues.K3 !== undefined && Number(rawValues.K3) >= 1 && Number(rawValues.K3) <= 4
+        ? { score: Number(rawValues.K3), label: `Skor ${rawValues.K3}` }
+        : getLKScore(0, grpId, sex));
+
+  const imunRes = physicalImun !== undefined && physicalImun !== null
+    ? getImunisasiScore(rawImun, grpId)
+    : (rawValues.K4 !== undefined && Number(rawValues.K4) >= 1 && Number(rawValues.K4) <= 4
+        ? { score: Number(rawValues.K4), label: `Skor ${rawValues.K4}` }
+        : getImunisasiScore(17, grpId));
 
   const scores = {
     K1: bbRes.score,
@@ -881,10 +919,10 @@ export function convertRawToStandardScores(rawValues = {}, ageGroupId = 4, sex =
     isUnder6Months: grpId === 1 || grpId === 2,
     k5Details,
     rawValues: {
-      BB: rawBB,
-      TB: rawTB,
-      LK: rawLK,
-      Imunisasi: rawImun,
+      BB: rawBB > 0 ? rawBB : (physicalBB ?? null),
+      TB: rawTB > 0 ? rawTB : (physicalTB ?? null),
+      LK: rawLK > 0 ? rawLK : (physicalLK ?? null),
+      Imunisasi: rawImun >= 0 ? rawImun : (physicalImun ?? null),
       ...(isK5Active ? { K5: scores.K5 } : {})
     }
   };

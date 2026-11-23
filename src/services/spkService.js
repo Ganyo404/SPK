@@ -23,6 +23,7 @@ import {
   getOfficialCriteriaForGroup,
   getOfficialWeightsForGroup
 } from '../lib/spk/scoringStandard';
+import { formatExam } from './examinationService';
 
 // Initial AHP active weights for 5 standardized criteria (Usia >= 6 bulan)
 let currentAHPMatrix = DEFAULT_AHP_5X5_MATRIX;
@@ -258,8 +259,32 @@ export const spkService = {
 
   // Jalankan perhitungan AHP + SAW untuk Kelompok Umur tertentu & Jenis Kelamin terpisah
   async runCalculationForCohort({ ageGroupId = 6, periodCode = '2026-10', gender = 'all', createdBy }) {
-    const exams = getLiveExaminations();
-    const children = getLiveChildren();
+    let exams = [];
+    let children = [];
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data: dbExams } = await supabase
+          .from('examinations')
+          .select('*, child:child_id(*)')
+          .eq('status', 'verified');
+        if (dbExams && dbExams.length > 0) {
+          exams = dbExams.map(formatExam);
+        }
+
+        const { data: dbChildren } = await supabase
+          .from('children')
+          .select('*');
+        if (dbChildren && dbChildren.length > 0) {
+          children = dbChildren;
+        }
+      } catch (err) {
+        console.warn('Supabase fetch in runCalculationForCohort warning:', err);
+      }
+    }
+
+    if (exams.length === 0) exams = getLiveExaminations().map(formatExam);
+    if (children.length === 0) children = getLiveChildren();
 
     const numericGroupId = Number(ageGroupId) || 6;
     const targetGroup = SPK_AGE_GROUPS.find((g) => g.id === numericGroupId) || SPK_AGE_GROUPS[5];
@@ -295,7 +320,8 @@ export const spkService = {
       const childSex = matchedChild?.sex || c.sex || 'L';
 
       // Konversi nilai ukur riil menjadi Skor Standar (1 - 4 untuk K1-K4, dan 0/0.5/1 untuk K5 jika aktif)
-      const conversion = convertRawToStandardScores(c.values || {}, targetGroup.id, childSex, ageInMonths);
+      const inputValues = c.measurements || c.values || {};
+      const conversion = convertRawToStandardScores(inputValues, targetGroup.id, childSex, ageInMonths);
 
       return {
         childId: c.child_id,
@@ -388,11 +414,19 @@ export const spkService = {
         });
 
         const resultsPayload = sawResult.results.map(r => ({
-          id: `res-${r.childId}-${periodCode}`,
+          id: `res-${r.childId}-${periodCode}-${gender}`,
           spk_run_id: newRun.id,
           child_id: r.childId,
           examination_id: r.examinationId,
-          raw_values_snapshot: r.rawValues || {},
+          raw_values_snapshot: {
+            ...r.rawValues,
+            K1: r.standardScores?.K1 ?? r.values?.K1,
+            K2: r.standardScores?.K2 ?? r.values?.K2,
+            K3: r.standardScores?.K3 ?? r.values?.K3,
+            K4: r.standardScores?.K4 ?? r.values?.K4,
+            K5: r.standardScores?.K5 ?? r.values?.K5,
+            k5Value: r.rawValues?.K5 ?? r.standardScores?.K5
+          },
           normalized_values: r.normalizedValues || {},
           weights_snapshot: activeWeights,
           contributions: r.contributions || {},
@@ -427,25 +461,49 @@ export const spkService = {
           const run = runs[0];
           const { data: results } = await supabase
             .from('spk_results')
-            .select('*, child:child_id(name, sex, date_of_birth)')
+            .select('*, child:child_id(name, sex, date_of_birth), examination:examination_id(id, measurements)')
             .eq('spk_run_id', run.id)
             .order('rank', { ascending: true });
 
           if (results && results.length > 0) {
             run.saw_output = {
               valid: true,
-              results: results.map((r) => ({
-                childId: r.child_id,
-                childName: r.child?.name || 'Balita',
-                sex: r.child?.sex,
-                rank: r.rank,
-                preferenceScore: Number(r.preference_score),
-                statusFlag: r.clinical_status,
-                rawValues: r.raw_values_snapshot,
-                normalizedValues: r.normalized_values,
-                contributions: r.contributions,
-                examinationId: r.examination_id
-              }))
+              results: results.map((r) => {
+                const m = r.examination?.measurements || {};
+                const snap = r.raw_values_snapshot || {};
+                const norm = r.normalized_values || {};
+
+                const rawValues = {
+                  BB: m.BB ?? m.beratBadan ?? m.C1 ?? (snap.BB !== undefined ? snap.BB : null),
+                  TB: m.TB ?? m.tinggiBadan ?? m.C2 ?? (snap.TB !== undefined ? snap.TB : null),
+                  LK: m.LK ?? m.lingkarKepala ?? m.C3 ?? (snap.LK !== undefined ? snap.LK : null),
+                  Imunisasi: m.Imunisasi ?? m.imunisasi ?? m.C5 ?? (snap.Imunisasi !== undefined ? snap.Imunisasi : null),
+                  K5: m.K5 ?? m.k5Value ?? (snap.K5 !== undefined ? snap.K5 : (norm.K5 !== undefined ? norm.K5 : 1))
+                };
+
+                const standardScores = {
+                  K1: m.K1 ?? snap.K1 ?? (norm.K1 ? Math.round(norm.K1 * 4) : 4),
+                  K2: m.K2 ?? snap.K2 ?? (norm.K2 ? Math.round(norm.K2 * 4) : 4),
+                  K3: m.K3 ?? snap.K3 ?? (norm.K3 ? Math.round(norm.K3 * 4) : 4),
+                  K4: m.K4 ?? snap.K4 ?? (norm.K4 ? Math.round(norm.K4 * 4) : 4),
+                  K5: m.K5 ?? m.k5Value ?? snap.K5 ?? (norm.K5 !== undefined ? norm.K5 : 1)
+                };
+
+                return {
+                  childId: r.child_id,
+                  childName: r.child?.name || 'Balita',
+                  sex: r.child?.sex,
+                  rank: r.rank,
+                  preferenceScore: Number(r.preference_score),
+                  statusFlag: r.clinical_status,
+                  rawValues,
+                  standardScores,
+                  values: standardScores,
+                  normalizedValues: r.normalized_values,
+                  contributions: r.contributions,
+                  examinationId: r.examination_id
+                };
+              })
             };
             return { data: run, error: null };
           }
