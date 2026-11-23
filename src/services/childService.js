@@ -3,7 +3,7 @@ import { MOCK_CHILDREN, MOCK_POSYANDU, MOCK_EXAMINATIONS } from '../lib/mockData
 import { getChildAgeGroup } from '../lib/spk/ageGroups';
 
 const CHILDREN_STORAGE_KEY = 'spk_children_store';
-const MOCK_DATA_VERSION = 'v2026.11.23-14balita';
+const MOCK_DATA_VERSION = 'v2026.11.23-clean14balita';
 
 function loadStoredChildren() {
   try {

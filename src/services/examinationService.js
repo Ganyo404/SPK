@@ -4,7 +4,7 @@ import { getChildAgeGroup } from '../lib/spk/ageGroups';
 import { convertRawToStandardScores } from '../lib/spk/scoringStandard';
 
 const EXAMINATIONS_STORAGE_KEY = 'spk_examinations_store';
-const MOCK_DATA_VERSION = 'v2026.11.23-14balita';
+const MOCK_DATA_VERSION = 'v2026.11.23-clean14balita';
 
 function loadStoredExaminations() {
   try {
