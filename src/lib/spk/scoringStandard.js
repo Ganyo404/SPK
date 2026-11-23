@@ -596,14 +596,14 @@ export function getImunisasiScore(val, groupId = 4) {
  * Digunakan untuk balita usia 6–23 bulan.
  */
 export const MDD_FOOD_GROUPS = [
-  { id: 'asi', name: 'ASI', description: 'Air susu ibu' },
-  { id: 'staples', name: 'Biji-bijian, umbi, dan pangan pokok', description: 'Nasi, jagung, gandum, kentang, ubi' },
-  { id: 'legumes', name: 'Kacang-kacangan dan biji-bijian', description: 'Kacang hijau, kacang merah, kedelai, kacang tanah' },
-  { id: 'dairy', name: 'Produk susu', description: 'Susu, susu formula, yoghurt, keju' },
-  { id: 'flesh', name: 'Daging dan ikan', description: 'Daging sapi, ayam, ikan, hati, dan jeroan' },
-  { id: 'eggs', name: 'Telur', description: 'Telur ayam, telur bebek, dan jenis telur lainnya' },
-  { id: 'vitamin_a', name: 'Buah dan sayuran kaya vitamin A', description: 'Wortel, labu, mangga matang, pepaya, sayuran hijau tertentu' },
-  { id: 'other_fruits_veg', name: 'Buah dan sayuran lainnya', description: 'Pisang, apel, tomat, dan buah atau sayuran lainnya' },
+  { id: 'asi', key: 'asi', name: 'ASI', description: 'Air susu ibu', example: 'Air susu ibu' },
+  { id: 'staples', key: 'staples', name: 'Biji-bijian, umbi, dan pangan pokok', description: 'Nasi, jagung, gandum, kentang, ubi', example: 'Nasi, jagung, gandum, kentang, ubi' },
+  { id: 'legumes', key: 'legumes', name: 'Kacang-kacangan dan biji-bijian', description: 'Kacang hijau, kacang merah, kedelai, kacang tanah', example: 'Kacang hijau, merah, kedelai, tahu, tempe' },
+  { id: 'dairy', key: 'dairy', name: 'Produk susu', description: 'Susu, susu formula, yoghurt, keju', example: 'Susu, susu formula, yoghurt, keju' },
+  { id: 'flesh', key: 'flesh', name: 'Daging dan ikan', description: 'Daging sapi, ayam, ikan, hati, dan jeroan', example: 'Daging sapi, ayam, ikan, hati, jeroan' },
+  { id: 'eggs', key: 'eggs', name: 'Telur', description: 'Telur ayam, telur bebek, dan jenis telur lainnya', example: 'Telur ayam, telur bebek' },
+  { id: 'vitamin_a', key: 'vitamin_a', altId: 'vit_a', name: 'Buah dan sayuran kaya vitamin A', description: 'Wortel, labu, mangga matang, pepaya, sayuran hijau tertentu', example: 'Wortel, labu, mangga, pepaya, bayam' },
+  { id: 'other_fruits_veg', key: 'other_fruits_veg', name: 'Buah dan sayuran lainnya', description: 'Pisang, apel, tomat, dan buah atau sayuran lainnya', example: 'Pisang, apel, tomat, jeruk, dll.' },
 ];
 
 /**
@@ -623,7 +623,9 @@ export function calculateMDD(foodGroups) {
     const selected = new Set(foodGroups.filter(id => validIds.has(id)));
     count = selected.size;
   } else if (foodGroups && typeof foodGroups === 'object') {
-    count = MDD_FOOD_GROUPS.filter(g => Boolean(foodGroups[g.id])).length;
+    count = MDD_FOOD_GROUPS.filter(g => Boolean(
+      foodGroups[g.id] || foodGroups[g.key] || (g.altId && foodGroups[g.altId])
+    )).length;
   }
 
   const score = count >= 5 ? 1 : 0;

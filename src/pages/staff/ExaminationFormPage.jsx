@@ -127,6 +127,7 @@ export function ExaminationFormPage() {
       dairy: false,
       flesh: false,
       eggs: false,
+      vitamin_a: false,
       vit_a: false,
       other_fruits_veg: false,
     },
@@ -296,14 +297,34 @@ export function ExaminationFormPage() {
     setValues(prev => ({ ...prev, [field]: val }));
   };
 
-  const handleMddGroupToggle = (groupKey) => {
+  const handleBreastfeedingChange = (status) => {
     setValues(prev => ({
       ...prev,
+      breastfeeding: status,
       mddFoodGroups: {
         ...prev.mddFoodGroups,
-        [groupKey]: !prev.mddFoodGroups?.[groupKey]
+        asi: status === 'masih_asi'
       }
     }));
+  };
+
+  const handleMddGroupToggle = (groupId) => {
+    if (!groupId) return;
+    setValues(prev => {
+      const current = prev.mddFoodGroups || {};
+      const currentVal = Boolean(current[groupId] ?? (groupId === 'vitamin_a' ? current.vit_a : false));
+      const nextVal = !currentVal;
+      const updated = {
+        ...current,
+        [groupId]: nextVal
+      };
+      if (groupId === 'vitamin_a') updated.vit_a = nextVal;
+      if (groupId === 'vit_a') updated.vitamin_a = nextVal;
+      return {
+        ...prev,
+        mddFoodGroups: updated
+      };
+    });
   };
 
   const validateAllCriteria = () => {
@@ -1031,7 +1052,7 @@ export function ExaminationFormPage() {
                       name="breastfeeding"
                       value="masih_asi"
                       checked={values.breastfeeding === 'masih_asi'}
-                      onChange={() => handleInputChange('breastfeeding', 'masih_asi')}
+                      onChange={() => handleBreastfeedingChange('masih_asi')}
                       className="text-teal-600 focus:ring-teal-500"
                     />
                     <div>
@@ -1054,7 +1075,7 @@ export function ExaminationFormPage() {
                       name="breastfeeding"
                       value="tidak_asi"
                       checked={values.breastfeeding === 'tidak_asi'}
-                      onChange={() => handleInputChange('breastfeeding', 'tidak_asi')}
+                      onChange={() => handleBreastfeedingChange('tidak_asi')}
                       className="text-teal-600 focus:ring-teal-500"
                     />
                     <div>
@@ -1096,11 +1117,14 @@ export function ExaminationFormPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {MDD_FOOD_GROUPS.map((group) => {
-                    const isChecked = Boolean(values.mddFoodGroups?.[group.key]);
+                    const isChecked = Boolean(
+                      values.mddFoodGroups?.[group.id] ||
+                      values.mddFoodGroups?.[group.key] ||
+                      (group.altId && values.mddFoodGroups?.[group.altId])
+                    );
                     return (
                       <label
-                        key={group.key}
-                        onClick={() => handleMddGroupToggle(group.key)}
+                        key={group.id}
                         className={`flex items-start gap-2.5 p-2.5 rounded-xl border cursor-pointer select-none transition-all ${
                           isChecked
                             ? 'bg-teal-50/80 border-teal-400 ring-1 ring-teal-400/30'
@@ -1110,15 +1134,15 @@ export function ExaminationFormPage() {
                         <input
                           type="checkbox"
                           checked={isChecked}
-                          onChange={() => {}} // handled by label onClick
-                          className="mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                          onChange={() => handleMddGroupToggle(group.id)}
+                          className="mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 cursor-pointer"
                         />
-                        <div className="min-w-0">
+                        <div className="min-w-0 pointer-events-none">
                           <span className="text-xs font-bold text-slate-900 block truncate">
                             {group.name}
                           </span>
                           <span className="text-[10px] text-slate-500 block truncate">
-                            {group.example}
+                            {group.description || group.example}
                           </span>
                         </div>
                       </label>
